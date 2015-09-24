@@ -5,7 +5,7 @@ import base64
 import json
 import urllib2
 
-from athena import setting
+from youli import setting
 
 def get_user_roles_by_project(project_id, username):
     options = dict(params=(project_id, username))

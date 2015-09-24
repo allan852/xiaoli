@@ -4,9 +4,9 @@ import posixpath
 
 APP_NAME = 'youli'
 
-BODY_TAG = 'athena'
+BODY_TAG = 'youli'
 
-SECRET_KEY = 'athena'
+SECRET_KEY = 'youli'
 
 DEFAULT_INIT_LOCALE = 'zh_CN'
 

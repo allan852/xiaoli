@@ -8,11 +8,11 @@ from bson import ObjectId
 
 from flask import url_for
 
-from athena.models.account import Account
-from athena.models.translation_task import TranslationTask
-from athena.models.translation_result import TransSuggestion
+from youli.models.account import Account
+from youli.models.translation_task import TranslationTask
+from youli.models.translation_result import TransSuggestion
 
-from athena.utils.format_data import format_time
+from youli.utils.format_data import format_time
 
 
 def get_user_trans_lang_pair(user_id):
