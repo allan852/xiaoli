@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 from flask.ext.script import Manager
-from youli import create_app
-from youli.config import setting
+from xiaoli import create_app
+from xiaoli.config import setting
 
 __author__ = 'zouyingjun'
 
