@@ -16,4 +16,12 @@ ATHENA_PATH = os.path.dirname(posixpath.dirname(__file__.replace('\\', '/')))
 
 VERSION = open(os.path.join(ATHENA_PATH, 'VERSION'), 'r').read()
 
-TEMP_DIR = '/home/xingxin/tmp'
+DB_META = {
+    "db_name": "xiaoli",
+    "user": "",
+    "password": "",
+    "host": "",
+    "port": 3306
+}
+
+

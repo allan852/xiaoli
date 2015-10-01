@@ -18,3 +18,8 @@ LOG_FILE = posixpath.join(LOG_FILE_PATH, '%s.log' % APP_NAME)
 MEMCACHED_MACHINES = ['127.0.0.1:11211']
 
 HOME_URL = 'http://127.0.0.1:5000'
+
+DB_META = {
+    "db_name": "xiaoli",
+    "path":os.path.dirname(ATHENA_PATH)
+}
