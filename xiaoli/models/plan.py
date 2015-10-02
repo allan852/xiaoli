@@ -19,7 +19,7 @@ class Plan(Base):
     # 作者id
     author_id = Column(Integer, ForeignKey("accounts.id"))
     # 封面图片id
-    cover_image_id = Column(Integer, ForeignKey("images.id"))
+    cover_image_id = Column(Integer, ForeignKey("image_resources.id"))
     # 阅读次数
     view_count = Column(BigInteger)
     # 分享次数
@@ -45,7 +45,7 @@ class PlanKeyword(Base):
 
 # 方案和关键字关系表
 plan_keyword_rel = Table(
-    "plan_keyword_rel", Base.metadate,
+    "plan_keyword_rel", Base.metadata,
     Column("plan_id", Integer, ForeignKey("plans.id")),
     Column("plan_keyword_id", Integer, ForeignKey("plan_keywords.id"))
 )
@@ -53,14 +53,14 @@ plan_keyword_rel = Table(
 
 # 点赞表
 stars = Table(
-    "stars", Base.metadate,
+    "stars", Base.metadata,
     Column("plan_id", Integer, ForeignKey("plans.id")),
     Column("account_id", Integer, ForeignKey("accounts.id"))
 )
 
 # 收藏表
 collections = Table(
-    "collections", Base.metadate,
+    "collections", Base.metadata,
     Column("plan_id", Integer, ForeignKey("plans.id")),
     Column("operator_id", Integer, ForeignKey("accounts.id"))
 )

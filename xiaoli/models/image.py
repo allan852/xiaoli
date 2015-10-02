@@ -6,6 +6,7 @@ from xiaoli.models import Base
 
 __author__ = 'zouyingjun'
 
+
 class ImageResource(Base):
     __tablename__ = "image_resources"
 

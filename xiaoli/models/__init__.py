@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import datetime
-from sqlalchemy import create_engine, Column, Integer, DateTime
+from sqlalchemy import create_engine, Column, DateTime
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from xiaoli.config import setting

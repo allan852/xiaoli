@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-import inspect
 from flask.ext.script import Manager, prompt_bool
 from xiaoli import create_app
 from xiaoli.config import setting
 from xiaoli.models import Base, engine
 from xiaoli import models
-from xiaoli.models.account import Account
+from xiaoli.models import account
+from xiaoli.models import feedback
+from xiaoli.models import image
+from xiaoli.models import notice
+from xiaoli.models import plan
 
 __author__ = 'zouyingjun'
 
@@ -47,6 +50,8 @@ def drop_tables():
 @manager.command
 def create_tables(default_data=True, sample_data=False):
     "Creates database tables from sqlalchemy models"
+    import pprint
+    pprint.pprint(Base.metadata.tables)
     Base.metadata.create_all()
 
 
