@@ -50,6 +50,7 @@ def get_next_of_one_month(date):
     ret_date = datetime.replace(date, year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0)
     return ret_date
 
+
 def is_first_day_in_month(date):
     u"""给定的时间是不是一个中第一天"""
     if date.month == 1:
@@ -119,3 +120,5 @@ if __name__ == "__main__":
     print get_previous_month()
 
     print is_current_month(datetime.now().replace(year=2013))
+
+    print get_next_n_days(7)

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Table
-from xiaoli.models import Base
+from werkzeug.security import generate_password_hash, check_password_hash
+from xiaoli.models import Base, db_session_cm
 
 __author__ = 'zouyingjun'
 
@@ -24,14 +25,18 @@ class Account(Base):
         ("Pisces", "雙魚座"),
     )
 
+    STATUS_ACTIVE = "active"
+    STATUS_FREEZE = "freeze"
     STATUS_CHOICES = (
-        ("active", "激活"),
-        ("freeze", "冻结"),
+        (STATUS_ACTIVE, "激活"),
+        (STATUS_FREEZE, "冻结"),
     )
 
+    TYPE_USER = "user"
+    TYPE_ADMIN = "admin"
     TYPE_CHOICES = (
-        ('user', "普通用户"),
-        ('admin', "系统管理员")
+        (TYPE_USER, "普通用户"),
+        (TYPE_ADMIN, "系统管理员")
     )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -43,8 +48,6 @@ class Account(Base):
     email = Column(String(128))
     # password, 加密后信息
     _password = Column(String(128), nullable=False)
-    # salt 加密盐
-    salt = Column(String(128))
     # 性别
     sex = Column(String(16))
     # 生日
@@ -52,13 +55,43 @@ class Account(Base):
     # 星座
     horoscope = Column(String(16))
     # 账户状态
-    status = Column(String(64), nullable=False)
+    status = Column(String(64), default=STATUS_ACTIVE)
     # 账户类型
-    type = Column(String(64), nullable=False)
+    type = Column(String(64), default=TYPE_USER)
     # 是否接受系统通知
     allow_notice = Column(Boolean, default=True)
     # 是否允许别人给自己打分
     allow_score = Column(Boolean, default=True)
+
+    @property
+    def is_admin(self):
+        return self.type == Account.TYPE_ADMIN
+
+    @property
+    def password(self):
+        return self._password
+
+    @password.setter
+    def password(self, pw):
+        self._password = generate_password_hash(pw, salt_length=16)
+
+    def check_password(self, pw):
+        return check_password_hash(self.pw_hash, pw)
+
+    @classmethod
+    def exists_phone(cls, phone):
+        with db_session_cm as session:
+            return session.query(Account).filter(Account.cellphone == phone).exists()
+
+    @classmethod
+    def create(cls, phone, password):
+        user = Account()
+        user.cellphone = phone
+        user.password = password
+        with db_session_cm() as session:
+            session.add(user)
+            session.commit()
+        return user
 
 
 friends = Table(

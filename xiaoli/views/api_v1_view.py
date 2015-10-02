@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 from flask import Blueprint, abort, request
+from xiaoli.helpers import api_response
+from xiaoli.models import db_session_cm
+from xiaoli.models.account import Account
+from xiaoli.models.token import Token
 
 __author__ = 'zouyingjun'
 
@@ -15,7 +19,20 @@ def register():
         password = request.form.get("password")
         password2 = request.form.get("password2")
         security_code = request.form.get("security_code")
+        res = api_response()
 
+        if Account.exists_phone(phone):
+            res.update(status="fail", response={
+                "code": 1500,
+                "message": "phone exists"
+            })
+            return res
+        user = Account.create(phone, password)
+        res.update(response={
+            "status": "ok",
+            "account_id": user.id,
+            "token": Token.get_token(user.id).code
+        })
     except Exception as e:
         abort(400)
 
@@ -35,6 +52,15 @@ def logout():
     u"""登出"""
     try:
         account_id = request.form.get("account_id")
+    except Exception as e:
+        abort(400)
+
+
+@api_v1.route("/send_security_code", methods=["POST"])
+def send_security_code():
+    u"""发送短信"""
+    try:
+        phone = request.form.get("phone")
     except Exception as e:
         abort(400)
 
