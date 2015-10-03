@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 from flask.ext.login import UserMixin
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Table
+from sqlalchemy.orm import relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 from xiaoli.models import Base, db_session_cm
 
@@ -63,6 +64,15 @@ class Account(Base, UserMixin):
     allow_notice = Column(Boolean, default=True)
     # 是否允许别人给自己打分
     allow_score = Column(Boolean, default=True)
+
+    # relationship
+    avatar = relationship("Avatar", backref="account", uselist=False)
+    scores = relationship("Score", backref="account", foreign_keys="[Score.target_id]")
+    added_scores = relationship("Score", backref="account", foreign_keys="[Score.operator_id]")
+    impresses = relationship("Impress", backref="account", foreign_keys="[Impress.target_id]")
+    added_impresses = relationship("Impress", backref="account", foreign_keys="[Impress.operator_id]")
+    comments = relationship("Comment", backref="account", foreign_keys="[Comment.target_id]")
+    added_comments = relationship("Comment", backref="account", foreign_keys="[Comment.operator_id]")
 
     @property
     def is_admin(self):
@@ -171,13 +181,23 @@ class Impress(Base):
     # 印象内容id
     content_id = Column(Integer, ForeignKey("impress_contents.id"))
 
+    # relationship
+    contents = relationship("ImpressContent", backref="impress", uselist=False)
+    preset_contents = relationship("ImpressContent",
+                                   backref="impress",
+                                   primaryjoin="and_(Impress.content_id==ImpressContent.id, "
+                                               "ImpressContent.type=='preset')")
+
 
 class ImpressContent(Base):
     __tablename__ = "impress_contents"
 
+    TYPE_PRESET = "preset"
+    TYPE_USERADDED = "useradded"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     # 印象内容类型
-    type = Column(String(16), nullable=False)
+    type = Column(String(16), nullable=False, default=TYPE_USERADDED)
     # 印象内容
     content = Column(String(10), nullable=False)
 

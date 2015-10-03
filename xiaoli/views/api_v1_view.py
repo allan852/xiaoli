@@ -145,6 +145,8 @@ def account_impress(account_id):
                     "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
                     "message": "user not exists"
                 })
+
+        return jsonify(res)
     except Exception as e:
         abort(400)
 
