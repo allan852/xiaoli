@@ -14,10 +14,10 @@ __all = ["engine", "Session", "Base", "db_session_cm"]
 if setting.DEBUG:
     database_url = "sqlite:///%(path)s/%(db_name)s.db" % setting.DB_META
     print "Using DB %s" % database_url
+    engine = create_engine(database_url, echo=True)
 else:
     database_url = "mysql://%(user)s:%(password)s@%(host)s:%(port)s/%(db_name)" % setting.DB_META
-
-engine = create_engine(database_url)
+    engine = create_engine(database_url)
 Session = sessionmaker(bind=engine)
 
 
