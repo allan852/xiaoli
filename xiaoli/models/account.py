@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 from flask.ext.login import UserMixin
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Table
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Table, func
+from sqlalchemy.orm import relationship, object_session
 from werkzeug.security import generate_password_hash, check_password_hash
+from xiaoli.config import setting
 from xiaoli.models import Base, db_session_cm
 
 __author__ = 'zouyingjun'
@@ -71,8 +72,19 @@ class Account(Base, UserMixin):
     added_scores = relationship("Score", backref="account", foreign_keys="[Score.operator_id]")
     impresses = relationship("Impress", backref="account", foreign_keys="[Impress.target_id]")
     added_impresses = relationship("Impress", backref="account", foreign_keys="[Impress.operator_id]")
-    comments = relationship("Comment", backref="account", foreign_keys="[Comment.target_id]")
-    added_comments = relationship("Comment", backref="account", foreign_keys="[Comment.operator_id]")
+    comments = relationship("Comment", backref="account", foreign_keys="[Comment.target_id]",
+                            order_by="Comment.create_time.desc()", lazy="dynamic")
+    added_comments = relationship("Comment", backref="account", foreign_keys="[Comment.operator_id]",
+                                  order_by="Comment.create_time.desc()", lazy="dynamic")
+    friends = relationship("Account",
+                           secondary="friends_rel",
+                           primaryjoin="Account.id==friends_rel.c.account_id",
+                           secondaryjoin="Account.id==friends_rel.c.friend_account_id",
+                           backref="account")
+
+    collect_plans = relationship("Plan", secondary="collections_table", lazy="dynamic")
+    star_plans = relationship("Plan", secondary="stars_table", lazy="dynamic")
+
 
     @property
     def is_admin(self):
@@ -104,6 +116,16 @@ class Account(Base, UserMixin):
             session.commit()
         return user
 
+    def impresses_with_group(self):
+        u"""按照印象内容分组获得印象个数量"""
+        session = object_session(self)
+        query = session.query(Account, ImpressContent.c.content, func.count(Impress.c.id).label("total"))\
+            .join(Account.impresses, Impress.content).group_by(Impress.content_id)
+
+        res = query.all()
+
+        return res
+
     def to_dict(self):
         d = {
             "id": self.id,
@@ -121,14 +143,14 @@ class Account(Base, UserMixin):
         return d
 
 
-friends = Table(
-    "friends", Base.metadata,
+friends_rel = Table(
+    "friends_rel", Base.metadata,
     Column("account_id", Integer, ForeignKey("accounts.id"), primary_key=True),
     Column("friend_account_id", Integer, ForeignKey("accounts.id"), primary_key=True)
 )
 
-# class Friend(Base):
-#     __tablename__ = "friends"
+# class FriendRel(Base):
+#     __tablename__ = "friends_res"
 #
 #     account_id = Column(Integer, ForeignKey("accounts.id"), primary_key=True)
 #     friend_account_id = Column(Integer, ForeignKey("accounts.id"), primary_key=True)
@@ -161,6 +183,8 @@ class Score(Base):
 class Comment(Base):
     __tablename__ = "comments"
 
+    PER_PAGE = setting.PER_PAGE
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     # 被评论人id， 外键
     target_id = Column(Integer, ForeignKey("accounts.id"))
@@ -182,7 +206,7 @@ class Impress(Base):
     content_id = Column(Integer, ForeignKey("impress_contents.id"))
 
     # relationship
-    contents = relationship("ImpressContent", backref="impress", uselist=False)
+    content = relationship("ImpressContent", backref="impress", uselist=False)
     preset_contents = relationship("ImpressContent",
                                    backref="impress",
                                    primaryjoin="and_(Impress.content_id==ImpressContent.id, "
