@@ -14,3 +14,10 @@ class ErrorCode(object):
     CODE_LOGIN_PHONE_NOT_EXISTS = 1601
     # 登陆时密码错误
     CODE_LOGIN_PASSWORD_INCORRECT = 1602
+
+    # 用户TOKEN不存在
+    CODE_TOKEN_NOT_EXISTS = 1701
+
+    # 用户不存在
+    CODE_ACCOUNT_NOT_EXISTS = 1801
+

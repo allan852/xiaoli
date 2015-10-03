@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-from flask import Blueprint, abort, request
+from flask import Blueprint, abort, request, jsonify
 from xiaoli.helpers import api_response, check_register_params, ErrorCode
 from xiaoli.models import db_session_cm
 from xiaoli.models.account import Account
@@ -34,6 +34,7 @@ def register():
             "account_id": user.id,
             "token": Token.get_token(user.id).code
         })
+        jsonify(res)
     except Exception as e:
         abort(400)
 
@@ -50,13 +51,13 @@ def login():
         with db_session_cm() as session:
             user = session.query(Account).filter(Account.cellphone == phone).first()
             if not user:
-                res.update(status = "fail", response={
+                res.update(status="fail", response={
                     "code": ErrorCode.CODE_LOGIN_PHONE_NOT_EXISTS,
                     "message": "phone not exists"
                 })
                 return res
             if not user.check_password(password):
-                res.update(status = "fail", response={
+                res.update(status="fail", response={
                     "code": ErrorCode.CODE_LOGIN_PASSWORD_INCORRECT,
                     "message": "password incorrect"
                 })
@@ -68,15 +69,32 @@ def login():
                 "account_id": user.id,
                 "token": Token.get_token(user.id, force_update=True).code
             })
+        jsonify(res)
     except Exception as e:
         abort(400)
 
 
 @api_v1.route("/logout", methods=["POST"])
 def logout():
-    u"""登出"""
+    u"""登出
+    删除用户的token
+    """
     try:
         account_id = request.form.get("account_id")
+        res = api_response()
+        with db_session_cm() as session:
+            token = session.query(Token).filter(Token.account_id == account_id).frist()
+            if token:
+                session.delete(token)
+                session.commit()
+                res.update(response={"status": "ok"})
+            else:
+                res.update(status="fail", response={
+                    "code": ErrorCode.CODE_TOKEN_NOT_EXISTS,
+                    "message": "token not exists"
+                })
+        return jsonify(res)
+
     except Exception as e:
         abort(400)
 
@@ -94,7 +112,19 @@ def send_security_code():
 def account_info(account_id):
     u"""获取用户基本信息"""
     try:
-        pass
+        res = api_response()
+        with db_session_cm() as session:
+            account = session.query(Account).get(account_id)
+            if account:
+                res.update(response={
+                    "user": account.to_dict()
+                })
+            else:
+                res.update(status="fail",response={
+                    "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
+                    "message": "user not exists"
+                })
+        return jsonify(res)
     except Exception as e:
         abort(400)
 
@@ -103,7 +133,18 @@ def account_info(account_id):
 def account_impress(account_id):
     u"""获取用户印象"""
     try:
-        pass
+        res = api_response()
+        with db_session_cm() as session:
+            account = session.query(Account).get(account_id)
+            if account:
+                res.update(response={
+                    "impresses": []
+                })
+            else:
+                res.update(status="fail",response={
+                    "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
+                    "message": "user not exists"
+                })
     except Exception as e:
         abort(400)
 

@@ -94,6 +94,22 @@ class Account(Base, UserMixin):
             session.commit()
         return user
 
+    def to_dict(self):
+        d = {
+            "id": self.id,
+            "nickname": self.nickname,
+            "cellphone": self.cellphone,
+            "email": self.email,
+            "sex": self.sex,
+            "birthday": self.birthday,
+            "horoscope": self.horoscope,
+            "status": self.status,
+            "type": self.type,
+            "score": 0,
+            "avatar_url": ""
+        }
+        return d
+
 
 friends = Table(
     "friends", Base.metadata,

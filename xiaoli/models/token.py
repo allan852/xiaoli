@@ -27,12 +27,12 @@ class Token(Base):
     # 通知接受者id, 外键
     account_id = Column(Integer, ForeignKey("accounts.id"), unique=True)
     # token
-    code = Column(String(32), nullable=False, unique=True)
+    code = Column(String(32), nullable=False, unique=True, index=True)
     # expire date
     expire_date = Column(DateTime, default=token_expire_date)
 
     @property
-    def is_expire(self):
+    def is_expired(self):
         u"""是否过期"""
         return self.expire_date < datetime.datetime.now()
 
@@ -58,3 +58,23 @@ class Token(Base):
                 session.add(token)
                 session.commit()
                 return token
+
+    @classmethod
+    def is_valid_code(cls, code):
+        u"""检测token的合法性(是否存在，是否过期)"""
+        with db_session_cm() as session:
+            query = session.query(Token).filter(Token.code == code)
+            exists = query.exists()
+            if exists:
+                return False
+            token = query.one()
+            if token.is_expired:
+                return False
+        return True
+
+    @classmethod
+    def code_to_account_id(cls, code):
+        u"""通过过token用的用户id"""
+        with db_session_cm() as session:
+            token = session.query(Token).filter(Token.code == code).one()
+            return token.account_id
