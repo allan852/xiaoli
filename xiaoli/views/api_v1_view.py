@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 from flask import Blueprint, abort, request
-from xiaoli.helpers import api_response
+from xiaoli.helpers import api_response, check_register_params, ErrorCode
 from xiaoli.models import db_session_cm
 from xiaoli.models.account import Account
 from xiaoli.models.token import Token
@@ -19,15 +19,16 @@ def register():
         password = request.form.get("password")
         password2 = request.form.get("password2")
         security_code = request.form.get("security_code")
-        res = api_response()
-
-        if Account.exists_phone(phone):
-            res.update(status="fail", response={
-                "code": 1500,
-                "message": "phone exists"
-            })
+        ok, res = check_register_params(**{
+            "phone": phone,
+            "password": password,
+            "password2": password2,
+            "security_code": security_code
+        })
+        if not ok:
             return res
         user = Account.create(phone, password)
+        res = api_response()
         res.update(response={
             "status": "ok",
             "account_id": user.id,
@@ -43,6 +44,30 @@ def login():
     try:
         phone = request.form.get("phone")
         password = request.form.get("password")
+
+        res = api_response()
+
+        with db_session_cm() as session:
+            user = session.query(Account).filter(Account.cellphone == phone).first()
+            if not user:
+                res.update(status = "fail", response={
+                    "code": ErrorCode.CODE_LOGIN_PHONE_NOT_EXISTS,
+                    "message": "phone not exists"
+                })
+                return res
+            if not user.check_password(password):
+                res.update(status = "fail", response={
+                    "code": ErrorCode.CODE_LOGIN_PASSWORD_INCORRECT,
+                    "message": "password incorrect"
+                })
+                return res
+
+            res = api_response()
+            res.update(response={
+                "status": "ok",
+                "account_id": user.id,
+                "token": Token.get_token(user.id, force_update=True).code
+            })
     except Exception as e:
         abort(400)
 

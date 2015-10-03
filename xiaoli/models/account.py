@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+from flask.ext.login import UserMixin
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Table
 from werkzeug.security import generate_password_hash, check_password_hash
 from xiaoli.models import Base, db_session_cm
@@ -7,7 +8,7 @@ from xiaoli.models import Base, db_session_cm
 __author__ = 'zouyingjun'
 
 
-class Account(Base):
+class Account(Base, UserMixin):
     __tablename__ = 'accounts'
 
     HOROSCOPE_CHOICES = (

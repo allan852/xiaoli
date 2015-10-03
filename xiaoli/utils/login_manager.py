@@ -3,6 +3,7 @@
 from flask.ext.babel import gettext as _
 from flask import request, abort, redirect
 from flask.ext.login import LoginManager, login_url, AnonymousUserMixin
+from xiaoli.models import db_session_cm
 
 from xiaoli.models.account import Account
 
@@ -20,7 +21,8 @@ def init_app(app):
 def user_loader(user_id):
     user = AnonymousUserMixin()
     if user_id:
-        user = Account.get_by_id(user_id)
+        with db_session_cm() as session:
+            user = session.query(Account).get(user_id)
     return user
 
 
