@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-from flask import Blueprint, abort, request
+import traceback
+from flask import Blueprint, abort, request,jsonify
+from flask.ext.paginate import Pagination
+from flask_sqlalchemy import get_debug_queries
 from xiaoli.helpers import api_response, check_register_params, ErrorCode
 from xiaoli.models import db_session_cm
 from xiaoli.models.account import Account
+from xiaoli.models.plan import Plan,PlanKeyword,PlanContent
 from xiaoli.models.token import Token
+
 
 __author__ = 'zouyingjun'
 
@@ -130,11 +135,28 @@ def account_friends(account_id):
 def plans():
     u"""获取礼物方案列表"""
     try:
-        page = request.args.get("page", 1)
-        per_page = request.args.get("per_page", 10)
+        page = int(request.args.get("page", 1))
+        per_page = int(request.args.get("per_page", 10))
         search_key = request.args.get("search_key", None)
         key_word_id = request.args.get("key_word_id", None)
+        with db_session_cm() as session:
+            plans = session.query(Plan).join((PlanContent, Plan.contents)).join((PlanKeyword,Plan.keywords))
+            if search_key:
+                plans = plans.filter(Plan.title.like('%' + search_key + '%'))
+            if key_word_id:
+                plans = plans.filter(PlanKeyword.id == key_word_id)
+
+        plans = plans.all()
+
+        pagination = Pagination(page=page,per_page=per_page, total=len(plans), search=search_key, record_name='plans')
+        res = api_response()
+        res.update(response={
+            "status": "ok",
+            "plans": jsonify(pagination)
+        })
+        return jsonify(res)
     except Exception as e:
+        print traceback.format_exc(e)
         abort(400)
 
 
@@ -142,16 +164,29 @@ def plans():
 def plan_info(plan_id):
     u"""获取礼物方案详情"""
     try:
-        pass
+        with db_session_cm() as session:
+            plan = session.query(Plan).join((PlanContent, Plan.title)).join((PlanKeyword,Plan.keyowrds)).filter(Plan.id == plan_id ).first()
+            res = api_response()
+            res.update(response={
+                "status": "ok",
+                "plan": jsonify(plan)
+            })
+        return jsonify(res)
     except Exception as e:
         abort(400)
-
 
 @api_v1.route("/plan/<plan_id>/star", methods=["GET"])
 def star_plan(plan_id):
     u"""点赞礼物方案"""
     try:
         account_id = request.args.get("account_id")
+        with db_session_cm() as session:
+            upvote = session.query('stars').filter('starts.account_id' == account_id ).filter('starts.plan_id' == plan_id).first()
+            if not upvote :
+                pass
+            else:
+                pass
+
     except Exception as e:
         abort(400)
 

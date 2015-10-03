@@ -5,6 +5,8 @@ from xiaoli.models import Base
 
 __author__ = 'zouyingjun'
 
+from sqlalchemy.orm import relationship, backref
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Table
 
 class Plan(Base):
     __tablename__ = "plans"
@@ -24,6 +26,9 @@ class Plan(Base):
     view_count = Column(BigInteger)
     # 分享次数
     share_count = Column(BigInteger)
+
+    contents = relationship("PlanContent",backref='plan',cascade="all, delete-orphan")
+    keywords = relationship("PlanKeyword",backref='plan',secondary="plan_keyword_rel")
 
 
 class PlanContent(Base):
