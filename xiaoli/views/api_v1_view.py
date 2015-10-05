@@ -1,10 +1,19 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-from flask import Blueprint, abort, request
+
+import traceback
+from flask import Blueprint, abort, request,jsonify
+from flask.ext.paginate import Pagination
+from flask_sqlalchemy import get_debug_queries
+
+from flask import Blueprint, abort, request, jsonify
+
 from xiaoli.helpers import api_response, check_register_params, ErrorCode
 from xiaoli.models import db_session_cm
 from xiaoli.models.account import Account
+from xiaoli.models.plan import Plan,PlanKeyword,PlanContent
 from xiaoli.models.token import Token
+
 
 __author__ = 'zouyingjun'
 
@@ -34,6 +43,7 @@ def register():
             "account_id": user.id,
             "token": Token.get_token(user.id).code
         })
+        jsonify(res)
     except Exception as e:
         abort(400)
 
@@ -50,13 +60,13 @@ def login():
         with db_session_cm() as session:
             user = session.query(Account).filter(Account.cellphone == phone).first()
             if not user:
-                res.update(status = "fail", response={
+                res.update(status="fail", response={
                     "code": ErrorCode.CODE_LOGIN_PHONE_NOT_EXISTS,
                     "message": "phone not exists"
                 })
                 return res
             if not user.check_password(password):
-                res.update(status = "fail", response={
+                res.update(status="fail", response={
                     "code": ErrorCode.CODE_LOGIN_PASSWORD_INCORRECT,
                     "message": "password incorrect"
                 })
@@ -68,15 +78,32 @@ def login():
                 "account_id": user.id,
                 "token": Token.get_token(user.id, force_update=True).code
             })
+        jsonify(res)
     except Exception as e:
         abort(400)
 
 
 @api_v1.route("/logout", methods=["POST"])
 def logout():
-    u"""登出"""
+    u"""登出
+    删除用户的token
+    """
     try:
         account_id = request.form.get("account_id")
+        res = api_response()
+        with db_session_cm() as session:
+            token = session.query(Token).filter(Token.account_id == account_id).frist()
+            if token:
+                session.delete(token)
+                session.commit()
+                res.update(response={"status": "ok"})
+            else:
+                res.update(status="fail", response={
+                    "code": ErrorCode.CODE_TOKEN_NOT_EXISTS,
+                    "message": "token not exists"
+                })
+        return jsonify(res)
+
     except Exception as e:
         abort(400)
 
@@ -94,7 +121,19 @@ def send_security_code():
 def account_info(account_id):
     u"""获取用户基本信息"""
     try:
-        pass
+        res = api_response()
+        with db_session_cm() as session:
+            account = session.query(Account).get(account_id)
+            if account:
+                res.update(response={
+                    "user": account.to_dict()
+                })
+            else:
+                res.update(status="fail",response={
+                    "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
+                    "message": "user not exists"
+                })
+        return jsonify(res)
     except Exception as e:
         abort(400)
 
@@ -103,7 +142,20 @@ def account_info(account_id):
 def account_impress(account_id):
     u"""获取用户印象"""
     try:
-        pass
+        res = api_response()
+        with db_session_cm() as session:
+            account = session.query(Account).get(account_id)
+            if account:
+                res.update(response={
+                    "impresses": []
+                })
+            else:
+                res.update(status="fail",response={
+                    "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
+                    "message": "user not exists"
+                })
+
+        return jsonify(res)
     except Exception as e:
         abort(400)
 
@@ -130,11 +182,28 @@ def account_friends(account_id):
 def plans():
     u"""获取礼物方案列表"""
     try:
-        page = request.args.get("page", 1)
-        per_page = request.args.get("per_page", 10)
+        page = int(request.args.get("page", 1))
+        per_page = int(request.args.get("per_page", 10))
         search_key = request.args.get("search_key", None)
         key_word_id = request.args.get("key_word_id", None)
+        with db_session_cm() as session:
+            plans = session.query(Plan).join((PlanContent, Plan.contents)).join((PlanKeyword,Plan.keywords))
+            if search_key:
+                plans = plans.filter(Plan.title.like('%' + search_key + '%'))
+            if key_word_id:
+                plans = plans.filter(PlanKeyword.id == key_word_id)
+
+        plans = plans.all()
+
+        pagination = Pagination(page=page,per_page=per_page, total=len(plans), search=search_key, record_name='plans')
+        res = api_response()
+        res.update(response={
+            "status": "ok",
+            "plans": jsonify(pagination)
+        })
+        return jsonify(res)
     except Exception as e:
+        print traceback.format_exc(e)
         abort(400)
 
 
@@ -142,16 +211,29 @@ def plans():
 def plan_info(plan_id):
     u"""获取礼物方案详情"""
     try:
-        pass
+        with db_session_cm() as session:
+            plan = session.query(Plan).join((PlanContent, Plan.title)).join((PlanKeyword,Plan.keyowrds)).filter(Plan.id == plan_id ).first()
+            res = api_response()
+            res.update(response={
+                "status": "ok",
+                "plan": jsonify(plan)
+            })
+        return jsonify(res)
     except Exception as e:
         abort(400)
-
 
 @api_v1.route("/plan/<plan_id>/star", methods=["GET"])
 def star_plan(plan_id):
     u"""点赞礼物方案"""
     try:
         account_id = request.args.get("account_id")
+        with db_session_cm() as session:
+            upvote = session.query('stars').filter('starts.account_id' == account_id ).filter('starts.plan_id' == plan_id).first()
+            if not upvote :
+                pass
+            else:
+                pass
+
     except Exception as e:
         abort(400)
 
