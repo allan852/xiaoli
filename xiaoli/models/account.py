@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 from flask.ext.login import UserMixin
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Table, func
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, func
 from sqlalchemy.orm import relationship, object_session
 from werkzeug.security import generate_password_hash, check_password_hash
 from xiaoli.config import setting
-from xiaoli.models import Base, db_session_cm
+from xiaoli.models.base import Base
+from xiaoli.models.session import db_session_cm
 
 __author__ = 'zouyingjun'
 
@@ -69,12 +70,12 @@ class Account(Base, UserMixin):
     # relationship
     avatar = relationship("Avatar", backref="account", uselist=False)
     scores = relationship("Score", backref="account", foreign_keys="[Score.target_id]")
-    added_scores = relationship("Score", backref="account", foreign_keys="[Score.operator_id]")
+    added_scores = relationship("Score", backref="account1", foreign_keys="[Score.operator_id]")
     impresses = relationship("Impress", backref="account", foreign_keys="[Impress.target_id]")
-    added_impresses = relationship("Impress", backref="account", foreign_keys="[Impress.operator_id]")
+    added_impresses = relationship("Impress", backref="account1", foreign_keys="[Impress.operator_id]")
     comments = relationship("Comment", backref="account", foreign_keys="[Comment.target_id]",
                             order_by="Comment.create_time.desc()", lazy="dynamic")
-    added_comments = relationship("Comment", backref="account", foreign_keys="[Comment.operator_id]",
+    added_comments = relationship("Comment", backref="account1", foreign_keys="[Comment.operator_id]",
                                   order_by="Comment.create_time.desc()", lazy="dynamic")
     friends = relationship("Account",
                            secondary="friends_rel",
@@ -82,9 +83,8 @@ class Account(Base, UserMixin):
                            secondaryjoin="Account.id==friends_rel.c.friend_account_id",
                            backref="account")
 
-    collect_plans = relationship("Plan", secondary="collections_table", lazy="dynamic")
-    star_plans = relationship("Plan", secondary="stars_table", lazy="dynamic")
-
+    # collect_plans = relationship("Plan", secondary="collections_table", lazy="dynamic")
+    # star_plans = relationship("Plan", secondary="stars_table", lazy="dynamic")
 
     @property
     def is_admin(self):
@@ -143,19 +143,6 @@ class Account(Base, UserMixin):
         return d
 
 
-friends_rel = Table(
-    "friends_rel", Base.metadata,
-    Column("account_id", Integer, ForeignKey("accounts.id"), primary_key=True),
-    Column("friend_account_id", Integer, ForeignKey("accounts.id"), primary_key=True)
-)
-
-# class FriendRel(Base):
-#     __tablename__ = "friends_res"
-#
-#     account_id = Column(Integer, ForeignKey("accounts.id"), primary_key=True)
-#     friend_account_id = Column(Integer, ForeignKey("accounts.id"), primary_key=True)
-
-
 class Avatar(Base):
     __tablename__ = "avatars"
 
@@ -208,7 +195,7 @@ class Impress(Base):
     # relationship
     content = relationship("ImpressContent", backref="impress", uselist=False)
     preset_contents = relationship("ImpressContent",
-                                   backref="impress",
+                                   backref="impress1",
                                    primaryjoin="and_(Impress.content_id==ImpressContent.id, "
                                                "ImpressContent.type=='preset')")
 
@@ -224,8 +211,3 @@ class ImpressContent(Base):
     type = Column(String(16), nullable=False, default=TYPE_USERADDED)
     # 印象内容
     content = Column(String(10), nullable=False)
-
-
-
-
-

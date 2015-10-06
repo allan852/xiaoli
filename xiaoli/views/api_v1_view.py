@@ -2,8 +2,8 @@
 # -*- coding:utf-8 -*-
 from flask import Blueprint, abort, request, jsonify
 from xiaoli.helpers import api_response, check_register_params, ErrorCode
-from xiaoli.models import db_session_cm
 from xiaoli.models.account import Account, Comment
+from xiaoli.models.session import db_session_cm
 from xiaoli.models.token import Token
 
 __author__ = 'zouyingjun'

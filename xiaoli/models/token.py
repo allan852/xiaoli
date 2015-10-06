@@ -4,7 +4,8 @@ import uuid
 import datetime
 from sqlalchemy import Column, ForeignKey, String, Boolean, Text, DateTime
 from sqlalchemy import Integer
-from xiaoli.models import Base, db_session_cm
+from xiaoli.models.base import Base
+from xiaoli.models.session import db_session_cm
 from xiaoli.utils.date_util import get_next_n_days
 
 __author__ = 'zouyingjun'

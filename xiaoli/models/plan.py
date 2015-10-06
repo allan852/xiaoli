@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, BigInteger, Text, Table
-from xiaoli.models import Base
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, BigInteger, Text
+from sqlalchemy.orm import relationship
+from xiaoli.models import collections_table, stars_table
+from xiaoli.models.base import Base
+
 
 __author__ = 'zouyingjun'
 
@@ -25,6 +28,9 @@ class Plan(Base):
     # 分享次数
     share_count = Column(BigInteger)
 
+    collectors = relationship("Account", secondary=collections_table, lazy="dynamic")
+    starters = relationship("Account", secondary=stars_table, lazy="dynamic")
+
 
 class PlanContent(Base):
     __tablename__ = "plan_contents"
@@ -42,26 +48,3 @@ class PlanKeyword(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     # 关键字内容
     content = Column(String(128), nullable=False)
-
-# 方案和关键字关系表
-plan_keyword_rel = Table(
-    "plan_keyword_rel", Base.metadata,
-    Column("plan_id", Integer, ForeignKey("plans.id")),
-    Column("plan_keyword_id", Integer, ForeignKey("plan_keywords.id"))
-)
-
-
-# 点赞表
-stars_table = Table(
-    "stars", Base.metadata,
-    Column("plan_id", Integer, ForeignKey("plans.id")),
-    Column("account_id", Integer, ForeignKey("accounts.id"))
-)
-
-# 收藏表
-collections_table = Table(
-    "collections", Base.metadata,
-    Column("plan_id", Integer, ForeignKey("plans.id")),
-    Column("operator_id", Integer, ForeignKey("accounts.id"))
-)
-

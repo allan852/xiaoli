@@ -3,13 +3,10 @@
 from flask.ext.script import Manager, prompt_bool
 from xiaoli import create_app
 from xiaoli.config import setting
-from xiaoli.models import Base, engine
 from xiaoli import models
-from xiaoli.models import account
-from xiaoli.models import feedback
-from xiaoli.models import image
-from xiaoli.models import notice
-from xiaoli.models import plan
+from xiaoli.models import Account
+from xiaoli.models.base import Base, engine
+from xiaoli.models.session import db_session_cm
 
 __author__ = 'zouyingjun'
 
@@ -50,8 +47,6 @@ def drop_tables():
 @manager.command
 def create_tables(default_data=True, sample_data=False):
     "Creates database tables from sqlalchemy models"
-    import pprint
-    pprint.pprint(Base.metadata.tables)
     Base.metadata.create_all()
 
 
@@ -60,6 +55,25 @@ def recreate(default_data=True, sample_data=False):
     "Recreates database tables (same as issuing 'drop' and then 'create')"
     drop_tables()
     create_tables(default_data, sample_data)
+
+
+@manager.command
+def build_sample_db():
+    u"""初始化数据"""
+    user_data = [
+        {"cellphone": 18600000000, "nickname": "admin", "email": "admin@admin.com", "password": "admin", "type": Account.TYPE_ADMIN}
+    ]
+
+    with db_session_cm() as session:
+        # init uses
+        for ud in user_data:
+            user = Account()
+            user.cellphone = ud.get("cellphone")
+            user.nickname = ud.get("nickname")
+            user.email = ud.get("email")
+            user.password = ud.get("password")
+            session.add(user)
+        session.commit()
 
 
 if __name__ == '__main__':

@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 from sqlalchemy import Column, ForeignKey, String, Boolean, Text
 from sqlalchemy import Integer
-from xiaoli.models import Base
+from xiaoli.models.base import Base
 
 __author__ = 'zouyingjun'
 

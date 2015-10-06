@@ -3,10 +3,9 @@
 from flask.ext.babel import gettext as _
 from flask import request, abort, redirect
 from flask.ext.login import LoginManager, login_url, AnonymousUserMixin
-from xiaoli.models import db_session_cm
 
 from xiaoli.models.account import Account
-
+from xiaoli.models.session import db_session_cm
 
 _login_manager = LoginManager()
 _login_manager.login_view = 'frontend.login'
