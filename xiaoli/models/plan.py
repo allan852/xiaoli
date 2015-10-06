@@ -52,14 +52,14 @@ plan_keyword_rel = Table(
 
 
 # 点赞表
-stars = Table(
+stars_table = Table(
     "stars", Base.metadata,
     Column("plan_id", Integer, ForeignKey("plans.id")),
     Column("account_id", Integer, ForeignKey("accounts.id"))
 )
 
 # 收藏表
-collections = Table(
+collections_table = Table(
     "collections", Base.metadata,
     Column("plan_id", Integer, ForeignKey("plans.id")),
     Column("operator_id", Integer, ForeignKey("accounts.id"))

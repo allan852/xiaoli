@@ -3,7 +3,7 @@
 from flask import Blueprint, abort, request, jsonify
 from xiaoli.helpers import api_response, check_register_params, ErrorCode
 from xiaoli.models import db_session_cm
-from xiaoli.models.account import Account
+from xiaoli.models.account import Account, Comment
 from xiaoli.models.token import Token
 
 __author__ = 'zouyingjun'
@@ -115,15 +115,17 @@ def account_info(account_id):
         res = api_response()
         with db_session_cm() as session:
             account = session.query(Account).get(account_id)
-            if account:
-                res.update(response={
-                    "user": account.to_dict()
-                })
-            else:
+            if not account:
                 res.update(status="fail",response={
                     "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
                     "message": "user not exists"
                 })
+
+                return jsonify(res)
+
+            res.update(response={
+                "user": account.to_dict()
+            })
         return jsonify(res)
     except Exception as e:
         abort(400)
@@ -137,15 +139,15 @@ def account_impress(account_id):
         with db_session_cm() as session:
             account = session.query(Account).get(account_id)
             if account:
-                res.update(response={
-                    "impresses": []
-                })
-            else:
                 res.update(status="fail",response={
                     "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
                     "message": "user not exists"
                 })
+                return jsonify(res)
 
+            res.update(response={
+                "impresses": []
+            })
         return jsonify(res)
     except Exception as e:
         abort(400)
@@ -155,7 +157,23 @@ def account_impress(account_id):
 def account_comments(account_id):
     u"""获取用户评论"""
     try:
-        pass
+        page = request.args.get("page", 1)
+        per_page = request.args.get("per_page", Comment.PER_PAGE)
+        res = api_response()
+        with db_session_cm() as session:
+            account = session.query(Account).get(account_id)
+            if not account:
+                res.update(status="fail",response={
+                    "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
+                    "message": "user not exists"
+                })
+                return jsonify(res)
+            query = session.query(Account, Account.comments).filter(Account.id == account_id)
+
+            res.update(response={
+                "comments": []
+            })
+        return jsonify(res)
     except Exception as e:
         abort(400)
 

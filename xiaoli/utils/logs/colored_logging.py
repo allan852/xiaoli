@@ -6,7 +6,6 @@ Created on 2011-9-25
 '''
 import logging
 
-
 BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
 
 #The background is set with 40 plus the number of the color, and the foreground with 30
@@ -15,6 +14,7 @@ BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
 RESET_SEQ = "\033[0m"
 COLOR_SEQ = "\033[1;%dm"
 BOLD_SEQ = "\033[1m"
+
 
 def formatter_message(message, use_color = True):
     if use_color:
@@ -31,6 +31,7 @@ COLORS = {
     'ERROR': RED
 }
 
+
 class ColoredFormatter(logging.Formatter):
     def __init__(self, msg, use_color = True):
         logging.Formatter.__init__(self, msg)
@@ -43,9 +44,8 @@ class ColoredFormatter(logging.Formatter):
             record.levelname = levelname_color
         return logging.Formatter.format(self, record)
 
+
 class Logging:
-
-
     @staticmethod
     def getLogger(name = __name__, log_level = "debug", log_file = None):
         ## get log level.

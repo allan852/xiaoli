@@ -9,7 +9,9 @@ import traceback
 from xiaoli.config import setting
 from xiaoli.utils.logs.colored_logging import Logging
 
+
 logger = Logging.getLogger('xiaoli', log_file=setting.LOG_FILE)
+
 
 def log_error(debug=False):
 
