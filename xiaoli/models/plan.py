@@ -28,9 +28,11 @@ class Plan(Base):
     # 分享次数
     share_count = Column(BigInteger)
 
+    contents = relationship("PlanContent",backref='plan',cascade="all, delete-orphan")
+    keywords = relationship("PlanKeyword",backref='plan',secondary="plan_keyword_rel")
+
     collectors = relationship("Account", secondary=collections_table, lazy="dynamic")
     starters = relationship("Account", secondary=stars_table, lazy="dynamic")
-
 
 class PlanContent(Base):
     __tablename__ = "plan_contents"
