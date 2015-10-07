@@ -6,10 +6,10 @@ from flask.ext.paginate import Pagination
 from flask import Blueprint, abort, request, jsonify
 
 from xiaoli.helpers import api_response, check_register_params, ErrorCode
-from xiaoli.models.account import Account, Comment, Impress, ImpressContent, Upvote, Favorite
-from xiaoli.models.plan import Plan,PlanKeyword,PlanContent
+from xiaoli.models import Account, Comment, Impress, ImpressContent
+from xiaoli.models import Plan,PlanKeyword,PlanContent
 from xiaoli.models.session import db_session_cm
-from xiaoli.models.token import Token
+from xiaoli.models import Token
 from xiaoli.utils.logs.logger import api_logger
 from xiaoli.utils.pagination import Page
 
@@ -158,7 +158,8 @@ def account_impress(account_id):
                     "message": "user not exists"
                 })
                 return jsonify(res)
-
+            impress = session.query(Account.impresses)
+            print impress
             res.update(response={
                 "impresses": []
             })
@@ -253,6 +254,7 @@ def plan_info(plan_id):
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
         abort(400)
+
 
 @api_v1.route("/plan/<plan_id>/star", methods=["GET"])
 def star_plan(plan_id):

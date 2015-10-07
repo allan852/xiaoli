@@ -6,6 +6,7 @@ from sqlalchemy.orm import relationship, object_session
 from werkzeug.security import generate_password_hash, check_password_hash
 from xiaoli.config import setting
 from xiaoli.models.base import Base
+from xiaoli.models.relationships import account_plan_favorite_rel_table, account_plan_vote_rel_table
 from xiaoli.models.session import db_session_cm
 from xiaoli.utils.date_util import format_date
 
@@ -84,8 +85,8 @@ class Account(Base, UserMixin):
                            secondaryjoin="Account.id==friends_rel.c.friend_account_id",
                            backref="account")
 
-    # collect_plans = relationship("Plan", secondary="collections_table", lazy="dynamic")
-    # star_plans = relationship("Plan", secondary="stars_table", lazy="dynamic")
+    favorite_plans = relationship("Plan", secondary=account_plan_favorite_rel_table, lazy="dynamic")
+    vote_plans = relationship("Plan", secondary=account_plan_vote_rel_table, lazy="dynamic")
 
     def __init__(self, phone, password):
         self.cellphone = phone
@@ -152,15 +153,6 @@ class Avatar(Base):
     # 头像格式，即图片后缀名
     format = Column(String(16))
 
-class Upvote(Base):
-    __tablename__ = "stars"
-    plan_id = Column(Integer, ForeignKey("plans.id"))
-    acccount_id = Column(Integer, ForeignKey("accounts.id"))
-
-class Favorite(Base):
-    __tablename = "collections"
-    plan_id = Column(Integer, ForeignKey("plans.id"))
-    operator_id = Column(Integer, ForeignKey("accounts.id"))
 
 class Score(Base):
     __tablename__ = "scores"
@@ -199,25 +191,6 @@ class Comment(Base):
         return d
 
 
-class Impress(Base):
-    __tablename__ = "impresses"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    # 被添加影响人id， 外键
-    target_id = Column(Integer, ForeignKey("accounts.id"))
-    # 添加人id, 外键
-    operator_id = Column(Integer, ForeignKey("accounts.id"))
-    # 印象内容id
-    content_id = Column(Integer, ForeignKey("impress_contents.id"))
-
-    # relationship
-    content = relationship("ImpressContent", backref="impress", uselist=False)
-    preset_contents = relationship("ImpressContent",
-                                   backref="impress1",
-                                   primaryjoin="and_(Impress.content_id==ImpressContent.id, "
-                                               "ImpressContent.type=='preset')")
-
-
 class ImpressContent(Base):
     __tablename__ = "impress_contents"
 
@@ -240,5 +213,37 @@ class ImpressContent(Base):
             return impress_content
         new_impress_content = cls(content)
         return new_impress_content
+
+
+class Impress(Base):
+    __tablename__ = "impresses"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    # 被添加影响人id， 外键
+    target_id = Column(Integer, ForeignKey("accounts.id"))
+    # 添加人id, 外键
+    operator_id = Column(Integer, ForeignKey("accounts.id"))
+    # 印象内容id
+    content_id = Column(Integer, ForeignKey("impress_contents.id"))
+
+    # relationship
+    content = relationship("ImpressContent", backref="impress", uselist=False)
+    preset_contents = relationship("ImpressContent",
+                                   backref="impress1",
+                                   primaryjoin="and_(Impress.content_id==ImpressContent.id, "
+                                               "ImpressContent.type=='%s')" % ImpressContent.TYPE_PRESET)
+
+    def to_dict(self):
+        d = {
+            "id": id,
+            "target": self.target.to_dict(),
+            "operator": self.operator.to_dict(),
+            "content": self.content.content,
+            "type": self.content.type,
+            "create_time": format_date(self.create_time)
+        }
+
+        return d
+
 
 

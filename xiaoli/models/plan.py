@@ -2,7 +2,6 @@
 # -*- coding:utf-8 -*-
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, BigInteger, Text
 from sqlalchemy.orm import relationship
-from xiaoli.models import collections_table, stars_table
 from xiaoli.models.base import Base
 
 
@@ -30,9 +29,6 @@ class Plan(Base):
 
     contents = relationship("PlanContent",backref='plan',cascade="all, delete-orphan")
     keywords = relationship("PlanKeyword",backref='plan',secondary="plan_keyword_rel")
-
-    collectors = relationship("Account", secondary=collections_table, lazy="dynamic")
-    starters = relationship("Account", secondary=stars_table, lazy="dynamic")
 
 
 class PlanContent(Base):
