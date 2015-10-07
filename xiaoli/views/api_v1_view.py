@@ -262,6 +262,7 @@ def star_plan(plan_id):
     try:
         account_id = request.args.get("account_id")
         with db_session_cm() as session:
+            # TODO: 这里的查询需要改进， 这里是多对多关系的查询 可以参考：http://docs.sqlalchemy.org/en/rel_0_9/orm/tutorial.html 最后一节
             upvote = session.query(Upvote).filter(Upvote.acccount_id == account_id ).filter(Upvote.plan_id == plan_id).first()
             if not upvote :
                 starts = Upvote()
