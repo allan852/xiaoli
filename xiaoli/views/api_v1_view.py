@@ -6,7 +6,7 @@ from flask.ext.paginate import Pagination
 from flask import Blueprint, abort, request, jsonify
 
 from xiaoli.helpers import api_response, check_register_params, ErrorCode
-from xiaoli.models.account import Account, Comment
+from xiaoli.models.account import Account, Comment ,Upvote,Favorite
 from xiaoli.models.plan import Plan,PlanKeyword,PlanContent
 from xiaoli.models.session import db_session_cm
 from xiaoli.models.token import Token
@@ -260,12 +260,26 @@ def star_plan(plan_id):
     try:
         account_id = request.args.get("account_id")
         with db_session_cm() as session:
-            upvote = session.query('stars').filter('starts.account_id' == account_id ).filter('starts.plan_id' == plan_id).first()
+            upvote = session.query(Upvote).filter(Upvote.acccount_id == account_id ).filter(Upvote.plan_id == plan_id).first()
             if not upvote :
-                pass
+                starts = Upvote()
+                starts.acccount_id = account_id
+                starts.plan_id = plan_id
+                session.add(starts)
+                session.commit()
+                res = api_response()
+                res.update(response={
+                    "status":"ok",
+                    "tips":"like success."
+                })
             else:
-                pass
-
+                session.delete(upvote)
+                session.commit()
+                res = api_response()
+                res.update(response={
+                    "status":"ok",
+                    "tips":"unlike success."
+                })
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
         abort(400)
@@ -286,6 +300,27 @@ def collect_plan(plan_id):
     u"""收藏礼物方案"""
     try:
         account_id = request.args.get("account_id")
+        with db_session_cm() as session:
+            collect = session.query(Favorite).filter(Favorite.operator_id == account_id).filter(Favorite.plan_id == plan_id).first()
+            if not collect :
+                collect = Favorite()
+                collect.operator_id = account_id
+                collect.plan_id = plan_id
+                session.add(collect)
+                session.commit()
+                res = api_response()
+                res.update(response={
+                    "status":"ok",
+                    "tips":"collect success."
+                })
+            else:
+                session.delete(collect)
+                session.commit()
+                res = api_response()
+                res.update(response={
+                    "status":"ok",
+                    "tips":"cancel collect success."
+                })
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
         abort(400)
