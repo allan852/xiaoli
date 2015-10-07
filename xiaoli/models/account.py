@@ -103,7 +103,7 @@ class Account(Base, UserMixin):
         self._password = generate_password_hash(pw, salt_length=16)
 
     def check_password(self, pw):
-        return check_password_hash(self.pw_hash, pw)
+        return check_password_hash(self._password, pw)
 
     @classmethod
     def exists_phone(cls, phone):

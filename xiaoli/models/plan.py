@@ -34,6 +34,7 @@ class Plan(Base):
     collectors = relationship("Account", secondary=collections_table, lazy="dynamic")
     starters = relationship("Account", secondary=stars_table, lazy="dynamic")
 
+
 class PlanContent(Base):
     __tablename__ = "plan_contents"
 

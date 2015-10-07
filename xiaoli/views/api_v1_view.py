@@ -66,22 +66,23 @@ def login():
                     "code": ErrorCode.CODE_LOGIN_PHONE_NOT_EXISTS,
                     "message": "phone not exists"
                 })
-                return res
+                return jsonify(res)
             if not user.check_password(password):
                 res.update(status="fail", response={
                     "code": ErrorCode.CODE_LOGIN_PASSWORD_INCORRECT,
                     "message": "password incorrect"
                 })
-                return res
+                return jsonify(res)
 
             res = api_response()
             res.update(response={
                 "status": "ok",
                 "account_id": user.id,
-                "token": Token.get_token(user.id, force_update=True).code
+                "token": Token.get_token(session, user.id, force_update=True).code
             })
-        jsonify(res)
+        return jsonify(res)
     except Exception as e:
+        api_logger.error(traceback.format_exc(e))
         abort(400)
 
 
