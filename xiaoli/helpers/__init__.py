@@ -39,17 +39,17 @@ def check_register_params(**kwargs):
     security_code = kwargs.get("security_code")
 
     # 手机号是否重复
-    if phone and Account.exists_phone(kwargs.get("phone")):
+    if phone and Account.exists_phone(phone):
         res.update(status="fail", response={
             "code": ErrorCode.CODE_REGISTER_PHONE_EXISTS,
             "message": "phone exists"
         })
         return False, res
     # 密码是否一致
-    if password and password2 and password == password2:
+    if not(password and password2 and password == password2):
         res.update(status="fail", response={
             "code": ErrorCode.CODE_REGISTER_PASSWORD_NOT_EQUAL,
             "message": "password not equal"
         })
         return False, res
-
+    return True, res

@@ -86,6 +86,10 @@ class Account(Base, UserMixin):
     # collect_plans = relationship("Plan", secondary="collections_table", lazy="dynamic")
     # star_plans = relationship("Plan", secondary="stars_table", lazy="dynamic")
 
+    def __init__(self, phone, password):
+        self.cellphone = phone
+        self.password = password
+
     @property
     def is_admin(self):
         return self.type == Account.TYPE_ADMIN
@@ -103,18 +107,11 @@ class Account(Base, UserMixin):
 
     @classmethod
     def exists_phone(cls, phone):
-        with db_session_cm as session:
-            return session.query(Account).filter(Account.cellphone == phone).exists()
-
-    @classmethod
-    def create(cls, phone, password):
-        user = Account()
-        user.cellphone = phone
-        user.password = password
         with db_session_cm() as session:
-            session.add(user)
-            session.commit()
-        return user
+            account = session.query(Account).filter(Account.cellphone == phone).first()
+            if account:
+                return True
+            return False
 
     def impresses_with_group(self):
         u"""按照印象内容分组获得印象个数量"""

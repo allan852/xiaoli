@@ -2,18 +2,15 @@
 # -*- coding:utf-8 -*-
 
 import traceback
-from flask import Blueprint, abort, request,jsonify
 from flask.ext.paginate import Pagination
-from flask_sqlalchemy import get_debug_queries
-
 from flask import Blueprint, abort, request, jsonify
 
 from xiaoli.helpers import api_response, check_register_params, ErrorCode
-from xiaoli.models import db_session_cm
-from xiaoli.models.account import Account
+from xiaoli.models.account import Account, Comment
 from xiaoli.models.plan import Plan,PlanKeyword,PlanContent
+from xiaoli.models.session import db_session_cm
 from xiaoli.models.token import Token
-
+from xiaoli.utils.logs.logger import api_logger
 
 __author__ = 'zouyingjun'
 
@@ -28,23 +25,28 @@ def register():
         password = request.form.get("password")
         password2 = request.form.get("password2")
         security_code = request.form.get("security_code")
-        ok, res = check_register_params(**{
+        params = {
             "phone": phone,
             "password": password,
             "password2": password2,
             "security_code": security_code
-        })
+        }
+        ok, res = check_register_params(**params)
         if not ok:
-            return res
-        user = Account.create(phone, password)
-        res = api_response()
-        res.update(response={
-            "status": "ok",
-            "account_id": user.id,
-            "token": Token.get_token(user.id).code
-        })
-        jsonify(res)
+            return jsonify(res)
+        with db_session_cm() as session:
+            user = Account(phone, password)
+            session.add(user)
+            session.commit()
+            res = api_response()
+            res.update(response={
+                "status": "ok",
+                "account_id": user.id,
+                "token": Token.get_token(session, user.id).code
+            })
+            return jsonify(res)
     except Exception as e:
+        api_logger.error(traceback.format_exc(e))
         abort(400)
 
 

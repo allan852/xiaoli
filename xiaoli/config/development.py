@@ -14,6 +14,7 @@ DATABASE = {
 LOG_FILE_PATH = os.path.join(os.path.dirname(ATHENA_PATH), 'log')  # 开发环境下，log打到项目根目录下
 
 LOG_FILE = posixpath.join(LOG_FILE_PATH, '%s.log' % APP_NAME)
+API_LOG_FILE = posixpath.join(LOG_FILE_PATH, '%s_api_v1.log' % APP_NAME)
 
 MEMCACHED_MACHINES = ['127.0.0.1:11211']
 

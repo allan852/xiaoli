@@ -10,7 +10,8 @@ from xiaoli.config import setting
 from xiaoli.utils.logs.colored_logging import Logging
 
 
-logger = Logging.getLogger('xiaoli', log_file=setting.LOG_FILE)
+common_logger = Logging.getLogger('xiaoli', log_file=setting.LOG_FILE)
+api_logger = Logging.getLogger('xiaoli', log_file=setting.API_LOG_FILE)
 
 
 def log_error(debug=False):
@@ -24,7 +25,7 @@ def log_error(debug=False):
                 if debug:
                     return traceback.format_exc(e)
 
-                logger.error(traceback.format_exc(e))
+                common_logger.error(traceback.format_exc(e))
                 abort(500)
 
         return wrapper
@@ -36,7 +37,7 @@ def _log(log_str, debug=False):
     if debug:
         print log_str
     else:
-        logger.info(log_str)
+        common_logger.info(log_str)
 
 
 def log_time(tip, debug=False):

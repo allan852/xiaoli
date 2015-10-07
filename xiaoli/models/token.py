@@ -38,27 +38,25 @@ class Token(Base):
         return self.expire_date < datetime.datetime.now()
 
     @classmethod
-    def get_token(cls, account_id, force_update=False):
+    def get_token(cls, session, account_id, force_update=False):
         u"""获得用户对应的token
         :param account_id: 用户id
         :param force_update: 时候强制更新，当用户的token存在时起作用，不论用户token 是否过期强制更新为7天后
         """
-        with db_session_cm as session:
-            query = session.query(Token).filter(Token.account_id == account_id)
-            if query.exists():
-                token = query.one()
-                if force_update:
-                    token.expire_date = token_expire_date()
-                    session.add(token)
-                    session.commit()
-                return token
-            else:
-                token = Token()
-                token.account_id = account_id
-                token.code = get_token_code()
+        token = session.query(Token).filter(Token.account_id == account_id).first()
+        if token:
+            if force_update:
+                token.expire_date = token_expire_date()
                 session.add(token)
                 session.commit()
-                return token
+            return token
+        else:
+            token = Token()
+            token.account_id = account_id
+            token.code = get_token_code()
+            session.add(token)
+            session.commit()
+            return token
 
     @classmethod
     def is_valid_code(cls, code):
