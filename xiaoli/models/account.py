@@ -152,6 +152,15 @@ class Avatar(Base):
     # 头像格式，即图片后缀名
     format = Column(String(16))
 
+class Upvote(Base):
+    __tablename__ = "stars"
+    plan_id = Column(Integer, ForeignKey("plans.id"))
+    acccount_id = Column(Integer, ForeignKey("accounts.id"))
+
+class Favorite(Base):
+    __tablename = "collections"
+    plan_id = Column(Integer, ForeignKey("plans.id"))
+    operator_id = Column(Integer, ForeignKey("accounts.id"))
 
 class Score(Base):
     __tablename__ = "scores"
