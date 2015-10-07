@@ -95,11 +95,11 @@ def logout():
         account_id = request.form.get("account_id")
         res = api_response()
         with db_session_cm() as session:
-            token = session.query(Token).filter(Token.account_id == account_id).frist()
+            token = session.query(Token).filter(Token.account_id == account_id).first()
             if token:
                 session.delete(token)
                 session.commit()
-                res.update(response={"status": "ok"})
+                res.update(response={"status": "ok", "account_id": account_id})
             else:
                 res.update(status="fail", response={
                     "code": ErrorCode.CODE_TOKEN_NOT_EXISTS,
@@ -108,6 +108,7 @@ def logout():
         return jsonify(res)
 
     except Exception as e:
+        api_logger.error(traceback.format_exc(e))
         abort(400)
 
 
