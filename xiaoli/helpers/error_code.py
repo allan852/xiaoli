@@ -5,6 +5,9 @@ __author__ = 'zouyingjun'
 
 class ErrorCode(object):
 
+    # 服务器临时不可用
+    CODE_SERVER_TEMPORARILY_UNUSABLE = 3000
+
     # 注册时手机号已经存在
     CODE_REGISTER_PHONE_EXISTS = 1500
     # 注册时两次密码不一致

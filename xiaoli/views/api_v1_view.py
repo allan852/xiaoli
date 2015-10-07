@@ -11,6 +11,7 @@ from xiaoli.models.plan import Plan,PlanKeyword,PlanContent
 from xiaoli.models.session import db_session_cm
 from xiaoli.models.token import Token
 from xiaoli.utils.logs.logger import api_logger
+from xiaoli.utils.pagination import Page
 
 __author__ = 'zouyingjun'
 
@@ -118,6 +119,7 @@ def send_security_code():
     try:
         phone = request.form.get("phone")
     except Exception as e:
+        api_logger.error(traceback.format_exc(e))
         abort(400)
 
 
@@ -139,6 +141,7 @@ def account_info(account_id):
                 })
         return jsonify(res)
     except Exception as e:
+        api_logger.error(traceback.format_exc(e))
         abort(400)
 
 
@@ -149,7 +152,7 @@ def account_impress(account_id):
         res = api_response()
         with db_session_cm() as session:
             account = session.query(Account).get(account_id)
-            if account:
+            if not account:
                 res.update(status="fail",response={
                     "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
                     "message": "user not exists"
@@ -161,6 +164,7 @@ def account_impress(account_id):
             })
         return jsonify(res)
     except Exception as e:
+        api_logger.error(traceback.format_exc(e))
         abort(400)
 
 
@@ -179,13 +183,18 @@ def account_comments(account_id):
                     "message": "user not exists"
                 })
                 return jsonify(res)
-            query = session.query(Account, Account.comments).filter(Account.id == account_id)
-
+            comments_query = session.query(Account, Account.comments).filter(Account.id == account_id)
+            paginate = Page(total_entries=comments_query.count(), entries_per_page=per_page, current_page=page)
+            comments = comments_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
+            # TODO: 为实现，需要进一步却定查询和返回数据
             res.update(response={
-                "comments": []
+                "page": page,
+                "per_page": per_page,
+                "comments": [comment.to_dict() for comment in comments]
             })
         return jsonify(res)
     except Exception as e:
+        api_logger.error(traceback.format_exc(e))
         abort(400)
 
 
@@ -195,6 +204,7 @@ def account_friends(account_id):
     try:
         pass
     except Exception as e:
+        api_logger.error(traceback.format_exc(e))
         abort(400)
 
 
@@ -224,6 +234,7 @@ def plans():
         return jsonify(res)
     except Exception as e:
         print traceback.format_exc(e)
+        api_logger.error(traceback.format_exc(e))
         abort(400)
 
 
@@ -240,6 +251,7 @@ def plan_info(plan_id):
             })
         return jsonify(res)
     except Exception as e:
+        api_logger.error(traceback.format_exc(e))
         abort(400)
 
 @api_v1.route("/plan/<plan_id>/star", methods=["GET"])
@@ -255,6 +267,7 @@ def star_plan(plan_id):
                 pass
 
     except Exception as e:
+        api_logger.error(traceback.format_exc(e))
         abort(400)
 
 
@@ -264,6 +277,7 @@ def share_plan(plan_id):
     try:
         account_id = request.args.get("account_id")
     except Exception as e:
+        api_logger.error(traceback.format_exc(e))
         abort(400)
 
 
@@ -273,16 +287,48 @@ def collect_plan(plan_id):
     try:
         account_id = request.args.get("account_id")
     except Exception as e:
+        api_logger.error(traceback.format_exc(e))
         abort(400)
 
 
-@api_v1.route("/account/<account_id>/comment", methods=["GET"])
+@api_v1.route("/account/<account_id>/comment", methods=["POST"])
 def comment(account_id):
     u"""评论用户"""
     try:
-        target_account_id = request.args.get("target_account_id")
-        content = request.args.get("content")
+        target_account_id = request.form.get("target_account_id")
+        content = request.form.get("content")
+
+        res = api_response()
+        with db_session_cm() as session:
+            operator = session.query(Account).get(account_id)
+            target_account = session.query(Account).get(target_account_id)
+            if not operator or not target_account:
+                res.update(status="fail",response={
+                    "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
+                    "message": "user not exists"
+                })
+                return jsonify(res)
+
+            comment = Comment()
+            comment.target = target_account
+            comment.operator = operator
+            comment.content = content
+            session.add(comment)
+            try:
+                session.commit()
+                res.update(response={"status": "ok"})
+                return jsonify(res)
+            except Exception as e:
+                api_logger.error(traceback.format_exc(e))
+                session.rollback()
+                res.update(status="fail",response={
+                    "code": ErrorCode.CODE_SERVER_TEMPORARILY_UNUSABLE,
+                    "message": "server temporarily unusable"
+                })
+                return jsonify(res)
+
     except Exception as e:
+        api_logger.error(traceback.format_exc(e))
         abort(400)
 
 
@@ -293,6 +339,7 @@ def set_avatar(account_id):
         image_file = request.args.get("image_file")
         content = request.args.get("content")
     except Exception as e:
+        api_logger.error(traceback.format_exc(e))
         abort(400)
 
 
@@ -309,6 +356,7 @@ def update_account_info(account_id):
         allow_notice = request.form.get("allow_notice")
         allow_score = request.form.get("allow_score")
     except Exception as e:
+        api_logger.error(traceback.format_exc(e))
         abort(400)
 
 

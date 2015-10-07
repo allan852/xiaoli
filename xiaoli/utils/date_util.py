@@ -4,6 +4,12 @@ from datetime import datetime, timedelta
 __author__ = 'zouyingjun'
 
 
+def format_date(date, format="%Y-%m-%d"):
+    if not isinstance(date, datetime):
+        raise "date params must a datetime object"
+    return date.strftime(format)
+
+
 def get_previous_month():
     u"""
     获取上月第一天开始时间

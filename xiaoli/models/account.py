@@ -7,6 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from xiaoli.config import setting
 from xiaoli.models.base import Base
 from xiaoli.models.session import db_session_cm
+from xiaoli.utils.date_util import format_date
 
 __author__ = 'zouyingjun'
 
@@ -73,9 +74,9 @@ class Account(Base, UserMixin):
     added_scores = relationship("Score", backref="account1", foreign_keys="[Score.operator_id]")
     impresses = relationship("Impress", backref="account", foreign_keys="[Impress.target_id]")
     added_impresses = relationship("Impress", backref="account1", foreign_keys="[Impress.operator_id]")
-    comments = relationship("Comment", backref="account", foreign_keys="[Comment.target_id]",
+    comments = relationship("Comment", backref="target", foreign_keys="[Comment.target_id]",
                             order_by="Comment.create_time.desc()", lazy="dynamic")
-    added_comments = relationship("Comment", backref="account1", foreign_keys="[Comment.operator_id]",
+    added_comments = relationship("Comment", backref="operator", foreign_keys="[Comment.operator_id]",
                                   order_by="Comment.create_time.desc()", lazy="dynamic")
     friends = relationship("Account",
                            secondary="friends_rel",
@@ -176,6 +177,17 @@ class Comment(Base):
     operator_id = Column(Integer, ForeignKey("accounts.id"))
     # 评论内容
     content = Column(String(1024), nullable=False)
+
+    def to_dict(self):
+        d = {
+            "id": id,
+            "target": self.target.to_dict(),
+            "operator": self.operator.to_dict(),
+            "comment": self.comment,
+            "create_time": format_date(self.create_time)
+        }
+
+        return d
 
 
 class Impress(Base):
