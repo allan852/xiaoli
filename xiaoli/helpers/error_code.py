@@ -24,3 +24,8 @@ class ErrorCode(object):
     # 用户不存在
     CODE_ACCOUNT_NOT_EXISTS = 1801
 
+    # 印象数量超过最大值
+    CODE_IMPRESS_COUNT_BEYOND_MAX_COUNT = 1901
+    # 印象长度超过最大值
+    CODE_IMPRESS_LENGTH_BEYOND_MAX_LENGTH = 1902
+

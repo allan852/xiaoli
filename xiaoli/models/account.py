@@ -72,8 +72,8 @@ class Account(Base, UserMixin):
     avatar = relationship("Avatar", backref="account", uselist=False)
     scores = relationship("Score", backref="account", foreign_keys="[Score.target_id]")
     added_scores = relationship("Score", backref="account1", foreign_keys="[Score.operator_id]")
-    impresses = relationship("Impress", backref="account", foreign_keys="[Impress.target_id]")
-    added_impresses = relationship("Impress", backref="account1", foreign_keys="[Impress.operator_id]")
+    impresses = relationship("Impress", backref="target", foreign_keys="[Impress.target_id]")
+    added_impresses = relationship("Impress", backref="operator", foreign_keys="[Impress.operator_id]")
     comments = relationship("Comment", backref="target", foreign_keys="[Comment.target_id]",
                             order_by="Comment.create_time.desc()", lazy="dynamic")
     added_comments = relationship("Comment", backref="operator", foreign_keys="[Comment.operator_id]",
@@ -183,7 +183,7 @@ class Comment(Base):
             "id": id,
             "target": self.target.to_dict(),
             "operator": self.operator.to_dict(),
-            "comment": self.comment,
+            "content": self.content,
             "create_time": format_date(self.create_time)
         }
 
@@ -219,4 +219,17 @@ class ImpressContent(Base):
     # 印象内容类型
     type = Column(String(16), nullable=False, default=TYPE_USERADDED)
     # 印象内容
-    content = Column(String(10), nullable=False)
+    content = Column(String(10), nullable=False, index=True)
+
+    def __init__(self, content):
+        self.content = content
+
+    @classmethod
+    def get_or_create(cls, session, content):
+        impress_content = session.query(ImpressContent).filter(ImpressContent.content==content).first()
+        if impress_content:
+            return impress_content
+        new_impress_content = cls(content)
+        return new_impress_content
+
+

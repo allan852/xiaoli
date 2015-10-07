@@ -6,7 +6,7 @@ from flask.ext.paginate import Pagination
 from flask import Blueprint, abort, request, jsonify
 
 from xiaoli.helpers import api_response, check_register_params, ErrorCode
-from xiaoli.models.account import Account, Comment
+from xiaoli.models.account import Account, Comment, Impress, ImpressContent
 from xiaoli.models.plan import Plan,PlanKeyword,PlanContent
 from xiaoli.models.session import db_session_cm
 from xiaoli.models.token import Token
@@ -172,8 +172,8 @@ def account_impress(account_id):
 def account_comments(account_id):
     u"""获取用户评论"""
     try:
-        page = request.args.get("page", 1)
-        per_page = request.args.get("per_page", Comment.PER_PAGE)
+        page = request.args.get("page", 1, int)
+        per_page = request.args.get("per_page", Comment.PER_PAGE, int)
         res = api_response()
         with db_session_cm() as session:
             account = session.query(Account).get(account_id)
@@ -183,10 +183,11 @@ def account_comments(account_id):
                     "message": "user not exists"
                 })
                 return jsonify(res)
-            comments_query = session.query(Account, Account.comments).filter(Account.id == account_id)
+            comments_query = session.query(Comment).join(Account.comments).filter(Account.id == account_id)
             paginate = Page(total_entries=comments_query.count(), entries_per_page=per_page, current_page=page)
             comments = comments_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
             # TODO: 为实现，需要进一步却定查询和返回数据
+            print comments
             res.update(response={
                 "page": page,
                 "per_page": per_page,
@@ -292,7 +293,7 @@ def collect_plan(plan_id):
 
 
 @api_v1.route("/account/<account_id>/comment", methods=["POST"])
-def comment(account_id):
+def add_comment(account_id):
     u"""评论用户"""
     try:
         target_account_id = request.form.get("target_account_id")
@@ -314,6 +315,62 @@ def comment(account_id):
             comment.operator = operator
             comment.content = content
             session.add(comment)
+            try:
+                session.commit()
+                res.update(response={"status": "ok"})
+                return jsonify(res)
+            except Exception as e:
+                api_logger.error(traceback.format_exc(e))
+                session.rollback()
+                res.update(status="fail",response={
+                    "code": ErrorCode.CODE_SERVER_TEMPORARILY_UNUSABLE,
+                    "message": "server temporarily unusable"
+                })
+                return jsonify(res)
+
+    except Exception as e:
+        api_logger.error(traceback.format_exc(e))
+        abort(400)
+
+
+@api_v1.route("/account/<account_id>/impress", methods=["POST"])
+def add_impress(account_id):
+    u"""给用户添加印象"""
+    try:
+        target_account_id = request.form.get("target_account_id")
+        contents = request.form.getlist("content[]")
+
+        res = api_response()
+        # 检测印象格式
+        if len(contents) > 4:
+            res.update(status="fail",response={
+                "code": ErrorCode.CODE_IMPRESS_COUNT_BEYOND_MAX_COUNT,
+                "message": "impress count beyond max count"
+            })
+            return jsonify(res)
+        for content in contents:
+            if len(content) > 8:
+                res.update(status="fail",response={
+                    "code": ErrorCode.CODE_IMPRESS_LENGTH_BEYOND_MAX_LENGTH,
+                    "message": "impress length beyond max count"
+                })
+                return jsonify(res)
+        with db_session_cm() as session:
+            operator = session.query(Account).get(account_id)
+            target_account = session.query(Account).get(target_account_id)
+            if not operator or not target_account:
+                res.update(status="fail",response={
+                    "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
+                    "message": "user not exists"
+                })
+                return jsonify(res)
+            for content in contents:
+                impress = Impress()
+                impress.target = target_account
+                impress.operator = operator
+                impress_content = ImpressContent.get_or_create(session, content)
+                impress.content = impress_content
+                session.add(impress)
             try:
                 session.commit()
                 res.update(response={"status": "ok"})
