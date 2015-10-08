@@ -4,6 +4,7 @@
 import traceback
 from flask.ext.paginate import Pagination
 from flask import Blueprint, abort, request, jsonify
+from sqlalchemy import func
 
 from xiaoli.helpers import api_response, check_register_params, ErrorCode
 from xiaoli.models import Account, Comment, Impress, ImpressContent
@@ -158,10 +159,18 @@ def account_impress(account_id):
                     "message": "user not exists"
                 })
                 return jsonify(res)
-            impress = session.query(Account.impresses)
-            print impress
+            impress_query = session.query(Impress, func.count(ImpressContent.content)).join(Account.impresses, Impress.content).\
+                filter(Impress.target == account).group_by(ImpressContent.content)
+            impresses = impress_query.all()
+            impress_dicts = []
+            for impress, count in impresses:
+                d = {
+                    "content": impress.content.content,
+                    "count": count
+                }
+                impress_dicts.append(d)
             res.update(response={
-                "impresses": []
+                "impresses": impress_dicts
             })
         return jsonify(res)
     except Exception as e:

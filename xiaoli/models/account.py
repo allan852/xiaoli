@@ -238,12 +238,13 @@ class Impress(Base):
 
     def to_dict(self):
         d = {
-            "id": id,
+            "id": self.id,
             "target": self.target.to_dict(),
             "operator": self.operator.to_dict(),
             "content": self.content.content,
             "type": self.content.type,
-            "create_time": format_date(self.create_time)
+            "create_time": format_date(self.create_time),
+            "count": 1
         }
 
         return d
