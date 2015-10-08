@@ -5,9 +5,10 @@ import traceback
 from flask.ext.paginate import Pagination
 from flask import Blueprint, abort, request, jsonify
 from sqlalchemy import func
+from sqlalchemy.orm import aliased
 
 from xiaoli.helpers import api_response, check_register_params, ErrorCode
-from xiaoli.models import Account, Comment, Impress, ImpressContent
+from xiaoli.models import Account, Comment, Impress, ImpressContent, account_friends_rel_table
 from xiaoli.models import Plan,PlanKeyword,PlanContent
 from xiaoli.models.session import db_session_cm
 from xiaoli.models import Token
@@ -159,7 +160,8 @@ def account_impress(account_id):
                     "message": "user not exists"
                 })
                 return jsonify(res)
-            impress_query = session.query(Impress, func.count(ImpressContent.content)).join(Account.impresses, Impress.content).\
+            impress_query = session.query(Impress, func.count(ImpressContent.content)).\
+                join(Account.impresses, Impress.content).\
                 filter(Impress.target == account).group_by(ImpressContent.content)
             impresses = impress_query.all()
             impress_dicts = []
@@ -212,7 +214,29 @@ def account_comments(account_id):
 def account_friends(account_id):
     u"""获取用户好友"""
     try:
-        pass
+        page = request.args.get("page", 1, int)
+        per_page = request.args.get("per_page", Comment.PER_PAGE, int)
+        res = api_response()
+        with db_session_cm() as session:
+            account = session.query(Account).get(account_id)
+            if not account:
+                res.update(status="fail",response={
+                    "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
+                    "message": "user not exists"
+                })
+                return jsonify(res)
+            account_alias = aliased(Account)
+            friends_query = session.query(Account).join(account_alias.friends).filter(account_alias.id == account_id)
+            paginate = Page(total_entries=friends_query.count(), entries_per_page=per_page, current_page=page)
+            friends = friends_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
+            res.update(response={
+                "page": page,
+                "per_page": per_page,
+                "total": paginate.total_entries(),
+                "friends": [friend.to_dict() for friend in friends]
+            })
+            return jsonify(res)
+
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
         abort(400)

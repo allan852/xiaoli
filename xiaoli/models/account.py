@@ -86,7 +86,8 @@ class Account(Base, UserMixin):
                            secondary=account_friends_rel_table,
                            primaryjoin=id==account_friends_rel_table.c.account_id,
                            secondaryjoin=id==account_friends_rel_table.c.friend_account_id,
-                           backref="account")
+                           backref="account",
+                           lazy="dynamic")
 
     favorite_plans = relationship("Plan", secondary=account_plan_favorite_rel_table, lazy="dynamic")
     vote_plans = relationship("Plan", secondary=account_plan_vote_rel_table, lazy="dynamic")
