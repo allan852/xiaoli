@@ -29,3 +29,6 @@ class ErrorCode(object):
     # 印象长度超过最大值
     CODE_IMPRESS_LENGTH_BEYOND_MAX_LENGTH = 1902
 
+    # 导入好友参数格式错误
+    CODE_IMPORT_FRIENDS_PARAMS_FORMAT_ERROR = 2001
+

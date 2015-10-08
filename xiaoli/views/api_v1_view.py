@@ -7,7 +7,7 @@ from flask import Blueprint, abort, request, jsonify
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
 
-from xiaoli.helpers import api_response, check_register_params, ErrorCode
+from xiaoli.helpers import api_response, check_register_params, ErrorCode, check_import_contacts_params
 from xiaoli.models import Account, Comment, Impress, ImpressContent, account_friends_rel_table
 from xiaoli.models import Plan,PlanKeyword,PlanContent
 from xiaoli.models.session import db_session_cm
@@ -492,6 +492,24 @@ def update_account_info(account_id):
         abort(400)
 
 
+@api_v1.route("/account/<account_id>/import_friends", methods=["POST"])
+def import_friends(account_id):
+    u"""导入好友"""
+    try:
+        kwargs = request.json
+        ok, res = check_import_contacts_params(**kwargs)
+        if not ok:
+            return jsonify(res)
+        contacts = kwargs.get("contacts")
+        res = api_response()
+        with db_session_cm() as session:
+            Account.import_friends(session, account_id, contacts)
+            session.commit()
+            res.update(response={"status": "ok"})
+        return jsonify(res)
+    except Exception as e:
+        api_logger.error(traceback.format_exc(e))
+        abort(400)
 
 
 

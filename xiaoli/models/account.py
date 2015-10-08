@@ -119,6 +119,48 @@ class Account(Base, UserMixin):
                 return True
             return False
 
+    @classmethod
+    def import_friends(cls, session, account_id ,contacts):
+        u"""导入联系人
+        :param session: A DB session instance
+        :param account_id: 需要添加朋友的账户id
+        :param contacts: A list with dict content. format:
+            contacts = [
+                {
+                    "phone": "15333333331",
+                    "name": "小芳",
+                    "email": "xiaofang@123.com"
+                },
+                {
+                    "phone": "15333333332",
+                    "name": "小明",
+                    "email": "xiaofang@123.com"
+                }
+            ]
+        the "phone" and "name" is required, "email" is optional.
+
+        导入原则：
+        1. "phone": 已经存在的，直接忽略;
+        2. "phone": 不存在直接写入;
+        3. "name" 重名的，采用重新修改"name"为 "name" + "phone";
+        """
+        account = session.query(Account).get(account_id)
+        for contact in contacts:
+            phone = contact.get("phone")
+            name = contact.get("name")
+            email = contact.get("email")
+            friend = session.query(Account).filter(Account.cellphone == phone).first()
+            # 朋友不存在, 创建
+            if not friend:
+                new_friend = Account(phone, phone[5:11])
+                new_friend.nickname = name
+                # 设置成未注册
+                new_friend.status = Account.STATUS_UNREGISTERED
+                if email:
+                    new_friend.email = email
+                account.friends.append(new_friend)
+            session.add(account)
+
     def impresses_with_group(self):
         u"""按照印象内容分组获得印象个数量"""
         session = object_session(self)

@@ -53,3 +53,31 @@ def check_register_params(**kwargs):
         })
         return False, res
     return True, res
+
+
+def check_import_contacts_params(**kwargs):
+    res = api_response()
+    contacts = kwargs.get("contacts")
+
+    format_error = False
+    # 不是数组
+    if not isinstance(contacts, list):
+        format_error = True
+
+    for contact in contacts:
+        # contact 必须是dict 类型
+        if not isinstance(contact, dict):
+            format_error = True
+            break
+        # contact 必须 包含 phone 和 name 字段
+        if not(contact.has_key("phone") or contact.has_key("name")):
+            format_error = True
+            break
+
+    if format_error:
+        res.update(status="fail", response={
+            "code": ErrorCode.CODE_IMPORT_FRIENDS_PARAMS_FORMAT_ERROR,
+            "message": "import friends params format error"
+        })
+        return False, res
+    return True, res
