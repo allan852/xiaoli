@@ -184,13 +184,13 @@ def account_comments(account_id):
                     "message": "user not exists"
                 })
                 return jsonify(res)
-            comments_query = session.query(Comment).join(Account.comments).filter(Account.id == account_id)
+            comments_query = session.query(Comment).join(Account.comments).filter(Comment.target == account)
             paginate = Page(total_entries=comments_query.count(), entries_per_page=per_page, current_page=page)
             comments = comments_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
-            # TODO: 为实现，需要进一步却定查询和返回数据
             res.update(response={
                 "page": page,
                 "per_page": per_page,
+                "total": paginate.total_entries(),
                 "comments": [comment.to_dict() for comment in comments]
             })
         return jsonify(res)

@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 __author__ = 'zouyingjun'
 
 
-def format_date(date, format="%Y-%m-%d"):
+def format_date(date, format="%Y-%m-%d %H:%M:%S"):
     if not isinstance(date, datetime):
         raise "date params must a datetime object"
     return date.strftime(format)

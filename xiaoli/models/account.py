@@ -184,9 +184,9 @@ class Comment(Base):
 
     def to_dict(self):
         d = {
-            "id": id,
-            "target": self.target.to_dict(),
-            "operator": self.operator.to_dict(),
+            "id": self.id,
+            "operator_id": self.operator.id,
+            "operator_name": self.operator.nickname,
             "content": self.content,
             "create_time": format_date(self.create_time)
         }
