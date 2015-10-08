@@ -262,13 +262,13 @@ def star_plan(plan_id):
     try:
         account_id = request.args.get("account_id")
         with db_session_cm() as session:
-            # TODO: 这里的查询需要改进， 这里是多对多关系的查询 可以参考：http://docs.sqlalchemy.org/en/rel_0_9/orm/tutorial.html 最后一节
-            upvote = session.query(Upvote).filter(Upvote.acccount_id == account_id ).filter(Upvote.plan_id == plan_id).first()
-            if not upvote :
-                starts = Upvote()
-                starts.acccount_id = account_id
-                starts.plan_id = plan_id
-                session.add(starts)
+            plan = session.query(Plan).get(plan_id)
+            account = session.query(Account).get(account_id)
+            up_vote = session.query().filter(account.vote_plans.any(plan.id == plan_id )).filter(account.vote_plans.any(account.id == account_id)).first()
+
+            if not up_vote :
+                account.vote_plans.append(plan)
+                session.add(account)
                 session.commit()
                 res = api_response()
                 res.update(response={
@@ -276,7 +276,7 @@ def star_plan(plan_id):
                     "tips":"like success."
                 })
             else:
-                session.delete(upvote)
+                session.delete(up_vote)
                 session.commit()
                 res = api_response()
                 res.update(response={
@@ -293,6 +293,10 @@ def share_plan(plan_id):
     u"""分享礼物方案"""
     try:
         account_id = request.args.get("account_id")
+        with db_session_cm() as session:
+            plan = session.query(Plan).get(plan_id)
+            account = session.query(Account).get(account_id)
+
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
         abort(400)
@@ -303,13 +307,14 @@ def collect_plan(plan_id):
     u"""收藏礼物方案"""
     try:
         account_id = request.args.get("account_id")
+
         with db_session_cm() as session:
-            collect = session.query(Favorite).filter(Favorite.operator_id == account_id).filter(Favorite.plan_id == plan_id).first()
+            plan = session.query(Plan).get(plan_id)
+            account = session.query(Account).get(account_id)
+            collect = session.query().filter(account.favorite_plans.any(plan.id == plan_id)).filter(account.favorite_plans.any(account.id == account_id)).first()
             if not collect :
-                collect = Favorite()
-                collect.operator_id = account_id
-                collect.plan_id = plan_id
-                session.add(collect)
+                account.favorite_plans.append(plan)
+                session.add(account)
                 session.commit()
                 res = api_response()
                 res.update(response={
