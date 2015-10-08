@@ -96,6 +96,9 @@ class Account(Base, UserMixin):
         self.cellphone = phone
         self.password = password
 
+    def __repr__(self):
+        return "<%s object with cellphone=%s>" % (self.__class__.__name__, self.cellphone)
+
     @property
     def is_admin(self):
         return self.type == Account.TYPE_ADMIN
@@ -140,7 +143,7 @@ class Account(Base, UserMixin):
         the "phone" and "name" is required, "email" is optional.
 
         导入原则：
-        1. "phone": 已经存在的，直接忽略;
+        1. "phone": 已经存在的，检查是否是朋友关系，如不是，添加成朋友;
         2. "phone": 不存在直接写入;
         3. "name" 重名的，采用重新修改"name"为 "name" + "phone";
         """
@@ -150,8 +153,8 @@ class Account(Base, UserMixin):
             name = contact.get("name")
             email = contact.get("email")
             friend = session.query(Account).filter(Account.cellphone == phone).first()
-            # 朋友不存在, 创建
             if not friend:
+                # 朋友不存在, 创建
                 new_friend = Account(phone, phone[5:11])
                 new_friend.nickname = name
                 # 设置成未注册
@@ -159,7 +162,14 @@ class Account(Base, UserMixin):
                 if email:
                     new_friend.email = email
                 account.friends.append(new_friend)
-            session.add(account)
+                session.add(account)
+            else:
+                # 存在， 检测是否已经是朋友关系
+                exists_friend = session.query(Account).filter(Account.friends.contains(friend)).first()
+                if not exists_friend:
+                    # 不是朋友关系则添加成朋友关系
+                    account.friends.append(friend)
+                    session.add(account)
 
     def impresses_with_group(self):
         u"""按照印象内容分组获得印象个数量"""
