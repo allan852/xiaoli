@@ -6,7 +6,8 @@ from sqlalchemy.orm import relationship, object_session
 from werkzeug.security import generate_password_hash, check_password_hash
 from xiaoli.config import setting
 from xiaoli.models.base import Base
-from xiaoli.models.relationships import account_plan_favorite_rel_table, account_plan_vote_rel_table
+from xiaoli.models.relationships import account_plan_favorite_rel_table, \
+    account_plan_vote_rel_table, account_friends_rel_table
 from xiaoli.models.session import db_session_cm
 from xiaoli.utils.date_util import format_date
 
@@ -31,9 +32,11 @@ class Account(Base, UserMixin):
         ("Pisces", "雙魚座"),
     )
 
+    STATUS_UNREGISTERED = "unregistered"
     STATUS_ACTIVE = "active"
     STATUS_FREEZE = "freeze"
     STATUS_CHOICES = (
+        (STATUS_UNREGISTERED, "未注册"),
         (STATUS_ACTIVE, "激活"),
         (STATUS_FREEZE, "冻结"),
     )
@@ -80,9 +83,9 @@ class Account(Base, UserMixin):
     added_comments = relationship("Comment", backref="operator", foreign_keys="[Comment.operator_id]",
                                   order_by="Comment.create_time.desc()", lazy="dynamic")
     friends = relationship("Account",
-                           secondary="friends_rel",
-                           primaryjoin="Account.id==friends_rel.c.account_id",
-                           secondaryjoin="Account.id==friends_rel.c.friend_account_id",
+                           secondary=account_friends_rel_table,
+                           primaryjoin=id==account_friends_rel_table.c.account_id,
+                           secondaryjoin=id==account_friends_rel_table.c.friend_account_id,
                            backref="account")
 
     favorite_plans = relationship("Plan", secondary=account_plan_favorite_rel_table, lazy="dynamic")
