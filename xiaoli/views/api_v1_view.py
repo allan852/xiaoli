@@ -7,7 +7,8 @@ from flask import Blueprint, abort, request, jsonify
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
 
-from xiaoli.helpers import api_response, check_register_params, ErrorCode, check_import_contacts_params
+from xiaoli.helpers import api_response, check_register_params, ErrorCode, check_import_contacts_params, \
+    check_update_account_info_params
 from xiaoli.models import Account, Comment, Impress, ImpressContent, account_friends_rel_table
 from xiaoli.models import Plan,PlanKeyword,PlanContent
 from xiaoli.models.session import db_session_cm
@@ -477,16 +478,33 @@ def set_avatar(account_id):
 
 @api_v1.route("/account/<account_id>", methods=["PUT"])
 def update_account_info(account_id):
-    u"""更新用户信息"""
+    u"""更新用户信息
+    参数格式：
+    {
+        "current_password": current_password,
+        "new_password": new_password,
+        "new_password2": new_password2,
+        "sex": sex,
+        "birthday": birthday,
+        "horoscope": horoscope,
+        "allow_notice": allow_notice,
+        "allow_score": allow_score
+    }
+    """
     try:
-        current_password = request.form.get("current_password")
-        new_password = request.form.get("new_password")
-        new_password2 = request.form.get("new_password2")
-        sex = request.form.get("sex")
-        birthday = request.form.get("birthday")
-        horoscope = request.form.get("horoscope")
-        allow_notice = request.form.get("allow_notice")
-        allow_score = request.form.get("allow_score")
+        params = request.form.to_dict()
+        print params
+
+        with db_session_cm() as session:
+            account = session.query(Account).get(account_id)
+            ok, res = check_update_account_info_params(account, **params)
+            if not ok:
+                return jsonify(res)
+            account.update_info(**params)
+            session.add(account)
+            session.commit()
+            res.update(response={"status": "ok"})
+            return jsonify(res)
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
         abort(400)

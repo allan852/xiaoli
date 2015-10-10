@@ -32,3 +32,16 @@ class ErrorCode(object):
     # 导入好友参数格式错误
     CODE_IMPORT_FRIENDS_PARAMS_FORMAT_ERROR = 2001
 
+    # 更新用户基本信息
+    # 参数取值错误
+    CODE_UPDATE_INFO_PARAMS_VALUE_ERROR = 2100
+    # 密码不正确
+    CODE_UPDATE_INFO_INCORRECT_PASSWORD = 2101
+    # 没有新密码
+    CODE_UPDATE_INFO_NO_PASSWORD = 2102
+    # 新密码不一致
+    CODE_UPDATE_INFO_PASSWORD_NOT_EQUAL = 2103
+    # 新密码和旧密码一致
+    CODE_UPDATE_INFO_USE_OLD_PASSWORD = 2103
+
+

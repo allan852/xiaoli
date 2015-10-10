@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+import datetime
 from flask.ext.login import UserMixin
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, func
 from sqlalchemy.orm import relationship, object_session
@@ -16,6 +17,8 @@ __author__ = 'zouyingjun'
 
 class Account(Base, UserMixin):
     __tablename__ = 'accounts'
+
+    BIRTHDAY_FORMAT = "%Y-%m-%d"
 
     HOROSCOPE_CHOICES = (
         ("Aries", "牡羊座"),
@@ -46,6 +49,13 @@ class Account(Base, UserMixin):
     TYPE_CHOICES = (
         (TYPE_USER, "普通用户"),
         (TYPE_ADMIN, "系统管理员")
+    )
+
+    SEX_MALE = "male"
+    SEX_FEMALE = "female"
+    SEX_CHOICES = (
+        (SEX_MALE, "男"),
+        (SEX_FEMALE, "女"),
     )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -112,7 +122,31 @@ class Account(Base, UserMixin):
         self._password = generate_password_hash(pw, salt_length=16)
 
     def check_password(self, pw):
+        u"""检测密码"""
         return check_password_hash(self._password, pw)
+
+    def update_info(self, **kwargs):
+        u"""更新用户信息"""
+        if kwargs.has_key("current_password"):
+            new_password = kwargs.get("new_password")
+            self.password = new_password
+
+        if kwargs.has_key("birthday"):
+            birthday = kwargs.get("birthday")
+            self.birthday = datetime.datetime.strptime(birthday, Account.BIRTHDAY_FORMAT)
+
+        # 字符串 值更新
+        for key in ["sex", "horoscope"]:
+            if kwargs.has_key(key):
+                value = kwargs.get(key)
+                setattr(self, key, value)
+
+        # bool 值更新
+        for key in ["allow_notice", "allow_score"]:
+            if kwargs.has_key(key):
+                value = int(kwargs.get(key))
+                print value, key, type(value), bool(value)
+                setattr(self, key, bool(value))
 
     @classmethod
     def exists_phone(cls, phone):
@@ -193,7 +227,9 @@ class Account(Base, UserMixin):
             "status": self.status,
             "type": self.type,
             "score": 0,
-            "avatar_url": ""
+            "avatar_url": "",
+            "allow_notice": self.allow_notice,
+            "allow_score": self.allow_score
         }
         return d
 

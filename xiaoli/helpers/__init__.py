@@ -1,4 +1,5 @@
 #! -*- coding=utf-8 -*-
+import datetime
 
 from flask import request, url_for
 from xiaoli.helpers.error_code import ErrorCode
@@ -32,6 +33,7 @@ def ajax_response():
 
 
 def check_register_params(**kwargs):
+    u"""检测注册参数"""
     res = api_response()
     phone = kwargs.get("phone")
     password = kwargs.get("password")
@@ -56,6 +58,7 @@ def check_register_params(**kwargs):
 
 
 def check_import_contacts_params(**kwargs):
+    u"""检测导入联系人参数"""
     res = api_response()
     contacts = kwargs.get("contacts")
 
@@ -78,6 +81,76 @@ def check_import_contacts_params(**kwargs):
         res.update(status="fail", response={
             "code": ErrorCode.CODE_IMPORT_FRIENDS_PARAMS_FORMAT_ERROR,
             "message": "import friends params format error"
+        })
+        return False, res
+    return True, res
+
+
+def check_update_account_info_params(account, **kwargs):
+    u"""检测更新用户信息参数
+    检查规则：
+    1. 有current_password 时， 必须有有 new_password和new_password2 字段，同时两者要相等。
+    2. 剩下的其他字段出现那个更新那个值
+    """
+    current_password = kwargs.get("current_password")
+    new_password = kwargs.get("new_password")
+    new_password2 = kwargs.get("new_password2")
+    sex = kwargs.get("sex")
+    birthday = kwargs.get("birthday")
+    horoscope = kwargs.get("horoscope")
+
+    res = api_response()
+
+    if current_password:
+        if not account.check_password(current_password):
+            res.update(status="fail", response={
+                "code": ErrorCode.CODE_UPDATE_INFO_INCORRECT_PASSWORD,
+                "message": "password incorrect"
+            })
+            return False, res
+
+        if not (new_password or new_password2):
+            res.update(status="fail", response={
+                "code": ErrorCode.CODE_UPDATE_INFO_NO_PASSWORD,
+                "message": "no new password"
+            })
+            return False, res
+
+        if new_password != new_password2:
+            res.update(status="fail", response={
+                "code": ErrorCode.CODE_UPDATE_INFO_PASSWORD_NOT_EQUAL,
+                "message": "new password not equal"
+            })
+            return False, res
+
+        if new_password == current_password:
+            res.update(status="fail", response={
+                "code": ErrorCode.CODE_UPDATE_INFO_USE_OLD_PASSWORD,
+                "message": "old password equal new password"
+            })
+            return False, res
+
+    if sex and sex not in [sex_type for sex_type, display_name in Account.SEX_CHOICES]:
+        res.update(status="fail", response={
+            "code": ErrorCode.CODE_UPDATE_INFO_PARAMS_VALUE_ERROR,
+            "message": "sex param value error"
+        })
+        return False, res
+
+    if birthday:
+        try:
+            datetime.datetime.strptime(birthday, Account.BIRTHDAY_FORMAT)
+        except ValueError as e:
+            res.update(status="fail", response={
+                "code": ErrorCode.CODE_UPDATE_INFO_PARAMS_VALUE_ERROR,
+                "message": "birthday param format error"
+            })
+            return False, res
+
+    if horoscope and horoscope not in [horoscope for horoscope, display_name in Account.HOROSCOPE_CHOICES]:
+        res.update(status="fail", response={
+            "code": ErrorCode.CODE_UPDATE_INFO_PARAMS_VALUE_ERROR,
+            "message": "horoscope param value error"
         })
         return False, res
     return True, res

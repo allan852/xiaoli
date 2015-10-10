@@ -6,3 +6,4 @@ flask-paginate>=0.3.2
 pillow>=2.7.0
 python-memcached>=1.53
 flask-cdn>=1.2.1
+SQLAlchemy>=0.9.0
