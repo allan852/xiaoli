@@ -35,11 +35,21 @@ def register():
             "password2": password2,
             "security_code": security_code
         }
-        ok, res = check_register_params(**params)
-        if not ok:
-            return jsonify(res)
         with db_session_cm() as session:
-            user = Account(phone, password)
+            ok, res = check_register_params(session, **params)
+            if not ok:
+                return jsonify(res)
+            # 看该手机号是否导入过
+            user = session.query(Account).\
+                filter(Account.cellphone == phone).\
+                filter(Account.status == Account.STATUS_UNREGISTERED).first()
+            if user:
+                # 已经导入过，更新密码和状态
+                user.password = password
+                user.status = Account.STATUS_ACTIVE
+            else:
+                # 没有导入过，创建用户
+                user = Account(phone, password)
             session.add(user)
             session.commit()
             res = api_response()
@@ -64,8 +74,12 @@ def login():
         res = api_response()
 
         with db_session_cm() as session:
-            user = session.query(Account).filter(Account.cellphone == phone).first()
-            if not user:
+            user = session.query(Account).\
+                filter(Account.cellphone == phone).first()
+
+            print user, user.status
+
+            if not user or not user.has_registered:
                 res.update(status="fail", response={
                     "code": ErrorCode.CODE_LOGIN_PHONE_NOT_EXISTS,
                     "message": "phone not exists"

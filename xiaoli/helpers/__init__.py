@@ -32,7 +32,7 @@ def ajax_response():
     return res
 
 
-def check_register_params(**kwargs):
+def check_register_params(session, **kwargs):
     u"""检测注册参数"""
     res = api_response()
     phone = kwargs.get("phone")
@@ -41,12 +41,14 @@ def check_register_params(**kwargs):
     security_code = kwargs.get("security_code")
 
     # 手机号是否重复
-    if phone and Account.exists_phone(phone):
-        res.update(status="fail", response={
-            "code": ErrorCode.CODE_REGISTER_PHONE_EXISTS,
-            "message": "phone exists"
-        })
-        return False, res
+    if phone:
+        account = session.query(Account).filter(Account.cellphone == phone).first()
+        if account and account.has_registered:
+            res.update(status="fail", response={
+                "code": ErrorCode.CODE_REGISTER_PHONE_EXISTS,
+                "message": "phone exists"
+            })
+            return False, res
     # 密码是否一致
     if not(password and password2 and password == password2):
         res.update(status="fail", response={

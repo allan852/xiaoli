@@ -121,6 +121,11 @@ class Account(Base, UserMixin):
     def password(self, pw):
         self._password = generate_password_hash(pw, salt_length=16)
 
+    @property
+    def has_registered(self):
+        u"""是否注册过，导入的好友不算注册"""
+        return self.status != Account.STATUS_UNREGISTERED
+
     def check_password(self, pw):
         u"""检测密码"""
         return check_password_hash(self._password, pw)
@@ -147,14 +152,6 @@ class Account(Base, UserMixin):
                 value = int(kwargs.get(key))
                 print value, key, type(value), bool(value)
                 setattr(self, key, bool(value))
-
-    @classmethod
-    def exists_phone(cls, phone):
-        with db_session_cm() as session:
-            account = session.query(Account).filter(Account.cellphone == phone).first()
-            if account:
-                return True
-            return False
 
     @classmethod
     def import_friends(cls, session, account_id ,contacts):
