@@ -124,13 +124,7 @@ def configure_filter(app):
 
 
 def configure_url(app):
-    @app.url_value_preprocessor
-    def pull_workspace_id(endpoint, values):
-        return filters.pull_workspace_id(endpoint, values)
-
-    @app.url_defaults
-    def add_workspace_id_for_url(endpoint, values):
-        return filters.add_workspace_id_for_url(app, endpoint, values)
+    pass
 
 
 def configure_error_handler(app):

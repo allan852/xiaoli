@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, send_file
 
 __author__ = 'zouyingjun'
 
@@ -15,3 +15,8 @@ def index():
 @frontend.route('/login')
 def login():
     pass
+
+
+@frontend.route('/favicon.ico')
+def favicon():
+    return send_file("static/favicon.ico")
