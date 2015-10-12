@@ -4,7 +4,7 @@ from xiaoli.config.base import *
 
 DEBUG = False
 
-LOG_FILE_PATH = '/home/xingxin/log/xiaoli/'
+LOG_FILE_PATH = '/home/eplus/log/xiaoli/'
 
 LOG_FILE = posixpath.join(LOG_FILE_PATH, 'xiaoli.log')
 API_LOG_FILE = posixpath.join(LOG_FILE_PATH, '%s_api_v1.log' % APP_NAME)
