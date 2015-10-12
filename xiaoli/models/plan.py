@@ -30,6 +30,21 @@ class Plan(Base):
     contents = relationship("PlanContent",backref='plan',cascade="all, delete-orphan")
     keywords = relationship("PlanKeyword",backref='plan',secondary="plan_keyword_rel")
 
+    def to_dict(self):
+        d = {
+            "id": self.id,
+            "title": self.title,
+            "status": self.status,
+            "publish_date": self.publish_date,
+            "author_id": self.author_id,
+            "cover_image_id": self.cover_image_id,
+            "cover_image_url": '',
+            "view_count": self.view_count,
+            "share_count": self.share_count,
+            "contents": [content.content for content in self.contents],
+            "keywords": [ word.content for word in self.keywords]
+        }
+        return d
 
 class PlanContent(Base):
     __tablename__ = "plan_contents"
