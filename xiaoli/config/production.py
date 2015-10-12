@@ -13,7 +13,7 @@ MEMCACHED_MACHINES = ['115.159.102.199:11211']
 DB_META = {
     "db_name": "xiaoli",
     "user": "xiaoli",
-    "password": "xiaolimm",
-    "host": "",
+    "password": "xiaoli",
+    "host": "127.0.0.1",
     "port": 3306
 }
