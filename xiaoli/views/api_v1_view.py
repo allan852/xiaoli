@@ -289,12 +289,12 @@ def plans():
         abort(400)
 
 
-@api_v1.route("/plan/<plan_id>", methods=["GET"])
+@api_v1.route("/plan/<int:plan_id>", methods=["GET"])
 def plan_info(plan_id):
     u"""获取礼物方案详情"""
     try:
         with db_session_cm() as session:
-            plan = session.query(Plan).get(int(plan_id))
+            plan = session.query(Plan).get(plan_id)
             res = api_response()
             if not plan:
                 res.update(status="fail",response={
@@ -303,6 +303,10 @@ def plan_info(plan_id):
                 })
                 return jsonify(res)
             else:
+                # 增加方案查看次数
+                plan.view_count += 1
+                session.add(plan)
+                session.commit()
                 res.update(response={
                     "plan": plan.to_dict()
                 })
@@ -312,7 +316,7 @@ def plan_info(plan_id):
         abort(400)
 
 
-@api_v1.route("/plan/<plan_id>/star", methods=["GET"])
+@api_v1.route("/plan/<int:plan_id>/star", methods=["GET"])
 def star_plan(plan_id):
     u"""点赞礼物方案"""
     try:
@@ -359,13 +363,17 @@ def star_plan(plan_id):
 
 @api_v1.route("/plan/<plan_id>/share", methods=["GET"])
 def share_plan(plan_id):
-    u"""分享礼物方案"""
+    u"""分享礼物方案
+    记录分享次数
+    """
     try:
         account_id = request.args.get("account_id")
         with db_session_cm() as session:
             plan = session.query(Plan).get(plan_id)
             account = session.query(Account).get(account_id)
-
+            plan.share_count += 1
+            session.add(plan)
+            session.commit()
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
         abort(400)
