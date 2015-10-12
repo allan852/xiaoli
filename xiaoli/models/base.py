@@ -12,7 +12,7 @@ if setting.DEBUG:
     print "Using DB %s" % database_url
     engine = create_engine(database_url, echo=True)
 else:
-    database_url = "mysql://%(user)s:%(password)s@%(host)s:%(port)s/%(db_name)" % setting.DB_META
+    database_url = "mysql://%(user)s:%(password)s@%(host)s:%(port)s/%(db_name)s" % setting.DB_META
     engine = create_engine(database_url)
 
 
