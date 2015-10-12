@@ -8,7 +8,7 @@ setting = development
 
 import os
 
-current_evn = os.environ.get("ATHENA_ENV") or "development"
+current_evn = os.environ.get("XIAOLI_ENV") or "development"
 
 if current_evn in ['production']:
     setting = production
