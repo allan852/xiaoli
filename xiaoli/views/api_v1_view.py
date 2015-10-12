@@ -506,7 +506,6 @@ def update_account_info(account_id):
     """
     try:
         params = request.form.to_dict()
-        print params
 
         with db_session_cm() as session:
             account = session.query(Account).get(account_id)
