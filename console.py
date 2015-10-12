@@ -67,11 +67,9 @@ def build_sample_db():
     with db_session_cm() as session:
         # init uses
         for ud in user_data:
-            user = Account()
-            user.cellphone = ud.get("cellphone")
+            user = Account(ud.get("cellphone"), ud.get("password"))
             user.nickname = ud.get("nickname")
             user.email = ud.get("email")
-            user.password = ud.get("password")
             session.add(user)
         session.commit()
 
