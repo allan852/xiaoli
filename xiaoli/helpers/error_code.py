@@ -44,4 +44,7 @@ class ErrorCode(object):
     # 新密码和旧密码一致
     CODE_UPDATE_INFO_USE_OLD_PASSWORD = 2103
 
+    # 方案不存在
+    CODE_PLAN_NOT_EXISTS = 2200
+
 

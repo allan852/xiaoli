@@ -20,7 +20,7 @@ __author__ = 'zouyingjun'
 api_v1 = Blueprint("api_v1", __name__, template_folder="templates/api_v1", static_folder="../static")
 
 
-@api_v1.route("/register", methods=["POST"])
+@api_v1.route("/register", methods=["POST","GET"])
 def register():
     u"""注册"""
     try:
@@ -260,25 +260,28 @@ def account_friends(account_id):
 def plans():
     u"""获取礼物方案列表"""
     try:
-        page = int(request.args.get("page", 1))
-        per_page = int(request.args.get("per_page", 10))
+        page = request.args.get("page", 1, int)
+        per_page = request.args.get("per_page", Comment.PER_PAGE, int)
         search_key = request.args.get("search_key", None)
         key_word_id = request.args.get("key_word_id", None)
+        res = api_response()
         with db_session_cm() as session:
-            plans = session.query(Plan).join((PlanContent, Plan.contents)).join((PlanKeyword,Plan.keywords))
+            plan_alias =aliased(Plan)
+            plans = session.query(Plan).join(plan_alias.contents).join(plan_alias.keywords)
             if search_key:
                 plans = plans.filter(Plan.title.like('%' + search_key + '%'))
             if key_word_id:
                 plans = plans.filter(PlanKeyword.id == key_word_id)
+            paginate = Page(total_entries=plans.count(), entries_per_page=per_page, current_page=page)
+            results = plans.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
 
-        plans = plans.all()
+            res.update(response={
+                "page": page,
+                "per_page": per_page,
+                "total": paginate.total_entries(),
+                "plans": [plan.to_dict() for plan in results]
+            })
 
-        pagination = Page(entries_per_page=per_page, total_entries=plans.count(), current_page=page)
-        res = api_response()
-        res.update(response={
-            "status": "ok",
-            "plans": jsonify(pagination)
-        })
         return jsonify(res)
     except Exception as e:
         print traceback.format_exc(e)
@@ -291,13 +294,19 @@ def plan_info(plan_id):
     u"""获取礼物方案详情"""
     try:
         with db_session_cm() as session:
-            plan = session.query(Plan).join((PlanContent, Plan.title)).join((PlanKeyword,Plan.keyowrds)).filter(Plan.id == plan_id ).first()
+            plan = session.query(Plan).get(int(plan_id))
             res = api_response()
-            res.update(response={
-                "status": "ok",
-                "plan": jsonify(plan)
-            })
-        return jsonify(res)
+            if not plan:
+                res.update(status="fail",response={
+                    "code": ErrorCode.CODE_PLAN_NOT_EXISTS,
+                    "message": "user not exists"
+                })
+                return jsonify(res)
+            else:
+                res.update(response={
+                    "plan": plan.to_dict()
+                })
+                return jsonify(res)
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
         abort(400)
@@ -308,28 +317,41 @@ def star_plan(plan_id):
     u"""点赞礼物方案"""
     try:
         account_id = request.args.get("account_id")
+        res = api_response()
         with db_session_cm() as session:
             plan = session.query(Plan).get(plan_id)
             account = session.query(Account).get(account_id)
-            up_vote = session.query().filter(account.vote_plans.any(plan.id == plan_id )).filter(account.vote_plans.any(account.id == account_id)).first()
+            account_alias = aliased(Account)
+            if not account:
+                res.update(
+                    status="fail",
+                    response={
+                    "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
+                    "message": "user not exists"
+                })
+                return jsonify(res)
+            up_vote = session.query(Account).filter(account_alias.vote_plans.contains(plan)).first()
 
             if not up_vote :
                 account.vote_plans.append(plan)
                 session.add(account)
                 session.commit()
-                res = api_response()
-                res.update(response={
-                    "status":"ok",
-                    "tips":"like success."
+                res.update(
+                    status = "ok",
+                    response = {
+                    "message":"like success."
                 })
+                return jsonify(res)
             else:
-                session.delete(up_vote)
+                account.vote_plans.remove(plan)
                 session.commit()
                 res = api_response()
-                res.update(response={
-                    "status":"ok",
-                    "tips":"unlike success."
+                res.update(
+                    status="ok",
+                    response={
+                    "message":"unlike success."
                 })
+                return jsonify(res)
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
         abort(400)
@@ -354,28 +376,40 @@ def collect_plan(plan_id):
     u"""收藏礼物方案"""
     try:
         account_id = request.args.get("account_id")
-
+        res = api_response()
         with db_session_cm() as session:
             plan = session.query(Plan).get(plan_id)
             account = session.query(Account).get(account_id)
-            collect = session.query().filter(account.favorite_plans.any(plan.id == plan_id)).filter(account.favorite_plans.any(account.id == account_id)).first()
+            account_alias = aliased(Account)
+            if not account:
+                res.update(
+                    status="fail",
+                    response={
+                    "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
+                    "message": "user not exists"
+                })
+                return jsonify(res)
+            collect = session.query(Account).filter(account_alias.favorite_plans.contains(plan)).first()
             if not collect :
                 account.favorite_plans.append(plan)
                 session.add(account)
                 session.commit()
-                res = api_response()
-                res.update(response={
-                    "status":"ok",
-                    "tips":"collect success."
+                res.update(
+                    status="ok",
+                    response={
+                    "message":"collect success."
                 })
+                return jsonify(res)
             else:
-                session.delete(collect)
+                account.favorite_plans.remove(plan)
                 session.commit()
                 res = api_response()
-                res.update(response={
-                    "status":"ok",
-                    "tips":"cancel collect success."
+                res.update(
+                    status="ok",
+                    response={
+                    "message":"cancel collect success."
                 })
+                return jsonify(res)
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
         abort(400)
