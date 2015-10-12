@@ -2,7 +2,6 @@
 # -*- coding:utf-8 -*-
 
 import traceback
-from flask.ext.paginate import Pagination
 from flask import Blueprint, abort, request, jsonify
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
@@ -274,7 +273,7 @@ def plans():
 
         plans = plans.all()
 
-        pagination = Pagination(page=page,per_page=per_page, total=len(plans), search=search_key, record_name='plans')
+        pagination = Page(entries_per_page=per_page, total_entries=plans.count(), current_page=page)
         res = api_response()
         res.update(response={
             "status": "ok",
