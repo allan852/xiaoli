@@ -9,11 +9,25 @@ frontend = Blueprint("frontend", __name__, template_folder="templates", static_f
 
 @frontend.route('/')
 def index():
+    u"""首页"""
     return render_template("frontend/index.html")
 
 
-@frontend.route('/login')
+@frontend.route('/register', methods=["GET", "POST"])
+def register():
+    u"""注册"""
+    pass
+
+
+@frontend.route('/login', methods=["GET", "POST"])
 def login():
+    u"""登陆"""
+    pass
+
+
+@frontend.route('/logout', methods=["POST"])
+def logout():
+    u"""登出"""
     pass
 
 

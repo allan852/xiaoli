@@ -20,6 +20,7 @@ __author__ = 'zouyingjun'
 default_blueprints = (
     (views.frontend, ''),
     (views.api_v1, '/api/v1'),
+    (views.plan, '/plan'),
 
     # for admin
     (views.admin_frontend, '/admin'),

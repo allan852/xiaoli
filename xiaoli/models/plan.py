@@ -23,9 +23,9 @@ class Plan(Base):
     # 封面图片id
     cover_image_id = Column(Integer, ForeignKey("image_resources.id"))
     # 阅读次数
-    view_count = Column(BigInteger)
+    view_count = Column(BigInteger, default=0)
     # 分享次数
-    share_count = Column(BigInteger)
+    share_count = Column(BigInteger, default=0)
 
     contents = relationship("PlanContent",backref='plan',cascade="all, delete-orphan")
     keywords = relationship("PlanKeyword",backref='plan',secondary="plan_keyword_rel")

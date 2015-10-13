@@ -4,4 +4,5 @@ __author__ = 'zouyingjun'
 
 from .api_v1_view import api_v1
 from .frontend_view import frontend
+from .plan_view import plan
 from .admin.admin_frontend_view import admin_frontend
