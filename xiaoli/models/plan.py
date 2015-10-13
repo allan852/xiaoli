@@ -27,7 +27,7 @@ class Plan(Base):
     # 分享次数
     share_count = Column(BigInteger, default=0)
 
-    contents = relationship("PlanContent",backref='plan',cascade="all, delete-orphan")
+    content = relationship("PlanContent",uselist=False,backref='plan',cascade="all, delete-orphan")
     keywords = relationship("PlanKeyword",backref='plan',secondary="plan_keyword_rel")
 
     def to_dict(self):
@@ -41,7 +41,7 @@ class Plan(Base):
             "cover_image_url": '',
             "view_count": self.view_count,
             "share_count": self.share_count,
-            "contents": [content.content for content in self.contents],
+            "content": self.content.content,
             "keywords": [ word.content for word in self.keywords]
         }
         return d
