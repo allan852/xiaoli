@@ -21,7 +21,9 @@ def register():
 
 @frontend.route('/login', methods=["GET", "POST"])
 def login():
-    u"""登陆"""
+    u"""登陆
+    登录成功后，管理员直接到管理后台首页，其他到前台首页
+    """
     pass
 
 
