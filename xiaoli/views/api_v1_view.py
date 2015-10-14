@@ -622,19 +622,19 @@ def renew_password():
             "phone": phone,
             "code": code,
             "new_password": new_password,
-            "new_password2": new_password
+            "new_password2": new_password2
         }
         with db_session_cm() as session:
             ok, res = check_renew_params(session, **params)
             if not ok:
                  return jsonify(res)
-            account = session.query(Account).filter(Account.cellphone==phone).first()
+            account = session.query(Account).filter(Account.cellphone == phone).first()
             account.password = new_password
             session.add(account)
             session.commit()
             res = api_response()
             res.update(response={"status": "ok"})
-        return jsonify(res)
+            return jsonify(res)
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
         abort(400)
