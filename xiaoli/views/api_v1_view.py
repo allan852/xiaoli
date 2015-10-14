@@ -131,9 +131,20 @@ def logout():
 
 @api_v1.route("/send_security_code", methods=["POST"])
 def send_security_code():
-    u"""发送短信"""
+    u"""发送短信验证码"""
     try:
         phone = request.form.get("phone")
+    except Exception as e:
+        api_logger.error(traceback.format_exc(e))
+        abort(400)
+
+
+@api_v1.route("/check_security_code", methods=["POST"])
+def check_security_code():
+    u"""短信验证码检验"""
+    try:
+        phone = request.form.get("phone")
+        code = request.form.get("code")
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
         abort(400)
