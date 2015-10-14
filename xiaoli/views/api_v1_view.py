@@ -7,7 +7,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import aliased
 
 from xiaoli.helpers import api_response, check_register_params, ErrorCode, check_import_contacts_params, \
-    check_update_account_info_params
+    check_update_account_info_params, check_renew_params
 from xiaoli.models import Account, Comment, Impress, ImpressContent, account_friends_rel_table
 from xiaoli.models import Plan,PlanKeyword,PlanContent
 from xiaoli.models.session import db_session_cm
@@ -134,6 +134,13 @@ def send_security_code():
     u"""发送短信验证码"""
     try:
         phone = request.form.get("phone")
+
+        res = api_response()
+        res.update(response={
+            "status": "ok"
+        })
+
+        return jsonify(res)
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
         abort(400)
@@ -145,6 +152,13 @@ def check_security_code():
     try:
         phone = request.form.get("phone")
         code = request.form.get("code")
+
+        res = api_response()
+        res.update(response={
+            "status": "ok"
+        })
+
+        return jsonify(res)
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
         abort(400)
@@ -588,6 +602,37 @@ def import_friends(account_id):
         with db_session_cm() as session:
             Account.import_friends(session, account_id, contacts)
             session.commit()
+            res.update(response={"status": "ok"})
+        return jsonify(res)
+    except Exception as e:
+        api_logger.error(traceback.format_exc(e))
+        abort(400)
+
+
+@api_v1.route("/account/renew_password", methods=["POST"])
+def renew_password():
+    u"""重新设置密码"""
+    try:
+        phone = request.form.get("phone")
+        code = request.form.get("code")
+        new_password = request.form.get("new_password")
+        new_password2 = request.form.get("new_password2")
+
+        params = {
+            "phone": phone,
+            "code": code,
+            "new_password": new_password,
+            "new_password2": new_password
+        }
+        with db_session_cm() as session:
+            ok, res = check_renew_params(session, **params)
+            if not ok:
+                 return jsonify(res)
+            account = session.query(Account).filter(Account.cellphone==phone).first()
+            account.password = new_password
+            session.add(account)
+            session.commit()
+            res = api_response()
             res.update(response={"status": "ok"})
         return jsonify(res)
     except Exception as e:

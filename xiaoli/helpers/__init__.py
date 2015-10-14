@@ -156,3 +156,41 @@ def check_update_account_info_params(account, **kwargs):
         })
         return False, res
     return True, res
+
+
+def check_renew_params(session, **kwargs):
+    u"""检测重新设置密码"""
+    new_password = kwargs.get("new_password")
+    new_password2 = kwargs.get("new_password2")
+    phone = kwargs.get("phone")
+    code = kwargs.get("code")
+
+    res = api_response()
+
+    if not (new_password or new_password2):
+        res.update(status="fail", response={
+            "code": ErrorCode.CODE_UPDATE_INFO_NO_PASSWORD,
+            "message": "no new password"
+        })
+        return False, res
+
+    if new_password != new_password2:
+        res.update(status="fail", response={
+            "code": ErrorCode.CODE_UPDATE_INFO_PASSWORD_NOT_EQUAL,
+            "message": "new password not equal"
+        })
+        return False, res
+
+    # 手机号是否重复
+    if phone:
+        account = session.query(Account).filter(Account.cellphone == phone).first()
+        if not account:
+            res.update(status="fail", response={
+                "code": ErrorCode.CODE_LOGIN_PHONE_NOT_EXISTS,
+                "message": "phone not exists"
+            })
+            return False, res
+
+    # 检测验证码是否正确
+
+    return True, res
