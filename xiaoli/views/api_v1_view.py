@@ -278,11 +278,11 @@ def plans():
         res = api_response()
         with db_session_cm() as session:
             plan_alias =aliased(Plan)
-            plans = session.query(Plan).join(plan_alias.contents).join(plan_alias.keywords)
+            plans = session.query(Plan).join(plan_alias.content).join(plan_alias.keywords)
             if search_key:
-                plans = plans.filter(Plan.title.like('%' + search_key + '%'))
+                plans = plans.filter(plan_alias.title.like('%' + search_key + '%'))
             if key_word_id:
-                plans = plans.filter(PlanKeyword.id == key_word_id)
+                plans = plans.filter(plan_alias.id == key_word_id)
             paginate = Page(total_entries=plans.count(), entries_per_page=per_page, current_page=page)
             results = plans.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
 
