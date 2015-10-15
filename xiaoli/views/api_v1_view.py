@@ -186,8 +186,8 @@ def account_info(account_id):
         abort(400)
 
 
-@api_v1.route("/account/<account_id>/impress", methods=["GET"])
-def account_impress(account_id):
+@api_v1.route("/account/<account_id>/impresses", methods=["GET"])
+def account_impresses(account_id):
     u"""获取用户印象"""
     try:
         res = api_response()
