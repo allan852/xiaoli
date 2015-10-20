@@ -137,7 +137,7 @@ def send_security_code():
         sms_code = SendSms.rand_code()
         content = "code is: %s" % sms_code
         content = content.encode('gbk','ignore')
-        code = SendSms.send(phone,content)
+        code = SendSms.send(phone, content)
         res = api_response()
         if 'success' in code:
             with db_session_cm() as session:
