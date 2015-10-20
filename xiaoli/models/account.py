@@ -102,6 +102,7 @@ class Account(Base, UserMixin):
 
     favorite_plans = relationship("Plan", secondary=account_plan_favorite_rel_table, lazy="dynamic")
     vote_plans = relationship("Plan", secondary=account_plan_vote_rel_table, lazy="dynamic")
+    plans = relationship("Plan", backref="account", foreign_keys="[Plan.author_id]")
 
     def __init__(self, phone, password):
         self.cellphone = phone

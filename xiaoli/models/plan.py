@@ -1,15 +1,27 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+from flask.ext.babel import gettext as _
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, BigInteger, Text
 from sqlalchemy.orm import relationship
 from xiaoli.models.base import Base
-
 
 __author__ = 'zouyingjun'
 
 
 class Plan(Base):
     __tablename__ = "plans"
+
+    #
+    STATUS_UNPUBLISHED = "unpublished"
+    STATUS_PUBLISH = "publish"
+    STATUS_UNSHELVE = "unshelve"
+    STATUS_DELETE = "unshelve"
+    STATUS_CHOICES = (
+        (STATUS_UNPUBLISHED, _("未发布")),
+        (STATUS_PUBLISH, _("已经发布")),
+        (STATUS_UNSHELVE, _("已下架")),
+        (STATUS_DELETE, _("删除")),
+    )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     # 方案名称
@@ -29,6 +41,12 @@ class Plan(Base):
 
     content = relationship("PlanContent",uselist=False,backref='plan',cascade="all, delete-orphan")
     keywords = relationship("PlanKeyword",backref='plan',secondary="plan_keyword_rel")
+
+    @property
+    def screen_status(self):
+        for sign, text in Plan.STATUS_CHOICES:
+            if sign == self.type:
+                return text
 
     def to_dict(self):
         d = {

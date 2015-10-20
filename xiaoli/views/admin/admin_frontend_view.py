@@ -3,7 +3,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request
 from flask.ext.babel import gettext as _
 from flask.ext.paginate import Pagination
-from xiaoli.models import Account
+from xiaoli.models import Account, Plan
 from xiaoli.models.session import db_session_cm
 
 __author__ = 'zouyingjun'
@@ -66,7 +66,17 @@ def account_freeze(account_id):
 @admin_frontend.route('/plans')
 def plans():
     u"""方案列表"""
-    return render_template("admin/plan/index.html")
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", Account.PER_PAGE, type=int)
+    with db_session_cm() as session:
+        plans_query = session.query(Plan)
+        pagination = Pagination(page=page, total=plans_query.count(), record_name=_(u"方案"), bs_version=3)
+        plans = plans_query.offset((page - 1) * per_page).limit(per_page)
+        context = {
+            "plans": plans,
+            "pagination": pagination
+        }
+        return render_template("admin/plan/index.html", **context)
 
 
 @admin_frontend.route('/plan/<int:plan_id>')
