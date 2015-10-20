@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 from flask import Flask, url_for, request, render_template, session
+from flask.ext.babel import Babel
 from flask.ext.cdn import CDN
+from flask.ext.wtf.i18n import Translations
 
 from xiaoli.config import setting
 from xiaoli import views
@@ -33,29 +35,28 @@ def configure_blueprints(app, blueprints):
             app.register_blueprint(view, url_prefix=url_prefix)
 
 
-# def configure_i18n(app):
-#     app.config['BABEL_DEFAULT_LOCALE'] = setting.DEFAULT_INIT_LOCALE
-#
-#     def ugettext(self, message):
-#         missing = object()
-#         tmsg = self._catalog.get(unicode(message), missing)
-#         if tmsg is missing:
-#             if self._fallback:
-#                 return self._fallback.ugettext(message)
-#             return unicode(message)
-#         return tmsg
-#
-#     Translations.ugettext = ugettext
-#
-#     babel = Babel(app)
-#
-#     @babel.localeselector
-#     def get_locale():
-#         #TODO NYH: 获取用户local
-#         if not current_user.is_authenticated():
-#             return session.get('user_locale') or setting.DEFAULT_INIT_LOCALE
-#         else:
-#             return current_user.locale
+def configure_i18n(app):
+    app.config['BABEL_DEFAULT_LOCALE'] = setting.DEFAULT_INIT_LOCALE
+
+    def ugettext(self, message):
+        missing = object()
+        tmsg = self._catalog.get(unicode(message), missing)
+        if tmsg is missing:
+            if self._fallback:
+                return self._fallback.ugettext(message)
+            return unicode(message)
+        return tmsg
+
+    Translations.ugettext = ugettext
+
+    babel = Babel(app)
+
+    # @babel.localeselector
+    # def get_locale():
+    #     if not current_user.is_authenticated:
+    #         return session.get('user_locale') or setting.DEFAULT_INIT_LOCALE
+    #     else:
+    #         return current_user.locale
 
 
 def configure_url_for_with_timestamp(app):
@@ -137,13 +138,14 @@ def configure_error_handler(app):
 
 
 def configure_context_processor(app):
-    @app.context_processor
-    def get_user_locale():
-        if not current_user.is_authenticated():
-            user_locale = session.get('user_locale') or setting.DEFAULT_INIT_LOCALE
-            return {'user_locale': user_locale.replace('_', '-')}
-        else:
-            return {'user_locale': current_user.locale.replace('_', '-')}
+    # @app.context_processor
+    # def get_user_locale():
+    #     if not current_user.is_authenticated:
+    #         user_locale = session.get('user_locale') or setting.DEFAULT_INIT_LOCALE
+    #         return {'user_locale': user_locale.replace('_', '-')}
+    #     else:
+    #         return {'user_locale': current_user.locale.replace('_', '-')}
+    pass
 
 def configure_cdn_url_for(app):
     u"""是的url_for智能使用cdn地址"""
@@ -157,7 +159,7 @@ def create_app(config=None):
     if config:
         app.config.from_object(config)
 
-    # configure_i18n(app)
+    configure_i18n(app)
 
     configure_blueprints(app, default_blueprints)
 

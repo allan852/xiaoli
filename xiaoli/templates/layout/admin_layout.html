@@ -18,18 +18,18 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="#">晓礼网</a>
+      <a class="navbar-brand" href="{{ url_for("admin_frontend.index") }}">{{ _("晓礼网") }}</a>
     </div>
 
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
-        <li class="active"><a href="/admin/accounts">用户管理 <span class="sr-only">(current)</span></a></li>
-        <li class=""><a href="/admin/plans">方案管理</a></li>
+        <li class="active"><a href="{{ url_for("admin_frontend.accounts") }}">{{ _("用户管理") }} <span class="sr-only">(current)</span></a></li>
+        <li class=""><a href="{{ url_for("admin_frontend.plans") }}">{{ _("方案管理") }}</a></li>
       </ul>
 
       <ul class="nav navbar-nav navbar-right">
-        <li><a href="#">Logout</a></li>
+        <li><a href="{{ url_for("frontend.logout") }}">{{ _("退出") }}</a></li>
       </ul>
     </div>
   </div>

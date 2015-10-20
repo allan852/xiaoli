@@ -1,7 +1,9 @@
 #! -*- coding=utf-8 -*-
 import datetime
 
-from flask import request, url_for
+from flask import request, url_for, current_app, redirect
+from flask.ext.login import login_user
+from flask.ext.principal import identity_changed, Identity
 from xiaoli.helpers.error_code import ErrorCode
 from xiaoli.helpers.send_sms import SendSms
 from xiaoli.models.account import Account
@@ -195,3 +197,24 @@ def check_renew_params(session, **kwargs):
     # 检测验证码是否正确
 
     return True, res
+
+
+def validate_user(phone, name, next_url=None):
+
+    user = Account.m.find({'email': email, 'name': name}).first()
+    if not user:
+        user = Account.m.find({'email': email}).first()
+
+    if user.active:
+        login_user(user)
+        identity_changed.send(current_app._get_current_object(), identity=Identity(user._id))
+        user.login_time = datetime.datetime.now()
+        user.m.save()
+
+        if next_url:
+            return redirect(next_url)
+        else:
+            return redirect(url_for('frontend.index'))
+    else:
+        user.send_register_mail(host_url=request.host_url, next=next_url)
+    return redirect(url_for('frontend.sign_success', email=user.email))

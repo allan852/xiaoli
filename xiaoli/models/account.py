@@ -114,6 +114,10 @@ class Account(Base, UserMixin):
         return self.type == Account.TYPE_ADMIN
 
     @property
+    def is_active(self):
+        return self.status == Account.STATUS_ACTIVE
+
+    @property
     def password(self):
         return self._password
 
