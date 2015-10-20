@@ -8,5 +8,6 @@ from xiaoli.models.image import ImageResource
 from xiaoli.models.notice import Notice
 from xiaoli.models.plan import Plan, PlanContent, PlanKeyword
 from xiaoli.models.token import Token
+from xiaoli.models.sms import Sms
 
 __author__ = 'zouyingjun'

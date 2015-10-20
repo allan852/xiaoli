@@ -18,3 +18,9 @@ DB_META = {
     "host": "127.0.0.1",
     "port": 3306
 }
+
+SMS = {
+    'username':'youli',
+    'password':'youli123',
+    'apikey': '2fd8eb942e6a99f4715986605f7895f7'
+}

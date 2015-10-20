@@ -24,3 +24,9 @@ DB_META = {
     "db_name": "xiaoli",
     "path":os.path.dirname(ATHENA_PATH)
 }
+
+SMS = {
+    'username':'youli',
+    'password':'youli123',
+    'apikey': '2fd8eb942e6a99f4715986605f7895f7'
+}

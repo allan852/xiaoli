@@ -7,8 +7,8 @@ from sqlalchemy import func
 from sqlalchemy.orm import aliased
 
 from xiaoli.helpers import api_response, check_register_params, ErrorCode, check_import_contacts_params, \
-    check_update_account_info_params, check_renew_params
-from xiaoli.models import Account, Comment, Impress, ImpressContent, account_friends_rel_table
+    check_update_account_info_params, check_renew_params,SendSms
+from xiaoli.models import Account, Comment, Impress, ImpressContent, account_friends_rel_table,Sms
 from xiaoli.models import Plan,PlanKeyword,PlanContent
 from xiaoli.models.session import db_session_cm
 from xiaoli.models import Token
@@ -134,14 +134,26 @@ def send_security_code():
     u"""发送短信验证码"""
     try:
         phone = request.form.get("phone")
-
+        sms_code = SendSms.rand_code()
+        content = "code is: %s" % sms_code
+        content = content.encode('gbk','ignore')
+        code = SendSms.send(phone,content)
         res = api_response()
-        res.update(response={
-            "status": "ok"
-        })
-
+        if 'success' in code:
+            with db_session_cm() as session:
+                sms = Sms(phone, sms_code)
+                session.add(sms)
+                session.commit()
+            res.update(response={
+                "status": "ok"
+            })
+        else:
+            res.update(response={
+                "status": "fail"
+            })
         return jsonify(res)
     except Exception as e:
+        print traceback.format_exc(e)
         api_logger.error(traceback.format_exc(e))
         abort(400)
 
@@ -152,12 +164,19 @@ def check_security_code():
     try:
         phone = request.form.get("phone")
         code = request.form.get("code")
-
         res = api_response()
-        res.update(response={
-            "status": "ok"
-        })
-
+        with db_session_cm() as session:
+            sms = session.query(Sms).filter(Sms.phone == phone).first()
+            if sms and sms.code == code:
+                res.update(response={
+                    "status": "ok"
+                })
+                session.delete(sms)
+                session.commit()
+            else:
+                res.update(response={
+                    "status": "fail"
+                })
         return jsonify(res)
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
@@ -617,7 +636,7 @@ def renew_password():
         code = request.form.get("code")
         new_password = request.form.get("new_password")
         new_password2 = request.form.get("new_password2")
-
+        res = api_response()
         params = {
             "phone": phone,
             "code": code,
@@ -628,11 +647,23 @@ def renew_password():
             ok, res = check_renew_params(session, **params)
             if not ok:
                  return jsonify(res)
+            sms = session.query(Sms).filter(Sms.phone == phone).first()
+            if sms and sms.code == code:
+                res.update(response={
+                    "status": "ok"
+                })
+                session.delete(sms)
+                session.commit()
+            else:
+                res.update(response={
+                    "status": "ok"
+                })
+                return jsonify(res)
+
             account = session.query(Account).filter(Account.cellphone == phone).first()
             account.password = new_password
             session.add(account)
             session.commit()
-            res = api_response()
             res.update(response={"status": "ok"})
             return jsonify(res)
     except Exception as e:
