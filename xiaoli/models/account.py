@@ -17,38 +17,39 @@ __author__ = 'zouyingjun'
 
 class Account(Base, UserMixin):
     __tablename__ = 'accounts'
+    PER_PAGE = 10
 
     BIRTHDAY_FORMAT = "%Y-%m-%d"
 
     HOROSCOPE_CHOICES = (
-        ("Aries", "牡羊座"),
-        ("Taurus", "金牛座"),
-        ("Gemini", "雙子座"),
-        ("Cancer", "巨蟹座"),
-        ("Leo", "獅子座"),
-        ("Virgo", "處女座"),
-        ("Libra", "天秤座"),
-        ("Scorpio", "天蠍座"),
-        ("Sagittarius", "射手座"),
-        ("Capricorn", "魔羯座"),
-        ("Aquarius", "水瓶座"),
-        ("Pisces", "雙魚座"),
+        ("Aries", u"牡羊座"),
+        ("Taurus", u"金牛座"),
+        ("Gemini", u"雙子座"),
+        ("Cancer", u"巨蟹座"),
+        ("Leo", u"獅子座"),
+        ("Virgo", u"處女座"),
+        ("Libra", u"天秤座"),
+        ("Scorpio", u"天蠍座"),
+        ("Sagittarius", u"射手座"),
+        ("Capricorn", u"魔羯座"),
+        ("Aquarius", u"水瓶座"),
+        ("Pisces", u"雙魚座"),
     )
 
     STATUS_UNREGISTERED = "unregistered"
     STATUS_ACTIVE = "active"
     STATUS_FREEZE = "freeze"
     STATUS_CHOICES = (
-        (STATUS_UNREGISTERED, "未注册"),
-        (STATUS_ACTIVE, "激活"),
-        (STATUS_FREEZE, "冻结"),
+        (STATUS_UNREGISTERED, u"未注册"),
+        (STATUS_ACTIVE, u"激活"),
+        (STATUS_FREEZE, u"冻结"),
     )
 
     TYPE_USER = "user"
     TYPE_ADMIN = "admin"
     TYPE_CHOICES = (
-        (TYPE_USER, "普通用户"),
-        (TYPE_ADMIN, "系统管理员")
+        (TYPE_USER, u"普通用户"),
+        (TYPE_ADMIN, u"系统管理员")
     )
 
     SEX_MALE = "male"
@@ -129,6 +130,20 @@ class Account(Base, UserMixin):
     def has_registered(self):
         u"""是否注册过，导入的好友不算注册"""
         return self.status != Account.STATUS_UNREGISTERED
+
+    @property
+    def screen_type(self):
+        u"""用户类型显示名称"""
+        for sign, text in Account.TYPE_CHOICES:
+            if sign == self.type:
+                return text
+
+    @property
+    def screen_status(self):
+        u"""用户状态现实名称"""
+        for sign, text in Account.STATUS_CHOICES:
+            if sign == self.status:
+                return text
 
     def check_password(self, pw):
         u"""检测密码"""

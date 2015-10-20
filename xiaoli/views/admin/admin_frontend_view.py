@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, redirect, url_for, request
+from flask.ext.babel import gettext as _
+from flask.ext.paginate import Pagination
+from xiaoli.models import Account
+from xiaoli.models.session import db_session_cm
 
 __author__ = 'zouyingjun'
 
@@ -10,13 +14,23 @@ admin_frontend = Blueprint("admin_frontend", __name__, template_folder="template
 @admin_frontend.route('/')
 def index():
     u"""管理员首页"""
-    return render_template("admin/frontend/index.html")
+    return redirect(url_for("admin_frontend.accounts"))
 
 
 @admin_frontend.route('/accounts')
 def accounts():
     u"""用户列表"""
-    return render_template("admin/account/index.html")
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", Account.PER_PAGE, type=int)
+    with db_session_cm() as session:
+        users_query = session.query(Account)
+        pagination = Pagination(page=page, total=users_query.count(), record_name=_(u"用户"), bs_version=3)
+        users = users_query.offset((page - 1) * per_page).limit(per_page)
+        context = {
+            "users": users,
+            "pagination": pagination
+        }
+        return render_template("admin/account/index.html", **context)
 
 
 @admin_frontend.route('/account/<int:account_id>')

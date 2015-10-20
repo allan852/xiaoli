@@ -16,6 +16,7 @@ def db_session_cm():
         yield session
     except Exception, e:
         # logger.warn(traceback.format_exc())
+        session.rollback()
         raise e
     finally:
         session.close()
