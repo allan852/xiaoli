@@ -46,6 +46,10 @@ class RegisterForm(Form):
                                                Length(min=6, max=30, message=_(u'密码最少6位， 最多30位'))],
                                    description=_(u'确认密码'))
 
+    nickname = StringField(_(u'昵称'),
+                        validators=[DataRequired(message=_(u'昵称不能为空'))],
+                        description=_(u'昵称'))
+
     def validate_phone(form, field):
         with db_session_cm() as session:
             user = session.query(Account).filter(Account.cellphone == field.data.strip()).first()
