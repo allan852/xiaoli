@@ -15,6 +15,7 @@ LOG_FILE_PATH = os.path.join(os.path.dirname(ATHENA_PATH), 'log')  # 开发环�
 
 LOG_FILE = posixpath.join(LOG_FILE_PATH, '%s.log' % APP_NAME)
 API_LOG_FILE = posixpath.join(LOG_FILE_PATH, '%s_api_v1.log' % APP_NAME)
+LOG_LEVEL = "DEBUG"
 
 MEMCACHED_MACHINES = ['127.0.0.1:11211']
 

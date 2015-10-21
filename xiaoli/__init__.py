@@ -93,12 +93,12 @@ def configure_logger(app):
         '[in %(pathname)s: %(lineno)d]'
     )
     if app.debug:
-        log_file = os.path.join(setting.LOG_PATH, "youli_development.log")
+        log_file = os.path.join(setting.LOG_PATH, "%s.log" % app.config["APP_NAME"])
         youli_handler = logging.FileHandler(log_file)
         youli_handler.setFormatter(formatter)
         youli_handler.setLevel(logging.DEBUG)
     else:
-        log_file = os.path.join(setting.LOG_PATH, "youli_production.log")
+        log_file = os.path.join(setting.LOG_PATH, "%s.log" % app.config["APP_NAME"])
         youli_handler = logging.FileHandler(log_file)
         youli_handler.setFormatter(formatter)
         youli_handler.setLevel(logging.WARNING)

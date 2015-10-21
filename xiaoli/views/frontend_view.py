@@ -34,6 +34,7 @@ def login():
     登录成功后，管理员直接到管理后台首页，其他到前台首页
     """
     try:
+        common_logger.info("login" * 20)
         login_form = LoginForm(request.form)
         next = request.args.get('next')
         context = {
