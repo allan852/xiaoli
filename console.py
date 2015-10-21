@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+import traceback
 from flask.ext.script import Manager, prompt_bool
+from sqlalchemy.orm.exc import NoResultFound
 from xiaoli import create_app
 from xiaoli.config import setting
 from xiaoli import models
@@ -72,6 +74,31 @@ def build_sample_db():
             user.email = ud.get("email")
             session.add(user)
         session.commit()
+
+
+@manager.command
+def set_admin_user(phone=None):
+    u"""
+    设置用户为管理员
+    """
+    if not phone:
+        print "No phone given! Exit"
+        return
+
+    with db_session_cm() as session:
+        try:
+            user = session.query(Account).filter(Account.cellphone == phone).one()
+            if user.is_admin:
+                print "phone %s is admin now!" % phone
+                return
+            user.type = Account.TYPE_ADMIN
+            session.add(user)
+            session.commit()
+            print "Set user[%s] to admin" % phone
+        except NoResultFound as e:
+            print "phone %s not exists!" % phone
+        except Exception as e:
+            print traceback.format_exc(e)
 
 
 if __name__ == '__main__':
