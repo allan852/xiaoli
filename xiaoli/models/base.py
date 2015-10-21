@@ -8,13 +8,9 @@ from xiaoli.utils.date_util import format_date
 
 __author__ = 'zouyingjun'
 
-if setting.DEBUG:
-    database_url = "sqlite:///%(path)s/%(db_name)s.db" % setting.DB_META
-    print "Using DB %s" % database_url
-    engine = create_engine(database_url, echo=True)
-else:
-    database_url = "mysql://%(user)s:%(password)s@%(host)s:%(port)s/%(db_name)s" % setting.DB_META
-    engine = create_engine(database_url)
+database_url = setting.DATABASE_URL
+print "Using DB %s" % database_url
+engine = create_engine(database_url)
 
 
 class BaseModel(object):

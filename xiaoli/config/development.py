@@ -10,6 +10,11 @@ DATABASE = {
     'port': '27017',
     'db_name': APP_NAME
 }
+DB_META = {
+    "db_name": "xiaoli",
+    "path":os.path.dirname(ATHENA_PATH)
+}
+DATABASE_URL = "sqlite:///%(path)s/%(db_name)s.db" % DB_META
 
 LOG_FILE_PATH = os.path.join(os.path.dirname(ATHENA_PATH), 'log')  # 开发环境下，log打到项目根目录下
 
@@ -20,11 +25,6 @@ LOG_LEVEL = "DEBUG"
 MEMCACHED_MACHINES = ['127.0.0.1:11211']
 
 HOME_URL = 'http://127.0.0.1:5000'
-
-DB_META = {
-    "db_name": "xiaoli",
-    "path":os.path.dirname(ATHENA_PATH)
-}
 
 SMS = {
     'username':'youli',

@@ -80,6 +80,7 @@ class PlanContent(Base):
     # 方案内容
     content = Column(Text, nullable=False)
 
+
 class PlanKeyword(Base):
     __tablename__ = "plan_keywords"
 

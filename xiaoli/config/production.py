@@ -20,6 +20,7 @@ DB_META = {
     "host": "127.0.0.1",
     "port": 3306
 }
+DATABASE_URL = "mysql://%(user)s:%(password)s@%(host)s:%(port)s/%(db_name)s" % DB_META
 
 SMS = {
     'username':'youli',
