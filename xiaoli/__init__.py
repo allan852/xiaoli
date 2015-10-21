@@ -92,17 +92,12 @@ def configure_logger(app):
         '%(asctime)s %(levelname)s: %(message)s '
         '[in %(pathname)s: %(lineno)d]'
     )
-    if app.debug:
-        log_file = os.path.join(setting.LOG_PATH, "youli_development.log")
-        youli_handler = logging.FileHandler(log_file)
-        youli_handler.setFormatter(formatter)
-        youli_handler.setLevel(logging.DEBUG)
-    else:
-        log_file = os.path.join(setting.LOG_PATH, "youli_production.log")
+    if not app.debug:
+        log_file = os.path.join(setting.LOG_FILE_PATH, "%s.log" % app.config["APP_NAME"])
         youli_handler = logging.FileHandler(log_file)
         youli_handler.setFormatter(formatter)
         youli_handler.setLevel(logging.WARNING)
-    app.logger.addHandler(youli_handler)
+        app.logger.addHandler(youli_handler)
 
 
 # def configure_memcache_session_interface(app):
@@ -154,6 +149,7 @@ def configure_cdn_url_for(app):
 
 
 def create_app(config=None):
+    print setting
     app = Flask(setting.APP_NAME)
 
     if config:
@@ -185,8 +181,7 @@ def create_app(config=None):
 
     return app
 
-app = create_app(config=setting)
-
 if __name__ == "__main__":
+    app = create_app(config=setting)
     print app
     app.run()

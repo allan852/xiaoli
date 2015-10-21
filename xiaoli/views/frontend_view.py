@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import traceback
-import datetime
-from flask import Blueprint, render_template, send_file, request, url_for, redirect, abort, current_app
+from flask import Blueprint, render_template, send_file, request, url_for, redirect, abort, current_app, flash
+from flask.ext.babel import gettext as _
 from flask.ext.login import current_user, login_user, logout_user, login_required
 from flask.ext.principal import identity_changed, Identity
-from xiaoli.forms import LoginForm
-from xiaoli.helpers import validate_user
+from xiaoli.forms import LoginForm, RegisterForm
 from xiaoli.models import Account
 from xiaoli.models.session import db_session_cm
 from xiaoli.utils.logs.logger import common_logger
-
 __author__ = 'zouyingjun'
 
 frontend = Blueprint("frontend", __name__, template_folder="templates", static_folder="../static")
@@ -25,7 +23,26 @@ def index():
 @frontend.route('/register', methods=["GET", "POST"])
 def register():
     u"""注册"""
-    pass
+    try:
+        register_form = RegisterForm(request.form)
+        context = {
+            'form': register_form,
+        }
+        if request.method == 'POST' and register_form.validate_on_submit():
+            phone = register_form.phone.data.strip().lower()
+            password = register_form.password.data.strip()
+            with db_session_cm() as session:
+                user = Account(phone, password)
+                user.nickname = register_form.nickname.data.strip()
+                session.add(user)
+                session.commit()
+            flash(_(u"恭喜您，注册成功！ 赶快登录吧！"))
+            return redirect(url_for('frontend.login'))
+    except Exception, e:
+        common_logger.error(traceback.format_exc(e))
+        abort(500)
+
+    return render_template('frontend/register.html', **context)
 
 
 @frontend.route('/login', methods=["GET", "POST"])
@@ -70,7 +87,6 @@ def login():
 def logout():
     u"""登出"""
     logout_user()
-
     return redirect(url_for("frontend.index"))
 
 

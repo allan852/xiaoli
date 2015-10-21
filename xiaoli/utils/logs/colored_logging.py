@@ -55,7 +55,9 @@ class Logging:
         logger = logging.getLogger(name)
         
         ## create log handler.
+        print "colored_logging handlers length = %s" % len(logger.handlers)
         if len(logger.handlers) <= 0:
+            print "colored_logging add handler"
             if log_file is not None:
                 handler = logging.FileHandler(log_file)
             else:
@@ -67,7 +69,6 @@ class Logging:
             
             logger.addHandler(handler)
             logger.setLevel(log_level)
-        
         return logger
 
 

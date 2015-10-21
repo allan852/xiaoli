@@ -1,5 +1,13 @@
 {% extends "layout/base_layout.html" %}
 
 {% block content %}
-{{ "Welcome to Xiao Li API" }}
+    {% if current_user and current_user.is_authenticated %}
+        {{ "%s, Welcome to Xiao Li API" % current_user.cellphone }}
+        <br>
+        <a href="{{ url_for("frontend.logout") }}">{{ _("logout") }}</a>
+    {% else %}
+        {{ "Welcome to Xiao Li API" }}
+        <br>
+        <a href="{{ url_for("frontend.login") }}">{{ _("login") }}</a>
+    {% endif %}
 {% endblock %}
