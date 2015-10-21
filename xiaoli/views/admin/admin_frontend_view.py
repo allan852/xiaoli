@@ -7,7 +7,7 @@ import json
 from flask import Blueprint, render_template, redirect, url_for, request,make_response
 from flask.ext.babel import gettext as _
 from flask.ext.paginate import Pagination
-from xiaoli.models import Account, Plan,Uploader
+from xiaoli.models import Account, Plan,Uploader, PlanKeyword
 from xiaoli.models.session import db_session_cm
 from xiaoli.config import setting
 
@@ -102,10 +102,12 @@ def plan_delete(plan_id):
     u"""删除方案"""
     return render_template("admin/plan/index.html")
 
+
 @admin_frontend.route('/plan/new')
 def plan_new():
     u"""新建方案"""
     return render_template("admin/plan/new.html")
+
 
 @admin_frontend.route('/upload/',methods=['GET', 'POST','OPTIONS'])
 def upload():
@@ -206,6 +208,7 @@ def upload():
     res.headers['Access-Control-Allow-Headers'] = 'X-Requested-With,X_Requested_With'
     return res
 
+
 @admin_frontend.route('/plan/publish/<int:plan_id>')
 def plan_publish(plan_id):
     u"""发布方案"""
@@ -216,3 +219,37 @@ def plan_publish(plan_id):
 def plan_revocation(plan_id):
     u"""撤销方案"""
     return render_template("admin/plan/index.html")
+
+
+@admin_frontend.route('/keywords')
+def keywords():
+    u"""关键字"""
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", PlanKeyword.PER_PAGE, type=int)
+    with db_session_cm() as session:
+        keywords_query = session.query(PlanKeyword)
+        pagination = Pagination(page=page, total=keywords_query.count(), record_name=_(u"关键字"), bs_version=3)
+        keywords = keywords_query.order_by(PlanKeyword.id.desc()).offset((page - 1) * per_page).limit(per_page)
+        context = {
+            "keywords": keywords,
+            "pagination": pagination
+        }
+        return render_template("admin/keyword/index.html", **context)
+
+
+@admin_frontend.route('/keyword/new', methods=["GET", "POST"])
+def keyword_new():
+    u"""新建关键字"""
+    return render_template("admin/keyword/new.html")
+
+
+@admin_frontend.route('/keyword/<int:keyword_id>')
+def keyword_show(keyword_id):
+    u"""关键之详情"""
+    return render_template("admin/keyword/show.html")
+
+
+@admin_frontend.route('/keyword/<int:keyword_id>')
+def keyword_delete(keyword_id):
+    u"""删除关键字"""
+    return render_template("admin/keyword/index.html")

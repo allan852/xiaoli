@@ -28,6 +28,9 @@
                     <li class="{% if request.endpoint == "admin_frontend.plans" %}active{% endif %}">
                         <a href="{{ url_for("admin_frontend.plans") }}">{{ _("方案管理") }}</a>
                     </li>
+                    <li class="{% if request.endpoint == "admin_frontend.plans" %}active{% endif %}">
+                        <a href="{{ url_for("admin_frontend.plans") }}">{{ _("方案管理") }}</a>
+                    </li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li><a href="{{ url_for("frontend.index") }}">{{ current_user.cellphone }}</a></li>

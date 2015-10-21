@@ -64,6 +64,7 @@ class Plan(Base):
         }
         return d
 
+
 class PlanContent(Base):
     __tablename__ = "plan_contents"
 
@@ -77,6 +78,17 @@ class PlanContent(Base):
 class PlanKeyword(Base):
     __tablename__ = "plan_keywords"
 
+    PER_PAGE = 10
+
+    TYPE_PRESET = "preset"
+    TYPE_USERADD = "useradd"
+    TYPE_CHOICES = (
+        (TYPE_PRESET, _("系统预设")),
+        (TYPE_USERADD, _("用户添加")),
+    )
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     # 关键字内容
     content = Column(String(128), nullable=False)
+    # 关键字类型
+    type = Column(String(64), nullable=False, default=TYPE_USERADD)

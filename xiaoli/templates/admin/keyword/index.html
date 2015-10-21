@@ -1,0 +1,47 @@
+{% extends "layout/admin_layout.html" %}
+
+{% block content %}
+    <div class="container">
+        <div class="panel panel-default">
+            <div class="panel-heading">{{ _("全部方案") }}</div>
+            <div class="panel-body">
+                <a href="plan/new" class="btn btn-info" >新建方案</a>
+            </div>
+
+            <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>{{ _("内容") }}</th>
+                    <th>{{ _("阅读") }}</th>
+                    <th>{{ _("收藏") }}</th>
+                    <th>{{ _("状态") }}</th>
+                    <th>{{ _("发布时间") }}</th>
+                    <th>{{ _("操作") }}</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for keyword in keywords %}
+                <tr>
+                    <td>{{ keyword.title }}</td>
+                    <td>{{ keyword.account.name }}</td>
+                    <td>{{ keyword.view_count }}</td>
+                    <td>{{ keyword.view_count }}</td>
+                    <td>{{ keyword.screen_status }}</td>
+                    <td>{{ keyword.screen_create_time }}</td>
+                    <td>
+                        <a href="{{ url_for("admin_frontend.keyword_edit", account_id=keyword.id) }}">{{ _("编辑") }}</a>
+                        |
+                        <a class="text-danger" href="{{ url_for("admin_frontend.keyword_delete", account_id=keyword.id) }}">{{ _("删除") }}</a>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+            {{ pagination.links }}
+        </div>
+    </div>
+{% endblock %}
