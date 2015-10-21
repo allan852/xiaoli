@@ -35,6 +35,7 @@ def login():
     """
     try:
         common_logger.info("login" * 20)
+        current_app.logger.debug("ssss" * 20)
         login_form = LoginForm(request.form)
         next = request.args.get('next')
         context = {
