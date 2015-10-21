@@ -186,8 +186,7 @@ def create_app(config=None):
 
     return app
 
-app = create_app(config=setting)
-
 if __name__ == "__main__":
+    app = create_app(config=setting)
     print app
     app.run()
