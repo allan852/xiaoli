@@ -2,8 +2,13 @@
 
 {% block content %}
     <div class="container">
-        <h2 class="sub-header">{{ _("全部方案") }}</h2>
-        <div class="table-responsive">
+        <div class="panel panel-default">
+            <div class="panel-heading">{{ _("全部方案") }}</div>
+            <div class="panel-body">
+                <a href="plan/new" class="btn btn-info" >新建方案</a>
+            </div>
+
+            <div class="table-responsive">
             <table class="table table-striped">
                 <thead>
                 <tr>
@@ -35,6 +40,8 @@
                 </tbody>
             </table>
         </div>
-        {{ pagination.links }}
+
+            {{ pagination.links }}
+        </div>
     </div>
 {% endblock %}

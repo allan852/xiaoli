@@ -2,8 +2,14 @@
 
 {% block content %}
     <div class="container">
-        <h2 class="sub-header">{{ _("全部用户") }}</h2>
-        <div class="table-responsive">
+        <div class="panel panel-default">
+            <div class="panel-heading">{{ _("全部用户") }}</div>
+            <div class="panel-body">
+
+            </div>
+
+
+            <div class="table-responsive">
             <table class="table table-striped">
                 <thead>
                 <tr>
@@ -35,6 +41,8 @@
                 </tbody>
             </table>
         </div>
-        {{ pagination.links }}
+
+            {{ pagination.links }}
+        </div>
     </div>
 {% endblock %}
