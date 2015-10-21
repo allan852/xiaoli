@@ -2,7 +2,8 @@
 
 from xiaoli.config.base import *
 
-DEBUG = False
+# DEBUG = False
+DEBUG = True
 
 LOG_FILE_PATH = '/home/eplus/log/xiaoli/'
 
