@@ -154,6 +154,7 @@ def configure_cdn_url_for(app):
 
 
 def create_app(config=None):
+    print setting
     app = Flask(setting.APP_NAME)
 
     if config:
