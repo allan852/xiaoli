@@ -36,7 +36,7 @@ def accounts():
         pagination = Pagination(page=page, total=users_query.count(), record_name=_(u"用户"), bs_version=3)
         users = users_query.order_by(Account.id.desc()).offset((page - 1) * per_page).limit(per_page)
         context = {
-            "users": users,
+            "users": users.all(),
             "pagination": pagination
         }
         return render_template("admin/account/index.html", **context)
@@ -82,7 +82,7 @@ def plans():
         pagination = Pagination(page=page, total=plans_query.count(), record_name=_(u"方案"), bs_version=3)
         plans = plans_query.offset((page - 1) * per_page).limit(per_page)
         context = {
-            "plans": plans,
+            "plans": plans.all(),
             "pagination": pagination
         }
         return render_template("admin/plan/index.html", **context)
@@ -131,10 +131,6 @@ def plan_delete(plan_id):
         flash(_(u"删除失败!"))
 
 
-@admin_frontend.route('/plan/new')
-    return redirect(url_for('admin_frontend.plans'))
-
-
 @admin_frontend.route('/plan/new',methods=["GET","POST"])
 def plan_new():
     u"""新建方案"""
@@ -148,9 +144,8 @@ def plan_new():
             content = plan_form.content.data.strip()
             keyword = plan_form.content.data.strip()
             with db_session_cm() as session:
-
-                plan_content = PlanContent(content = content)
-                plan_keyword = PlanKeyword(content= keyword)
+                plan_content = PlanContent(content=content)
+                plan_keyword = PlanKeyword(content=keyword)
                 plan = Plan(title)
                 if current_user:
                     plan.author_id = current_user.id
@@ -160,12 +155,11 @@ def plan_new():
                 session.commit()
             flash(_(u"方案添加成功!"))
             return redirect(url_for('admin_frontend.plans'))
+        return render_template("admin/plan/new.html", **context)
     except Exception, e:
         common_logger.error(traceback.format_exc(e))
         print traceback.format_exc(e)
         abort(500)
-
-    return render_template("admin/plan/new.html",**context)
 
 
 @admin_frontend.route('/upload/',methods=['GET', 'POST','OPTIONS'])
@@ -290,7 +284,7 @@ def keywords():
         pagination = Pagination(page=page, total=keywords_query.count(), record_name=_(u"关键字"), bs_version=3)
         keywords = keywords_query.order_by(PlanKeyword.id.desc()).offset((page - 1) * per_page).limit(per_page)
         context = {
-            "keywords": keywords,
+            "keywords": keywords.all(),
             "pagination": pagination
         }
         return render_template("admin/keyword/index.html", **context)

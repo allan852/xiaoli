@@ -97,3 +97,11 @@ class PlanKeyword(Base):
     content = Column(String(128), nullable=False)
     # 关键字类型
     type = Column(String(64), nullable=False, default=TYPE_USERADD)
+
+    @property
+    def screen_type(self):
+        u"""用户类型显示名称"""
+        for sign, text in PlanKeyword.TYPE_CHOICES:
+            if sign == self.type:
+                return text
+

@@ -2,9 +2,14 @@
 
 {% block content %}
     <div class="container">
-        <div class="panel panel-default">
-            <div class="panel-heading">{{ _("全部用户") }}</div>
-            <div class="panel-body">
+        {% if users %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <div class="panel-title">
+                        <span>{{ _("全部用户") }}</span>
+                    </div>
+                </div>
+
                 <div class="table-responsive">
                     <table class="table table-striped">
                         <thead>
@@ -38,8 +43,12 @@
                         </tbody>
                     </table>
                 </div>
-            {{ pagination.links }}
             </div>
-        </div>
+            {{ pagination.links }}
+        {% else %}
+            <div class="panel-body">
+                <div class="alert alert-success" role="alert">{{ _("没有用户") }}</div>
+            </div>
+        {% endif %}
     </div>
 {% endblock %}
