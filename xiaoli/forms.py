@@ -95,3 +95,16 @@ class ResetPasswordForm(Form):
             raise ValidationError(_(u'两次密码不一致'))
 
 
+class PlanForm(Form):
+    title = StringField(_(u'标题'),
+                        validators=[DataRequired(message=_(u'标题不能为空'))],
+                        description=_(u'标题'))
+
+    content = TextAreaField(_(u'方案内容'),
+                          validators=[DataRequired(message=_(u'方案内容不能为空'))],
+                          description=_(u'方案内容')
+                          )
+
+    keyword = StringField(_(u'方案标签'),
+                          validators=[DataRequired(message=_(u'方案标签不能为空'))],
+                          description=_(u'方案标签'))
