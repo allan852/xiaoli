@@ -31,7 +31,7 @@ def accounts():
     with db_session_cm() as session:
         users_query = session.query(Account)
         pagination = Pagination(page=page, total=users_query.count(), record_name=_(u"用户"), bs_version=3)
-        users = users_query.offset((page - 1) * per_page).limit(per_page)
+        users = users_query.order_by(Account.id.desc()).offset((page - 1) * per_page).limit(per_page)
         context = {
             "users": users,
             "pagination": pagination

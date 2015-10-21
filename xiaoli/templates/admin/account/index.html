@@ -5,44 +5,41 @@
         <div class="panel panel-default">
             <div class="panel-heading">{{ _("全部用户") }}</div>
             <div class="panel-body">
-
-            </div>
-
-
-            <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                <tr>
-                    <th>#</th>
-                    <th>{{ _("手机号") }}</th>
-                    <th>{{ _("昵称") }}</th>
-                    <th>{{ _("注册时间") }}</th>
-                    <th>{{ _("状态") }}</th>
-                    <th>{{ _("类型") }}</th>
-                    <th>{{ _("操作") }}</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for user in users %}
-                <tr>
-                    <td>{{ user.id }}</td>
-                    <td>{{ user.cellphone }}</td>
-                    <td>{{ user.name }}</td>
-                    <td>{{ user.screen_create_time }}</td>
-                    <td>{{ user.screen_status }}</td>
-                    <td class="{% if user.is_admin %}text-warning{% else %}text-muted{% endif %}">{{ user.screen_type }}</td>
-                    <td>
-                        <a href="{{ url_for("admin_frontend.account_edit", account_id=user.id) }}">{{ _("编辑") }}</a>
-                        |
-                        <a class="text-danger" href="{{ url_for("admin_frontend.account_delete", account_id=user.id) }}">{{ _("删除") }}</a>
-                    </td>
-                </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>{{ _("手机号") }}</th>
+                            <th>{{ _("昵称") }}</th>
+                            <th>{{ _("注册时间") }}</th>
+                            <th>{{ _("状态") }}</th>
+                            <th>{{ _("类型") }}</th>
+                            <th>{{ _("操作") }}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for user in users %}
+                            <tr>
+                                <td>{{ user.id }}</td>
+                                <td>{{ user.cellphone }}</td>
+                                <td>{{ user.name }}</td>
+                                <td>{{ user.screen_create_time }}</td>
+                                <td>{{ user.screen_status }}</td>
+                                <td class="{% if user.is_admin %}text-warning{% else %}text-muted{% endif %}">{{ user.screen_type }}</td>
+                                <td>
+                                    <a href="{{ url_for("admin_frontend.account_edit", account_id=user.id) }}">{{ _("编辑") }}</a>
+                                    |
+                                    <a class="text-danger"
+                                       href="{{ url_for("admin_frontend.account_delete", account_id=user.id) }}">{{ _("删除") }}</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             {{ pagination.links }}
+            </div>
         </div>
     </div>
 {% endblock %}

@@ -78,7 +78,7 @@ def build_sample_db():
 
 @manager.command
 def set_admin_user(phone=None):
-    u"""
+    """
     设置用户为管理员
     用法(在项目根目录执行下列命令)：
     线下：python console.py set_admin_user -p=手机号
