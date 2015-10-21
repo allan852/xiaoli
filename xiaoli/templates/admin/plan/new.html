@@ -2,17 +2,60 @@
 
 {% block content %}
 
-<div>
+<div class="container">
+    <div class="row" id="login-register-div">
+        <div class="col-md-6 col-md-offset-3">
+            <div class="login-register">
+                <form class="form" action="{{ url_for('admin_frontend.plan_new') }}" method="post">
+                    <fieldset>
+                        {{ form.csrf_token }}
+                        <div class="form-group">
+                            <label>{{ form.title.description }}</label>
+                            {{ form.title(class="form-control", placeholder=form.title.description) }}
+                            {% if form.errors.title %}
+                            <p class="text-danger">{{ form.errors.title[0] }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label>{{ form.content.description }}</label>
+                            {{ form.content(rows=20,cols=50,class="form-control", placeholder=form.content.description) }}
+                            {% if form.errors.content %}
+                            <p class="text-danger">{{ form.errors.content[0] }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!--<div class="form-group">-->
+                            <!--<label>{{ form.content.description }}</label>-->
+                            <!--<script type="text/plain" id="editor" style="width:600px;height:240px;">-->
+                            <!--<p></p>-->
+                            <!--</script>-->
+                        <!--</div>-->
+                        <!--<div class="clear"></div>-->
+                        <!-- -->
+                        <div class="form-group">
+                            <label>{{ form.keyword.description }}</label>
+                            {{ form.keyword(class="form-control", placeholder=form.keyword.description) }}
+                            {% if form.errors.keywords %}
+                            <p class="text-danger">{{ form.errors.keyword[0] }}</p>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-full">{{ _('创建方案') }}</button>
+                    </fieldset>
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
 <!--style给定宽度可以影响编辑器的最终宽度-->
-<script type="text/plain" id="editor" style="width:1000px;height:240px;">
-    <p></p>
-</script>
-<div class="clear"></div>
 <script type="text/javascript">
 $( document ).ready(function() {
     window.UEDITOR_HOME_URL = "http://localhost:5000/";
-    var ue = UE.getEditor('editor');
-
+    <!--var ue = UE.getEditor('editor');-->
 
     function isFocus(e){
         alert(UE.getEditor('editor').isFocus());
@@ -121,9 +164,7 @@ $( document ).ready(function() {
     }
 });
 
-
 </script>
 
-</div>
 {% endblock %}
 

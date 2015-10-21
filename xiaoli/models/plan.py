@@ -42,6 +42,12 @@ class Plan(Base):
     content = relationship("PlanContent",uselist=False,backref='plan',cascade="all, delete-orphan")
     keywords = relationship("PlanKeyword",backref='plan',secondary="plan_keyword_rel")
 
+    def __init__(self, title):
+        self.title = title
+        self.status = Plan.STATUS_UNPUBLISHED
+        self.view_count = 0
+        self.share_count = 0
+
     @property
     def screen_status(self):
         for sign, text in Plan.STATUS_CHOICES:
@@ -72,7 +78,6 @@ class PlanContent(Base):
     plan_id = Column(Integer, ForeignKey("plans.id"))
     # 方案内容
     content = Column(Text, nullable=False)
-
 
 class PlanKeyword(Base):
     __tablename__ = "plan_keywords"

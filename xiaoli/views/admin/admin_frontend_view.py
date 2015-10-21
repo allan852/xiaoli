@@ -3,14 +3,17 @@
 import os
 import re
 import json
+import traceback
 
-from flask import Blueprint, render_template, redirect, url_for, request,make_response
+from flask import Blueprint, render_template, redirect, url_for, request,make_response,abort,current_app,flash
 from flask.ext.babel import gettext as _
 from flask.ext.paginate import Pagination
-from xiaoli.models import Account, Plan,Uploader
+from flask_login import current_user
+from xiaoli.models import Account, Plan,Uploader, PlanContent, PlanKeyword
 from xiaoli.models.session import db_session_cm
 from xiaoli.config import setting
-
+from xiaoli.utils.logs.logger import common_logger
+from xiaoli.forms import PlanForm
 
 __author__ = 'zouyingjun'
 
@@ -88,24 +91,79 @@ def plans():
 @admin_frontend.route('/plan/<int:plan_id>')
 def plan_show(plan_id):
     u"""查看方案"""
-    return render_template("admin/plan/index.html")
+    with db_session_cm as session:
+        plan = session.query(Plan).get(plan_id)
+        context = {
+            "plan": plan
+        }
+    return render_template("admin/plan/index.html",**context)
 
 
 @admin_frontend.route('/plan/edit/<int:plan_id>', methods=["GET", "POST"])
 def plan_edit(plan_id):
     u"""修改方案"""
-    return render_template("admin/plan/index.html")
+    try:
+        with db_session_cm() as session:
+            plan = session.query(Plan).get(plan_id)
+            context = {
+                    'plan': plan,
+                }
+        return render_template("admin/plan/edit.html",**context)
+    except Exception as e:
+        common_logger.error(traceback.format_exc(e))
+        print traceback.format_exc(e)
+        abort(500)
+    return render_template("admin/plan/edit.html")
 
-
-@admin_frontend.route('/plan/delete/<int:plan_id>')
+@admin_frontend.route('/plan/delete/<int:plan_id>',methods=["GET","POST"])
 def plan_delete(plan_id):
     u"""删除方案"""
-    return render_template("admin/plan/index.html")
+    try:
+        with db_session_cm() as session:
+            plan = session.query(Plan).get(plan_id)
+            if current_user and current_user.is_admin:
+                session.delete(plan)
+        flash(_(u"删除成功!"))
+        return redirect(url_for('admin_frontend.plans'))
+    except Exception as e:
+        common_logger.error(traceback.format_exc(e))
+        print traceback.format_exc(e)
+        flash(_(u"删除失败!"))
 
-@admin_frontend.route('/plan/new')
+    return redirect(url_for('admin_frontend.plans'))
+
+
+@admin_frontend.route('/plan/new',methods=["GET","POST"])
 def plan_new():
     u"""新建方案"""
-    return render_template("admin/plan/new.html")
+    try:
+        plan_form = PlanForm(request.form)
+        context = {
+            'form': plan_form,
+        }
+        if request.method == 'POST' and plan_form.validate_on_submit():
+            title = plan_form.title.data.strip()
+            content = plan_form.content.data.strip()
+            keyword = plan_form.content.data.strip()
+            with db_session_cm() as session:
+
+                plan_content = PlanContent(content = content)
+                plan_keyword = PlanKeyword(content= keyword)
+                plan = Plan(title)
+                if current_user:
+                    plan.author_id = current_user.id
+                plan.content = plan_content
+                plan.keywords = [plan_keyword]
+                session.add(plan)
+                session.commit()
+            flash(_(u"方案添加成功!"))
+            return redirect(url_for('admin_frontend.plans'))
+    except Exception, e:
+        common_logger.error(traceback.format_exc(e))
+        print traceback.format_exc(e)
+        abort(500)
+
+    return render_template("admin/plan/new.html",**context)
 
 @admin_frontend.route('/upload/',methods=['GET', 'POST','OPTIONS'])
 def upload():

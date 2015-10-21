@@ -7,7 +7,7 @@
             <div class="panel-body">
                 <a href="plan/new" class="btn btn-info" >新建方案</a>
             </div>
-
+            {% include "includes/flash.html" %}
             <div class="table-responsive">
             <table class="table table-striped">
                 <thead>
@@ -31,9 +31,9 @@
                     <td>{{ plan.screen_status }}</td>
                     <td>{{ plan.screen_create_time }}</td>
                     <td>
-                        <a href="{{ url_for("admin_frontend.plan_edit", account_id=plan.id) }}">{{ _("编辑") }}</a>
+                        <a href="{{ url_for("admin_frontend.plan_edit", plan_id=plan.id) }}">{{ _("编辑") }}</a>
                         |
-                        <a class="text-danger" href="{{ url_for("admin_frontend.plan_delete", account_id=plan.id) }}">{{ _("删除") }}</a>
+                        <a class="text-danger" href="{{ url_for("admin_frontend.plan_delete", plan_id=plan.id) }}">{{ _("删除") }}</a>
                     </td>
                 </tr>
                 {% endfor %}
