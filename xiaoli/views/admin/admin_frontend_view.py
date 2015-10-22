@@ -9,7 +9,7 @@ from flask import Blueprint, render_template, redirect, url_for, request,make_re
 from flask.ext.babel import gettext as _
 from flask.ext.paginate import Pagination
 from flask_login import current_user
-from sqlalchemy.orm import subqueryload
+from sqlalchemy.orm import subqueryload, aliased
 from xiaoli.models import Account, Plan,Uploader, PlanContent, PlanKeyword
 from xiaoli.models.session import db_session_cm
 from xiaoli.config import setting
@@ -93,7 +93,8 @@ def plans():
 def plan_show(plan_id):
     u"""查看方案"""
     with db_session_cm() as session:
-        plan = session.query(Plan).options(subqueryload(Plan.content)).join(Plan.keywords).filter(Plan.id == plan_id).first()
+        plan_alias =aliased(Plan)
+        plan = session.query(Plan).options(subqueryload(Plan.content)).join(plan_alias.keywords).filter(Plan.id == plan_id).first()
     return render_template("admin/plan/show.html",plan=plan)
 
 @admin_frontend.route('/plan/edit/<int:plan_id>', methods=["GET", "POST"])
@@ -124,8 +125,8 @@ def plan_update():
                 title = plan_form.title.data.strip()
                 content = plan_form.content.data.strip()
                 keyword = plan_form.content.data.strip()
-
-                plan = session.query(Plan).options(subqueryload(Plan.content)).join(Plan.keywords).filter(Plan.id == plan_id).first()
+                plan_alias = aliased(Plan)
+                plan = session.query(Plan).options(subqueryload(Plan.content)).join(plan_alias.keywords).filter(Plan.id == plan_id).first()
                 plan_content = PlanContent(content=content)
                 plan_keyword = PlanKeyword(content=keyword)
                 plan.title = title
