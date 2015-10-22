@@ -96,6 +96,9 @@ class ResetPasswordForm(Form):
 
 
 class PlanForm(Form):
+
+    id = HiddenField(_(u'ID'))
+
     title = StringField(_(u'标题'),
                         validators=[DataRequired(message=_(u'标题不能为空'))],
                         description=_(u'标题'))

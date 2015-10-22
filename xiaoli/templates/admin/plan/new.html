@@ -2,55 +2,23 @@
 
 {% block content %}
 
-    <div class="container">
-        <div class="row" id="login-register-div">
-            <div class="col-md-6 col-md-offset-3">
-                <div class="login-register">
-                    <form class="form" action="{{ url_for('admin_frontend.plan_new') }}" method="post">
-                        <fieldset>
-                            {{ form.csrf_token }}
-                            <div class="form-group">
-                                <label>{{ form.title.description }}</label>
-                                {{ form.title(class="form-control", placeholder=form.title.description) }}
-                                {% if form.errors.title %}
-                                    <p class="text-danger">{{ form.errors.title[0] }}</p>
-                                {% endif %}
-                            </div>
-
-                            <div class="form-group">
-                                <label>{{ form.content.description }}</label>
-                                {{ form.content(rows=20,cols=50,class="form-control", placeholder=form.content.description) }}
-                                {% if form.errors.content %}
-                                    <p class="text-danger">{{ form.errors.content[0] }}</p>
-                                {% endif %}
-                            </div>
-
-                            <!--<div class="form-group">-->
-                            <!--<label>{{ form.content.description }}</label>-->
-                            <!--<script type="text/plain" id="editor" style="width:600px;height:240px;">-->
-                            <!--<p></p>-->
-                            <!--</script>-->
-                            <!--</div>-->
-                            <!--<div class="clear"></div>-->
-                            <!-- -->
-                            <div class="form-group">
-                                <label>{{ form.keyword.description }}</label>
-                                {{ form.keyword(class="form-control", placeholder=form.keyword.description) }}
-                                {% if form.errors.keywords %}
-                                    <p class="text-danger">{{ form.errors.keyword[0] }}</p>
-                                {% endif %}
-                            </div>
-
-                            <button type="submit" class="btn btn-primary btn-full">{{ _('创建方案') }}</button>
-                            <a class="btn btn-link" href="{{ url_for("admin_frontend.plans") }}">{{ _("取消") }}</a>
-                        </fieldset>
-                    </form>
-
-                </div>
+<div class="container">
+    <div class="row" id="login-register-div">
+        <div class="col-md-6 col-md-offset-3">
+            <div class="plan-new">
+                <form class="form" action="{{ url_for('admin_frontend.plan_new') }}" method="post">
+                    <fieldset>
+                        {% include "admin/plan/_form.html" %}
+                        <button type="submit" class="btn btn-primary btn-full">{{ _('创建方案') }}</button>
+                        <a class="btn btn-link" href="{{ url_for("admin_frontend.plans") }}">{{ _("取消") }}</a>
+                    </fieldset>
+                </form>
 
             </div>
+
         </div>
     </div>
+</div>
 
     <!--style给定宽度可以影响编辑器的最终宽度-->
     <script type="text/javascript">
