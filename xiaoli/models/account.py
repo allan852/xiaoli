@@ -235,12 +235,12 @@ class Account(Base, UserMixin):
     def to_dict(self):
         d = {
             "id": self.id,
-            "nickname": self.nickname,
+            "nickname": self.nickname or "",
             "cellphone": self.cellphone,
-            "email": self.email,
+            "email": self.email or "",
             "sex": self.sex,
             "birthday": self.birthday,
-            "horoscope": self.horoscope,
+            "horoscope": self.horoscope or "",
             "status": self.status,
             "type": self.type,
             "score": 0,
