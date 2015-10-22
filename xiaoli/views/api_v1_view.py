@@ -360,11 +360,11 @@ def plan_info(plan_id):
         abort(400)
 
 
-@api_v1.route("/plan/<int:plan_id>/star", methods=["GET"])
+@api_v1.route("/plan/<int:plan_id>/star", methods=["POST"])
 def star_plan(plan_id):
     u"""点赞礼物方案"""
     try:
-        account_id = request.args.get("account_id")
+        account_id = request.form.get("account_id")
         res = api_response()
         with db_session_cm() as session:
             plan = session.query(Plan).get(plan_id)
@@ -405,13 +405,13 @@ def star_plan(plan_id):
         abort(400)
 
 
-@api_v1.route("/plan/<plan_id>/share", methods=["GET"])
+@api_v1.route("/plan/<plan_id>/share", methods=["POST"])
 def share_plan(plan_id):
     u"""分享礼物方案
     记录分享次数
     """
     try:
-        account_id = request.args.get("account_id")
+        account_id = request.form.get("account_id")
         with db_session_cm() as session:
             plan = session.query(Plan).get(plan_id)
             account = session.query(Account).get(account_id)
@@ -423,11 +423,11 @@ def share_plan(plan_id):
         abort(400)
 
 
-@api_v1.route("/plan/<plan_id>/collect", methods=["GET"])
+@api_v1.route("/plan/<plan_id>/collect", methods=["POST"])
 def collect_plan(plan_id):
     u"""收藏礼物方案"""
     try:
-        account_id = request.args.get("account_id")
+        account_id = request.form.get("account_id")
         res = api_response()
         with db_session_cm() as session:
             plan = session.query(Plan).get(plan_id)
