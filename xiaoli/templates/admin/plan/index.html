@@ -2,11 +2,12 @@
 
 {% block content %}
     <div class="container">
-        <a href="{{ url_for("admin_frontend.plan_new") }}" class="btn btn-info">{{ _("新建方案") }}</a>
-        <p></p>
+        {% include "includes/_flash.html" %}
+        <p>
+            <a href="{{ url_for("admin_frontend.plan_new") }}" class="btn btn-info">{{ _("新建方案") }}</a>
+        </p>
         {% if plans %}
             <div class="panel panel-default">
-                {% include "includes/flash.html" %}
                 <div class="panel-heading">{{ _("全部方案") }}</div>
                 <div class="table-responsive">
                     <table class="table table-striped">
@@ -47,9 +48,8 @@
                         </tbody>
                     </table>
                 </div>
-
-                {{ pagination.links }}
             </div>
+            {{ pagination.links }}
         {% else %}
             <div class="alert alert-success" role="alert">{{ _("没有方案") }}</div>
         {% endif %}
