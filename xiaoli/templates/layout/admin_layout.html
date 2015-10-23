@@ -31,6 +31,12 @@
                     <li class="{% if request.endpoint == "admin_frontend.keywords" %}active{% endif %}">
                         <a href="{{ url_for("admin_frontend.keywords") }}">{{ _("关键字管理") }}</a>
                     </li>
+                    <li class="{% if request.endpoint == "admin_frontend.impresses" %}active{% endif %}">
+                        <a href="{{ url_for("admin_frontend.impresses") }}">{{ _("印象管理") }}</a>
+                    </li>
+                    <li class="{% if request.endpoint == "admin_frontend.comments" %}active{% endif %}">
+                        <a href="{{ url_for("admin_frontend.comments") }}">{{ _("评论管理") }}</a>
+                    </li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li><a href="{{ url_for("frontend.index") }}">{{ current_user.cellphone }}</a></li>

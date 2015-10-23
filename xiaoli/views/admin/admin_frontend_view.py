@@ -164,7 +164,7 @@ def plan_delete(plan_id):
     try:
         with db_session_cm() as session:
             plan = session.query(Plan).get(plan_id)
-            if current_user and current_user.is_authenticated and current_user.is_amdin():
+            if current_user and current_user.is_authenticated:
                 session.delete(plan)
                 session.commit()
                 flash(_(u"删除成功!"))
@@ -318,7 +318,7 @@ def plan_publish(plan_id):
     try:
         with db_session_cm() as session:
             plan = session.query(Plan).get(plan_id)
-            if current_user and current_user.is_authenticated and current_user.is_amdin():
+            if current_user and current_user.is_authenticated:
                 plan.status = Plan.STATUS_PUBLISH
                 session.merge(plan)
                 session.commit()
@@ -334,12 +334,13 @@ def plan_publish(plan_id):
 
 
 @admin_frontend.route('/plan/revocation/<int:plan_id>')
+@login_required
 def plan_revocation(plan_id):
     u"""撤销方案"""
     try:
         with db_session_cm() as session:
             plan = session.query(Plan).get(plan_id)
-            if current_user and current_user.is_authenticated and current_user.is_amdin():
+            if current_user and current_user.is_authenticated:
                 plan.status = Plan.STATUS_UNPUBLISHED
                 session.merge(plan)
                 session.commit()
@@ -390,3 +391,72 @@ def keyword_show(keyword_id):
 def keyword_delete(keyword_id):
     u"""删除关键字"""
     return render_template("admin/keyword/index.html")
+
+
+@admin_frontend.route('/impresses')
+@login_required
+def impresses():
+    u"""印象管理"""
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", PlanKeyword.PER_PAGE, type=int)
+    with db_session_cm() as session:
+        keywords_query = session.query(PlanKeyword)
+        pagination = Pagination(page=page, total=keywords_query.count(), record_name=_(u"印象"), bs_version=3)
+        keywords = keywords_query.order_by(PlanKeyword.id.desc()).offset((page - 1) * per_page).limit(per_page)
+        context = {
+            "keywords": keywords.all(),
+            "pagination": pagination
+        }
+        return render_template("admin/impress/index.html", **context)
+
+
+@admin_frontend.route('/impress/new', methods=["GET", "POST"])
+@login_required
+def impress_new():
+    u"""新建印象"""
+    return render_template("admin/impress/new.html")
+
+
+@admin_frontend.route('/impress/<int:impress_id>')
+@login_required
+def impress_show(impress_id):
+    u"""印象详情"""
+    return render_template("admin/impress/show.html")
+
+
+@admin_frontend.route('/impress/<int:impress_id>')
+@login_required
+def impress_delete(impress_id):
+    u"""删除印象"""
+    return render_template("admin/impress/index.html")
+
+
+@admin_frontend.route('/comments')
+@login_required
+def comments():
+    u"""评论管理"""
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", PlanKeyword.PER_PAGE, type=int)
+    with db_session_cm() as session:
+        keywords_query = session.query(PlanKeyword)
+        pagination = Pagination(page=page, total=keywords_query.count(), record_name=_(u"评论"), bs_version=3)
+        keywords = keywords_query.order_by(PlanKeyword.id.desc()).offset((page - 1) * per_page).limit(per_page)
+        context = {
+            "keywords": keywords.all(),
+            "pagination": pagination
+        }
+        return render_template("admin/comment/index.html", **context)
+
+
+@admin_frontend.route('/comment/<int:comment_id>')
+@login_required
+def comment_show(comment_id):
+    u"""评论详情"""
+    return render_template("admin/comment/show.html")
+
+
+@admin_frontend.route('/comment/<int:comment_id>')
+@login_required
+def comment_delete(comment_id):
+    u"""删除评论"""
+    return render_template("admin/comment/index.html")
