@@ -1,6 +1,7 @@
 #!-*- coding:utf-8 -*-
 import os
 import posixpath
+import tempfile
 
 APP_NAME = 'xiaoli'
 
@@ -25,5 +26,8 @@ DB_META = {
     "host": "",
     "port": 3306
 }
+
+# for UploadSet
+UPLOADS_DEFAULT_DEST = "%s/uploads" % tempfile.gettempdir()
 
 

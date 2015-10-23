@@ -27,6 +27,9 @@ SMS = {
     'password':'youli123',
     'apikey': '2fd8eb942e6a99f4715986605f7895f7'
 }
+
+UPLOADS_DEFAULT_DEST = "/home/eplus/uploads/xiaoli"
+
 EDITOR_CONFIG = {
      #/* 上传图片配置项 */
     "imageActionName": "uploadimage", #/* 执行上传图片的action名称 */

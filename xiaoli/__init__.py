@@ -3,15 +3,17 @@
 from flask import Flask, url_for, request, render_template, session
 from flask.ext.babel import Babel
 from flask.ext.cdn import CDN
+from flask.ext.uploads import configure_uploads
 from flask.ext.wtf.i18n import Translations
 
 from xiaoli.config import setting
 from xiaoli import views
+from xiaoli.extensions.upload_set import image_resources
 from xiaoli.utils import login_manager
-# from xiaoli.utils.extensions.memcache_session import MemcachedSessionInterface
 from xiaoli import filters
 from xiaoli import helpers
 from flask.ext.login import current_user
+# from xiaoli.utils.extensions.memcache_session import MemcachedSessionInterface
 
 import os
 import logging
@@ -142,10 +144,16 @@ def configure_context_processor(app):
     #         return {'user_locale': current_user.locale.replace('_', '-')}
     pass
 
+
 def configure_cdn_url_for(app):
     u"""是的url_for智能使用cdn地址"""
     cdn = CDN()
     cdn.init_app(app)
+
+
+def configure_upload_sets(app):
+    u"""设置 Upload Sets"""
+    configure_uploads(app, (image_resources,))
 
 
 def create_app(config=None):
@@ -178,6 +186,8 @@ def create_app(config=None):
     configure_context_processor(app)
 
     configure_cdn_url_for(app)
+
+    configure_upload_sets(app)
 
     return app
 

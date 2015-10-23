@@ -1,14 +1,20 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import traceback
+import uuid
+
 from flask import Blueprint, render_template, send_file, request, url_for, redirect, abort, current_app, flash
 from flask.ext.babel import gettext as _
 from flask.ext.login import current_user, login_user, logout_user, login_required
 from flask.ext.principal import identity_changed, Identity
+from flask.ext.uploads import UploadNotAllowed
+
 from xiaoli.forms import LoginForm, RegisterForm
-from xiaoli.models import Account
+from xiaoli.models import Account, ImageResource
 from xiaoli.models.session import db_session_cm
+from xiaoli.extensions.upload_set import image_resources
 from xiaoli.utils.logs.logger import common_logger
+
 __author__ = 'zouyingjun'
 
 frontend = Blueprint("frontend", __name__, template_folder="templates", static_folder="../static")
@@ -100,6 +106,39 @@ def forgot_password():
 def wait_to_active():
     u"""等待激活"""
     pass
+
+
+@frontend.route('/upload_images', methods=['GET', 'POST'])
+@login_required
+def upload_images():
+    try:
+        if request.method == 'POST' and 'image' in request.files:
+            with db_session_cm() as session:
+                request_file = request.files['image']
+                filename = image_resources.save(request_file, folder=str(current_user.id))
+                irs = ImageResource(filename, current_user.id)
+                irs.format = request_file.mimetype
+                session.add(irs)
+                session.commit()
+                flash("图片上传成功", category="success")
+                return redirect(url_for('frontend.image', id=irs.id))
+        return render_template('frontend/upload.html')
+    except UploadNotAllowed as e:
+        flash(u"文件格式不支持", category="warning")
+        return render_template('frontend/upload.html')
+    except Exception as e:
+        common_logger.error(traceback.format_exc(e))
+        abort(500)
+
+
+@frontend.route('/images/<id>')
+def image(id):
+    with db_session_cm() as session:
+        image = session.query(ImageResource).get(id)
+        if image is None:
+            abort(404)
+        url = image_resources.url(image.path)
+        return render_template('frontend/show_images.html', url=url, image=image)
 
 
 @frontend.route('/favicon.ico')
