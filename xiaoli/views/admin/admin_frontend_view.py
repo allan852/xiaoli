@@ -130,7 +130,7 @@ def plan_update():
                 plan_content = PlanContent(content=content)
                 plan_keyword = PlanKeyword(content=keyword)
                 plan.title = title
-                if current_user and current_user.is_authenticated():
+                if current_user and current_user.is_authenticated:
                     plan.author_id = current_user.get_id()
                 plan.content = plan_content
                 plan.keywords = [plan_keyword]
@@ -151,7 +151,7 @@ def plan_delete(plan_id):
     try:
         with db_session_cm() as session:
             plan = session.query(Plan).get(plan_id)
-            if current_user and current_user.is_authenticated() and current_user.is_amdin():
+            if current_user and current_user.is_authenticated and current_user.is_amdin():
                 session.delete(plan)
                 session.commit()
                 flash(_(u"删除成功!"))
@@ -180,7 +180,7 @@ def plan_new():
                 plan_content = PlanContent(content=content)
                 plan_keyword = PlanKeyword(content=keyword)
                 plan = Plan(title)
-                if current_user and current_user.is_authenticated():
+                if current_user and current_user.is_authenticated:
                     plan.author_id = current_user.get_id()
                 plan.content = plan_content
                 plan.keywords = [plan_keyword]
@@ -301,7 +301,7 @@ def plan_publish(plan_id):
     try:
         with db_session_cm() as session:
             plan = session.query(Plan).get(plan_id)
-            if current_user and current_user.is_authenticated() and current_user.is_amdin():
+            if current_user and current_user.is_authenticated and current_user.is_amdin():
                 plan.status = Plan.STATUS_PUBLISH
                 session.merge(plan)
                 session.commit()
@@ -322,7 +322,7 @@ def plan_revocation(plan_id):
     try:
         with db_session_cm() as session:
             plan = session.query(Plan).get(plan_id)
-            if current_user and current_user.is_authenticated() and current_user.is_amdin():
+            if current_user and current_user.is_authenticated and current_user.is_amdin():
                 plan.status = Plan.STATUS_UNPUBLISHED
                 session.merge(plan)
                 session.commit()

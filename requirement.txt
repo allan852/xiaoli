@@ -2,6 +2,7 @@ Flask>=0.10.1
 Flask-Script>=2.0.5
 Flask-WTF>=0.10.2
 Flask-Login>=0.3.2
+Flask-Babel>=0.9.0
 flask-paginate>=0.3.2
 pillow>=2.7.0
 python-memcached>=1.53
