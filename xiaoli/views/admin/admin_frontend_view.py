@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-import os
 import re
 import json
 import traceback
-
 from flask import Blueprint, render_template, redirect, url_for, request,make_response,abort,current_app,flash
 from flask.ext.babel import gettext as _
 from flask.ext.paginate import Pagination
@@ -90,7 +88,7 @@ def plans():
     with db_session_cm() as session:
         plans_query = session.query(Plan)
         pagination = Pagination(page=page, total=plans_query.count(), record_name=_(u"方案"), bs_version=3)
-        plans = plans_query.offset((page - 1) * per_page).limit(per_page)
+        plans = plans_query.order_by(Plan.create_time.desc()).offset((page - 1) * per_page).limit(per_page)
         context = {
             "plans": plans.all(),
             "pagination": pagination
@@ -320,17 +318,17 @@ def plan_publish(plan_id):
         with db_session_cm() as session:
             plan = session.query(Plan).get(plan_id)
             if current_user and current_user.is_authenticated:
-                plan.status = Plan.STATUS_PUBLISH
+                plan.publish()
                 session.merge(plan)
                 session.commit()
-                flash(_(u"发布成功!"))
+                flash(_(u"发布成功!"), "info")
             else:
-                flash(_(u"没有权限!"))
+                flash(_(u"没有权限!"), "warning")
             return redirect(url_for('admin_frontend.plans'))
     except Exception as e:
         common_logger.error(traceback.format_exc(e))
         print traceback.format_exc(e)
-    flash(_(u"失败!"))
+        flash(_(u"失败!"), "danger")
     return redirect(url_for('admin_frontend.plans'))
 
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-from flask.ext.babel import gettext as _
+import datetime
+from flask.ext.babel import gettext as _, format_datetime
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, BigInteger, Text
 from sqlalchemy.orm import relationship
 from xiaoli.models.base import Base
@@ -53,6 +54,15 @@ class Plan(Base):
         for sign, text in Plan.STATUS_CHOICES:
             if sign == self.status:
                 return sign
+
+    @property
+    def screen_publish_time(self):
+        return format_datetime(self.publish_date) if self.publish_date else ""
+
+    def publish(self):
+        self.status = Plan.STATUS_PUBLISH
+        if not self.publish_date:
+            self.publish_date = datetime.datetime.now()
 
     def to_dict(self):
         d = {
