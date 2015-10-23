@@ -418,6 +418,11 @@ def share_plan(plan_id):
             plan.share_count += 1
             session.add(plan)
             session.commit()
+            res = api_response()
+            res.update(
+                status="ok"
+            )
+            return jsonify(res)
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
         abort(400)
