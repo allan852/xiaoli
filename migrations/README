@@ -2,3 +2,29 @@ This is a database migration repository.
 
 More information at
 http://code.google.com/p/sqlalchemy-migrate/
+
+
+使用方法：
+使用以下命令查看使用方法：
+>>> PYTHONPATH=. python migrations/manage.py
+
+
+1. 先将数据库纳入版本管理
+>>> PYTHONPATH=. python migrations/manage.py version_control
+
+2. 执行升级
+>>> PYTHONPATH=. python migrations/manage.py upgrade <version>
+
+3. 执行降级
+>>> PYTHONPATH=. python migrations/manage.py downgrade <version>
+
+4. 查看数据库版本
+>>> PYTHONPATH=. python migrations/manage.py db_version
+
+5. 查看本地版本
+>>> PYTHONPATH=. python migrations/manage.py db_version
+
+6. 创建migration脚本
+>>> PYTHONPATH=. python migrations/manage.py script "add xxx column to xxx table"
+这个会生成 类似 005_add_xxx_column_to_xxx_table.py 文件到 migrations/version 目录。
+编辑upgrade、downgrade方法来修改数据库。
