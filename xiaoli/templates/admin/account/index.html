@@ -28,7 +28,7 @@
                             <tr>
                                 <td>{{ user.id }}</td>
                                 <td>{{ user.cellphone }}</td>
-                                <td>{{ user.name }}</td>
+                                <td>{{ user.nickname|d("", true) }}</td>
                                 <td>{{ user.screen_create_time }}</td>
                                 <td>{{ user.screen_status }}</td>
                                 <td class="{% if user.is_admin %}text-warning{% else %}text-muted{% endif %}">{{ user.screen_type }}</td>
