@@ -148,7 +148,7 @@ def plan_update():
                 plan.keywords = [plan_keyword]
                 session.merge(plan)
                 session.commit()
-                flash(_(u"方案编辑成功!"))
+                flash(_(u"方案编辑成功!"), category="success")
                 return redirect(url_for('admin_frontend.plan_show',plan_id = plan.id))
     except Exception, e:
         common_logger.error(traceback.format_exc(e))
@@ -200,7 +200,7 @@ def plan_new():
                 plan.keywords = [plan_keyword]
                 session.add(plan)
                 session.commit()
-            flash(_(u"方案添加成功!"))
+            flash(_(u"方案添加成功!"), category="success")
             return redirect(url_for('admin_frontend.plans'))
         return render_template("admin/plan/new.html", **context)
     except Exception, e:
@@ -321,14 +321,14 @@ def plan_publish(plan_id):
                 plan.publish()
                 session.merge(plan)
                 session.commit()
-                flash(_(u"发布成功!"), "info")
+                flash(_(u"发布成功!"), category="info")
             else:
-                flash(_(u"没有权限!"), "warning")
+                flash(_(u"没有权限!"), category="warning")
             return redirect(url_for('admin_frontend.plans'))
     except Exception as e:
         common_logger.error(traceback.format_exc(e))
         print traceback.format_exc(e)
-        flash(_(u"失败!"), "danger")
+        flash(_(u"失败!"), category="danger")
     return redirect(url_for('admin_frontend.plans'))
 
 
