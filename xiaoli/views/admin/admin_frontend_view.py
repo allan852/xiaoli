@@ -8,7 +8,7 @@ import traceback
 from flask import Blueprint, render_template, redirect, url_for, request,make_response,abort,current_app,flash
 from flask.ext.babel import gettext as _
 from flask.ext.paginate import Pagination
-from flask_login import current_user
+from flask_login import current_user, login_required
 from sqlalchemy.orm import subqueryload, aliased
 from xiaoli.models import Account, Plan,Uploader, PlanContent, PlanKeyword
 from xiaoli.models.session import db_session_cm
@@ -22,12 +22,14 @@ admin_frontend = Blueprint("admin_frontend", __name__, template_folder="template
 
 
 @admin_frontend.route('/')
+@login_required
 def index():
     u"""管理员首页"""
     return redirect(url_for("admin_frontend.accounts"))
 
 
 @admin_frontend.route('/accounts')
+@login_required
 def accounts():
     u"""用户列表"""
     page = request.args.get("page", 1, type=int)
@@ -44,36 +46,42 @@ def accounts():
 
 
 @admin_frontend.route('/account/<int:account_id>')
+@login_required
 def account_show(account_id):
     u"""查看用户"""
     return render_template("admin/account/index.html")
 
 
 @admin_frontend.route('/account/edit/<int:account_id>', methods=["GET", "POST"])
+@login_required
 def account_edit(account_id):
     u"""修改用户"""
     return render_template("admin/account/index.html")
 
 
 @admin_frontend.route('/account/delete/<int:account_id>')
+@login_required
 def account_delete(account_id):
     u"""删除用户"""
     return render_template("admin/account/index.html")
 
 
 @admin_frontend.route('/account/active/<int:account_id>')
+@login_required
 def account_active(account_id):
     u"""激活用户"""
     return render_template("admin/account/index.html")
 
 
 @admin_frontend.route('/account/freeze/<int:account_id>')
+@login_required
 def account_freeze(account_id):
     u"""冻结用户"""
     return render_template("admin/account/index.html")
 
 
 @admin_frontend.route('/plans')
+@login_required
 def plans():
     u"""方案列表"""
     page = request.args.get("page", 1, type=int)
@@ -90,6 +98,7 @@ def plans():
 
 
 @admin_frontend.route('/plan/<int:plan_id>')
+@login_required
 def plan_show(plan_id):
     u"""查看方案"""
     with db_session_cm() as session:
@@ -97,7 +106,9 @@ def plan_show(plan_id):
         plan = session.query(Plan).options(subqueryload(Plan.content)).join(plan_alias.keywords).filter(Plan.id == plan_id).first()
     return render_template("admin/plan/show.html",plan=plan)
 
+
 @admin_frontend.route('/plan/edit/<int:plan_id>', methods=["GET", "POST"])
+@login_required
 def plan_edit(plan_id):
     u"""修改方案"""
     try:
@@ -113,7 +124,9 @@ def plan_edit(plan_id):
         print traceback.format_exc(e)
         abort(500)
 
+
 @admin_frontend.route('/plan/plan_update',methods=["POST"])
+@login_required
 def plan_update():
     try:
         plan_form = PlanForm(request.form)
@@ -144,8 +157,8 @@ def plan_update():
         return redirect(url_for('admin_frontend.plans'))
 
 
-
 @admin_frontend.route('/plan/delete/<int:plan_id>',methods=["GET","POST"])
+@login_required
 def plan_delete(plan_id):
     u"""删除方案"""
     try:
@@ -164,7 +177,9 @@ def plan_delete(plan_id):
         flash(_(u"删除失败!"))
         return redirect(url_for('admin_frontend.plans'))
 
+
 @admin_frontend.route('/plan/new',methods=["GET","POST"])
+@login_required
 def plan_new():
     u"""新建方案"""
     try:
@@ -196,6 +211,7 @@ def plan_new():
 
 
 @admin_frontend.route('/upload/',methods=['GET', 'POST','OPTIONS'])
+@login_required
 def upload():
     u"""UEditor文件上传接口
     config 配置文件
@@ -296,6 +312,7 @@ def upload():
 
 
 @admin_frontend.route('/plan/publish/<int:plan_id>')
+@login_required
 def plan_publish(plan_id):
     u"""发布方案"""
     try:
@@ -338,6 +355,7 @@ def plan_revocation(plan_id):
 
 
 @admin_frontend.route('/keywords')
+@login_required
 def keywords():
     u"""关键字"""
     page = request.args.get("page", 1, type=int)
@@ -354,18 +372,21 @@ def keywords():
 
 
 @admin_frontend.route('/keyword/new', methods=["GET", "POST"])
+@login_required
 def keyword_new():
     u"""新建关键字"""
     return render_template("admin/keyword/new.html")
 
 
 @admin_frontend.route('/keyword/<int:keyword_id>')
+@login_required
 def keyword_show(keyword_id):
     u"""关键之详情"""
     return render_template("admin/keyword/show.html")
 
 
 @admin_frontend.route('/keyword/<int:keyword_id>')
+@login_required
 def keyword_delete(keyword_id):
     u"""删除关键字"""
     return render_template("admin/keyword/index.html")
