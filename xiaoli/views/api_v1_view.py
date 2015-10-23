@@ -76,8 +76,6 @@ def login():
             user = session.query(Account).\
                 filter(Account.cellphone == phone).first()
 
-            print user, user.status
-
             if not user or not user.has_registered:
                 res.update(status="fail", response={
                     "code": ErrorCode.CODE_LOGIN_PHONE_NOT_EXISTS,
