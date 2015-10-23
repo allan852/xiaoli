@@ -1,0 +1,50 @@
+{% extends "layout/admin_layout.html" %}
+
+{% block content %}
+    <div class="container">
+        <div class="btn-group">
+            <a href="{{ url_for("admin_frontend.keyword_new") }}" class="btn btn-info">{{ _("新建印象") }}</a>
+        </div>
+        <p></p>
+        {% if kewwords %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <div class="panel-title">{{ _("全部印象") }}</div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>{{ _("内容") }}</th>
+                            <th>{{ _("类型") }}</th>
+                            <th>{{ _("创建时间") }}</th>
+                            <th>{{ _("操作") }}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        {% for keyword in keywords %}
+                            <tr>
+                                <td>{{ keyword.content }}</td>
+                                <td>{{ keyword.screen_type }}</td>
+                                <td>{{ keyword.screen_create_time }}</td>
+                                <td>
+                                    <a href="{{ url_for("admin_frontend.keyword_edit", account_id=keyword.id) }}">{{ _("编辑") }}</a>
+                                    |
+                                    <a class="text-danger"
+                                       href="{{ url_for("admin_frontend.keyword_delete", account_id=keyword.id) }}">{{ _("删除") }}</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {{ pagination.links }}
+            </div>
+        {% else %}
+            <div class="alert alert-success" role="alert">{{ _("没有印象") }}</div>
+        {% endif %}
+    </div>
+{% endblock %}
