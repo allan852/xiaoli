@@ -311,7 +311,7 @@ def plans():
         res = api_response()
         with db_session_cm() as session:
             plan_alias =aliased(Plan)
-            plans = session.query(Plan).join(plan_alias.content).join(plan_alias.keywords)
+            plans = session.query(Plan).join(plan_alias.content).join(plan_alias.keywords).filter(plan_alias.status == Plan.STATUS_PUBLISH)
             if search_key:
                 plans = plans.filter(plan_alias.title.like('%' + search_key + '%'))
             if key_word_id:

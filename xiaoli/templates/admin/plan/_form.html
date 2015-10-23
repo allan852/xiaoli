@@ -1,0 +1,33 @@
+{{ form.csrf_token }}
+{{form.hidden_tag()}}
+<div class="form-group">
+    <label>{{ form.title.description }}</label>
+    {{ form.title(class="form-control", placeholder=form.title.description) }}
+    {% if form.errors.title %}
+        <p class="text-danger">{{ form.errors.title[0] }}</p>
+    {% endif %}
+</div>
+
+<div class="form-group">
+    <label>{{ form.content.description }}</label>
+    {{ form.content(rows=20,cols=50,class="form-control", placeholder=form.content.description) }}
+    {% if form.errors.content %}
+        <p class="text-danger">{{ form.errors.content[0] }}</p>
+    {% endif %}
+</div>
+
+<!--<div class="form-group">-->
+<!--<label>{{ form.content.description }}</label>-->
+<!--<script type="text/plain" id="editor" style="width:600px;height:240px;">-->
+<!--<p></p>-->
+<!--</script>-->
+<!--</div>-->
+<!--<div class="clear"></div>-->
+<!-- -->
+<div class="form-group">
+    <label>{{ form.keyword.description }}</label>
+    {{ form.keyword(class="form-control", placeholder=form.keyword.description) }}
+    {% if form.errors.keyword %}
+        <p class="text-danger">{{ form.errors.keyword[0] }}</p>
+    {% endif %}
+</div>

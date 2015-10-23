@@ -9,6 +9,7 @@ from flask import Blueprint, render_template, redirect, url_for, request,make_re
 from flask.ext.babel import gettext as _
 from flask.ext.paginate import Pagination
 from flask_login import current_user
+from sqlalchemy.orm import subqueryload, aliased
 from xiaoli.models import Account, Plan,Uploader, PlanContent, PlanKeyword
 from xiaoli.models.session import db_session_cm
 from xiaoli.config import setting
@@ -91,29 +92,58 @@ def plans():
 @admin_frontend.route('/plan/<int:plan_id>')
 def plan_show(plan_id):
     u"""查看方案"""
-    with db_session_cm as session:
-        plan = session.query(Plan).get(plan_id)
-        context = {
-            "plan": plan
-        }
-    return render_template("admin/plan/index.html",**context)
-
+    with db_session_cm() as session:
+        plan_alias =aliased(Plan)
+        plan = session.query(Plan).options(subqueryload(Plan.content)).join(plan_alias.keywords).filter(Plan.id == plan_id).first()
+    return render_template("admin/plan/show.html",plan=plan)
 
 @admin_frontend.route('/plan/edit/<int:plan_id>', methods=["GET", "POST"])
 def plan_edit(plan_id):
     u"""修改方案"""
     try:
         with db_session_cm() as session:
-            plan = session.query(Plan).get(plan_id)
+            plan = session.query(Plan).options(subqueryload(Plan.content)).filter(Plan.id == plan_id).first()
+            plan_form = PlanForm(id=plan.id,title=plan.title,content = plan.content.content,keywords=plan.keywords)
             context = {
-                    'plan': plan,
-                }
+                'form': plan_form
+            }
         return render_template("admin/plan/edit.html",**context)
     except Exception as e:
         common_logger.error(traceback.format_exc(e))
         print traceback.format_exc(e)
         abort(500)
-    return render_template("admin/plan/edit.html")
+
+@admin_frontend.route('/plan/plan_update',methods=["POST"])
+def plan_update():
+    try:
+        plan_form = PlanForm(request.form)
+
+        if request.method == 'POST':
+            with db_session_cm() as session:
+                plan_id = plan_form.id.data.strip()
+
+                title = plan_form.title.data.strip()
+                content = plan_form.content.data.strip()
+                keyword = plan_form.content.data.strip()
+                plan_alias = aliased(Plan)
+                plan = session.query(Plan).options(subqueryload(Plan.content)).join(plan_alias.keywords).filter(Plan.id == plan_id).first()
+                plan_content = PlanContent(content=content)
+                plan_keyword = PlanKeyword(content=keyword)
+                plan.title = title
+                if current_user and current_user.is_authenticated():
+                    plan.author_id = current_user.get_id()
+                plan.content = plan_content
+                plan.keywords = [plan_keyword]
+                session.merge(plan)
+                session.commit()
+                flash(_(u"方案编辑成功!"))
+                return redirect(url_for('admin_frontend.plan_show',plan_id = plan.id))
+    except Exception, e:
+        common_logger.error(traceback.format_exc(e))
+        print traceback.format_exc(e)
+        return redirect(url_for('admin_frontend.plans'))
+
+
 
 @admin_frontend.route('/plan/delete/<int:plan_id>',methods=["GET","POST"])
 def plan_delete(plan_id):
@@ -121,15 +151,18 @@ def plan_delete(plan_id):
     try:
         with db_session_cm() as session:
             plan = session.query(Plan).get(plan_id)
-            if current_user and current_user.is_admin:
+            if current_user and current_user.is_authenticated() and current_user.is_amdin():
                 session.delete(plan)
-        flash(_(u"删除成功!"))
+                session.commit()
+                flash(_(u"删除成功!"))
+            else:
+                flash(_(u"没有权限!"))
         return redirect(url_for('admin_frontend.plans'))
     except Exception as e:
         common_logger.error(traceback.format_exc(e))
         print traceback.format_exc(e)
         flash(_(u"删除失败!"))
-
+        return redirect(url_for('admin_frontend.plans'))
 
 @admin_frontend.route('/plan/new',methods=["GET","POST"])
 def plan_new():
@@ -147,8 +180,8 @@ def plan_new():
                 plan_content = PlanContent(content=content)
                 plan_keyword = PlanKeyword(content=keyword)
                 plan = Plan(title)
-                if current_user:
-                    plan.author_id = current_user.id
+                if current_user and current_user.is_authenticated():
+                    plan.author_id = current_user.get_id()
                 plan.content = plan_content
                 plan.keywords = [plan_keyword]
                 session.add(plan)
@@ -265,13 +298,43 @@ def upload():
 @admin_frontend.route('/plan/publish/<int:plan_id>')
 def plan_publish(plan_id):
     u"""发布方案"""
-    return render_template("admin/plan/index.html")
+    try:
+        with db_session_cm() as session:
+            plan = session.query(Plan).get(plan_id)
+            if current_user and current_user.is_authenticated() and current_user.is_amdin():
+                plan.status = Plan.STATUS_PUBLISH
+                session.merge(plan)
+                session.commit()
+                flash(_(u"发布成功!"))
+            else:
+                flash(_(u"没有权限!"))
+            return redirect(url_for('admin_frontend.plans'))
+    except Exception as e:
+        common_logger.error(traceback.format_exc(e))
+        print traceback.format_exc(e)
+    flash(_(u"失败!"))
+    return redirect(url_for('admin_frontend.plans'))
 
 
 @admin_frontend.route('/plan/revocation/<int:plan_id>')
 def plan_revocation(plan_id):
     u"""撤销方案"""
-    return render_template("admin/plan/index.html")
+    try:
+        with db_session_cm() as session:
+            plan = session.query(Plan).get(plan_id)
+            if current_user and current_user.is_authenticated() and current_user.is_amdin():
+                plan.status = Plan.STATUS_UNPUBLISHED
+                session.merge(plan)
+                session.commit()
+                flash(_(u"撤销成功!"))
+            else:
+                flash(_(u"没有权限!"))
+                return redirect(url_for('admin_frontend.plans'))
+    except Exception as e:
+        common_logger.error(traceback.format_exc(e))
+        print traceback.format_exc(e)
+    flash(_(u"失败!"))
+    return redirect(url_for('admin_frontend.plans'))
 
 
 @admin_frontend.route('/keywords')

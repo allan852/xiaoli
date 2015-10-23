@@ -40,7 +40,7 @@ class Plan(Base):
     share_count = Column(BigInteger, default=0)
 
     content = relationship("PlanContent",uselist=False,backref='plan',cascade="all, delete-orphan")
-    keywords = relationship("PlanKeyword",backref='plan',secondary="plan_keyword_rel")
+    keywords = relationship("PlanKeyword",backref='plan',secondary="plan_keyword_rel", lazy='dynamic')
 
     def __init__(self, title):
         self.title = title
@@ -51,8 +51,8 @@ class Plan(Base):
     @property
     def screen_status(self):
         for sign, text in Plan.STATUS_CHOICES:
-            if sign == self.type:
-                return text
+            if sign == self.status:
+                return sign
 
     def to_dict(self):
         d = {

@@ -6,6 +6,7 @@
         <p></p>
         {% if plans %}
             <div class="panel panel-default">
+                {% include "includes/flash.html" %}
                 <div class="panel-heading">{{ _("全部方案") }}</div>
                 <div class="table-responsive">
                     <table class="table table-striped">
@@ -17,7 +18,7 @@
                             <th>{{ _("收藏") }}</th>
                             <th>{{ _("状态") }}</th>
                             <th>{{ _("发布时间") }}</th>
-                            <th>{{ _("操作") }}</th>
+                            <th rowspan="4">{{ _("操作") }}</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -30,7 +31,13 @@
                                 <td>{{ plan.screen_status }}</td>
                                 <td>{{ plan.screen_create_time }}</td>
                                 <td>
+                                    <a href="{{ url_for("admin_frontend.plan_show", plan_id=plan.id) }}">{{ _("查看") }}</a>
+                                    |
                                     <a href="{{ url_for("admin_frontend.plan_edit", plan_id=plan.id) }}">{{ _("编辑") }}</a>
+                                    |
+                                    <a href="{{ url_for("admin_frontend.plan_publish", plan_id=plan.id) }}">{{ _("发布") }}</a>
+                                    |
+                                    <a href="{{ url_for("admin_frontend.plan_revocation", plan_id=plan.id) }}">{{ _("撤销") }}</a>
                                     |
                                     <a class="text-danger"
                                        href="{{ url_for("admin_frontend.plan_delete", plan_id=plan.id) }}">{{ _("删除") }}</a>
