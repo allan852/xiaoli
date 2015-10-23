@@ -8,11 +8,12 @@ import traceback
 from flask import Blueprint, render_template, redirect, url_for, request,make_response,abort,current_app,flash
 from flask.ext.babel import gettext as _
 from flask.ext.paginate import Pagination
-from flask_login import current_user, login_required
+from flask_login import current_user
 from sqlalchemy.orm import subqueryload, aliased
 from xiaoli.models import Account, Plan,Uploader, PlanContent, PlanKeyword
 from xiaoli.models.session import db_session_cm
 from xiaoli.config import setting
+from xiaoli.utils.account_util import admin_required
 from xiaoli.utils.logs.logger import common_logger
 from xiaoli.forms import PlanForm
 
@@ -22,14 +23,14 @@ admin_frontend = Blueprint("admin_frontend", __name__, template_folder="template
 
 
 @admin_frontend.route('/')
-@login_required
+@admin_required
 def index():
     u"""管理员首页"""
     return redirect(url_for("admin_frontend.accounts"))
 
 
 @admin_frontend.route('/accounts')
-@login_required
+@admin_required
 def accounts():
     u"""用户列表"""
     page = request.args.get("page", 1, type=int)
@@ -46,42 +47,42 @@ def accounts():
 
 
 @admin_frontend.route('/account/<int:account_id>')
-@login_required
+@admin_required
 def account_show(account_id):
     u"""查看用户"""
     return render_template("admin/account/index.html")
 
 
 @admin_frontend.route('/account/edit/<int:account_id>', methods=["GET", "POST"])
-@login_required
+@admin_required
 def account_edit(account_id):
     u"""修改用户"""
     return render_template("admin/account/index.html")
 
 
 @admin_frontend.route('/account/delete/<int:account_id>')
-@login_required
+@admin_required
 def account_delete(account_id):
     u"""删除用户"""
     return render_template("admin/account/index.html")
 
 
 @admin_frontend.route('/account/active/<int:account_id>')
-@login_required
+@admin_required
 def account_active(account_id):
     u"""激活用户"""
     return render_template("admin/account/index.html")
 
 
 @admin_frontend.route('/account/freeze/<int:account_id>')
-@login_required
+@admin_required
 def account_freeze(account_id):
     u"""冻结用户"""
     return render_template("admin/account/index.html")
 
 
 @admin_frontend.route('/plans')
-@login_required
+@admin_required
 def plans():
     u"""方案列表"""
     page = request.args.get("page", 1, type=int)
@@ -98,7 +99,7 @@ def plans():
 
 
 @admin_frontend.route('/plan/<int:plan_id>')
-@login_required
+@admin_required
 def plan_show(plan_id):
     u"""查看方案"""
     with db_session_cm() as session:
@@ -108,7 +109,7 @@ def plan_show(plan_id):
 
 
 @admin_frontend.route('/plan/edit/<int:plan_id>', methods=["GET", "POST"])
-@login_required
+@admin_required
 def plan_edit(plan_id):
     u"""修改方案"""
     try:
@@ -126,7 +127,7 @@ def plan_edit(plan_id):
 
 
 @admin_frontend.route('/plan/plan_update',methods=["POST"])
-@login_required
+@admin_required
 def plan_update():
     try:
         plan_form = PlanForm(request.form)
@@ -158,7 +159,7 @@ def plan_update():
 
 
 @admin_frontend.route('/plan/delete/<int:plan_id>',methods=["GET","POST"])
-@login_required
+@admin_required
 def plan_delete(plan_id):
     u"""删除方案"""
     try:
@@ -179,7 +180,7 @@ def plan_delete(plan_id):
 
 
 @admin_frontend.route('/plan/new',methods=["GET","POST"])
-@login_required
+@admin_required
 def plan_new():
     u"""新建方案"""
     try:
@@ -211,7 +212,7 @@ def plan_new():
 
 
 @admin_frontend.route('/upload/',methods=['GET', 'POST','OPTIONS'])
-@login_required
+@admin_required
 def upload():
     u"""UEditor文件上传接口
     config 配置文件
@@ -312,7 +313,7 @@ def upload():
 
 
 @admin_frontend.route('/plan/publish/<int:plan_id>')
-@login_required
+@admin_required
 def plan_publish(plan_id):
     u"""发布方案"""
     try:
@@ -334,7 +335,7 @@ def plan_publish(plan_id):
 
 
 @admin_frontend.route('/plan/revocation/<int:plan_id>')
-@login_required
+@admin_required
 def plan_revocation(plan_id):
     u"""撤销方案"""
     try:
@@ -356,7 +357,7 @@ def plan_revocation(plan_id):
 
 
 @admin_frontend.route('/keywords')
-@login_required
+@admin_required
 def keywords():
     u"""关键字"""
     page = request.args.get("page", 1, type=int)
@@ -373,28 +374,28 @@ def keywords():
 
 
 @admin_frontend.route('/keyword/new', methods=["GET", "POST"])
-@login_required
+@admin_required
 def keyword_new():
     u"""新建关键字"""
     return render_template("admin/keyword/new.html")
 
 
 @admin_frontend.route('/keyword/<int:keyword_id>')
-@login_required
+@admin_required
 def keyword_show(keyword_id):
     u"""关键之详情"""
     return render_template("admin/keyword/show.html")
 
 
 @admin_frontend.route('/keyword/<int:keyword_id>')
-@login_required
+@admin_required
 def keyword_delete(keyword_id):
     u"""删除关键字"""
     return render_template("admin/keyword/index.html")
 
 
 @admin_frontend.route('/impresses')
-@login_required
+@admin_required
 def impresses():
     u"""印象管理"""
     page = request.args.get("page", 1, type=int)
@@ -411,28 +412,28 @@ def impresses():
 
 
 @admin_frontend.route('/impress/new', methods=["GET", "POST"])
-@login_required
+@admin_required
 def impress_new():
     u"""新建印象"""
     return render_template("admin/impress/new.html")
 
 
 @admin_frontend.route('/impress/<int:impress_id>')
-@login_required
+@admin_required
 def impress_show(impress_id):
     u"""印象详情"""
     return render_template("admin/impress/show.html")
 
 
 @admin_frontend.route('/impress/<int:impress_id>')
-@login_required
+@admin_required
 def impress_delete(impress_id):
     u"""删除印象"""
     return render_template("admin/impress/index.html")
 
 
 @admin_frontend.route('/comments')
-@login_required
+@admin_required
 def comments():
     u"""评论管理"""
     page = request.args.get("page", 1, type=int)
@@ -449,14 +450,14 @@ def comments():
 
 
 @admin_frontend.route('/comment/<int:comment_id>')
-@login_required
+@admin_required
 def comment_show(comment_id):
     u"""评论详情"""
     return render_template("admin/comment/show.html")
 
 
 @admin_frontend.route('/comment/<int:comment_id>')
-@login_required
+@admin_required
 def comment_delete(comment_id):
     u"""删除评论"""
     return render_template("admin/comment/index.html")
