@@ -1,7 +1,7 @@
 {{ form.csrf_token }}
 <div class="form-group">
     <label>{{ form.keywords.description }}</label>
-    {{ form.keywords(class="form-control", placeholder=_("方案标签，多个标签用‘,’分割")) }}
+    {{ form.keywords(class="form-control", placeholder=_("方案标签，多个标签用‘,’分割"), id="plan-keywords") }}
     {% if form.errors.keywords %}
         <p class="text-danger">{{ form.errors.keywords[0] }}</p>
     {% endif %}

@@ -1,22 +1,30 @@
 {% extends "layout/admin_layout.html" %}
 
+{% block base_lib_css %}
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='bower_components/select2/dist/css/select2.min.css') }}"/>
+    {% include "includes/_ueditor_css.html" %}
+{% endblock %}
+{% block base_lib_js %}
+    <script type="text/javascript"
+            src="{{ url_for('static', filename='bower_components/select2/dist/js/select2.min.js') }}"></script>
+    {% include "includes/_ueditor_js_script.html" %}
+{% endblock %}
 {% block content %}
-
-<div class="container">
-    <div class="row" id="login-register-div">
-        <div class="col-md-8 col-md-offset-2">
-            <div class="plan-new">
-                <form class="form" enctype="multipart/form-data" action="{{ url_for('admin_frontend.plan_update', plan_id=plan.id) }}" method="post">
-                    <fieldset>
-                        {% include "admin/plan/_form.html" %}
-                        <button type="submit" class="btn btn-primary btn-full">{{ _('编辑方案') }}</button>
-                        <a class="btn btn-link" href="{{ url_for("admin_frontend.plans") }}">{{ _("取消") }}</a>
-                    </fieldset>
-                </form>
-
+    <div class="container">
+        <div class="row" id="login-register-div">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="plan-new">
+                    <form class="admin-plan-form form" enctype="multipart/form-data"
+                          action="{{ url_for('admin_frontend.plan_update', plan_id=plan.id) }}" method="post">
+                        <fieldset>
+                            {% include "admin/plan/_form.html" %}
+                            <button type="submit" class="btn btn-primary btn-full">{{ _('编辑方案') }}</button>
+                            <a class="btn btn-link" href="{{ url_for("admin_frontend.plans") }}">{{ _("取消") }}</a>
+                        </fieldset>
+                    </form>
+                </div>
             </div>
-
         </div>
     </div>
-</div>
 {% endblock %}

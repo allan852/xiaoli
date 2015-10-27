@@ -1,12 +1,15 @@
 {% extends "layout/base.html" %}
 
-{% block css %}
+{%- block base_lib_css %}{% endblock -%}
 
-{% endblock %}
+{%- block layout_css -%}
+    <link href="{{ url_for("static", filename="css/admin_main.css") }}" rel="stylesheet">
+{%- endblock -%}
 
-{% block js %}
-
-{% endblock %}
+{%- block base_lib_js %}{% endblock -%}
+{%- block layout_js -%}
+    <script src="{{ url_for('static', filename='js/admin_main.js') }}"></script>
+{%- endblock -%}
 
 {%- block body -%}
     <div class="navbar navbar-default navbar-static-top" role="navigation">
