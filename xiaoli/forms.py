@@ -1,9 +1,10 @@
 #! -*- coding:utf-8 -*-
 
 from flask.ext.wtf import Form
-from wtforms import PasswordField, TextAreaField, HiddenField, StringField
+from wtforms import PasswordField, TextAreaField, HiddenField, StringField, SelectMultipleField
 from flask.ext.babel import lazy_gettext as _
 from wtforms.validators import ValidationError, Email, Length, EqualTo, DataRequired
+from xiaoli.models import PlanKeyword
 
 from xiaoli.models.account import Account
 from xiaoli.models.session import db_session_cm
@@ -96,8 +97,7 @@ class ResetPasswordForm(Form):
 
 
 class PlanForm(Form):
-    id = HiddenField(_(u'ID'))
-
+    u"""方案表单"""
     title = StringField(_(u'标题'),
                         validators=[DataRequired(message=_(u'标题不能为空'))],
                         description=_(u'标题'))
@@ -106,16 +106,48 @@ class PlanForm(Form):
                             validators=[DataRequired(message=_(u'方案内容不能为空'))],
                             description=_(u'方案内容')
                             )
-
-    keyword = StringField(_(u'方案标签'),
-                          validators=[DataRequired(message=_(u'方案标签不能为空'))],
-                          description=_(u'方案标签'))
+    keywords = SelectMultipleField(_(u'方案标签'),
+                                   validators=[DataRequired(message=_(u'方案标签不能为空'))],
+                                   description=_(u'方案标签'), coerce=int)
 
 
 class PlanKeywordsForm(Form):
-
     id = HiddenField(_(u'ID'))
     content = StringField(_(u'关键词'),
                           validators=[DataRequired(message=_(u'关键词不能为空'))],
                           description=_(u'关键词')
                           )
+
+
+class PresetKeywordForm(Form):
+    u"""关键字表单"""
+    content = TextAreaField(_(u'关键字'),
+                            validators=[DataRequired(message=_(u'关键字内容不能为空'))],
+                            description=_(u'关键字内容')
+                            )
+
+    def validate_content(form, field):
+        if field.data:
+            new_keywords = field.data.strip().split(',')
+            with db_session_cm() as session:
+                keywords = session.query(PlanKeyword). \
+                    filter(PlanKeyword.content.in_(new_keywords)).all()
+                if len(keywords) > 0:
+                    raise ValidationError(_(u'关键字【%(content)s】已经存在', content=keywords[0].content))
+
+
+class PresetImpressForm(Form):
+    u"""印象表单"""
+    content = TextAreaField(_(u'印象'),
+                            validators=[DataRequired(message=_(u'印象内容不能为空'))],
+                            description=_(u'印象内容')
+                            )
+
+    def validate_content(form, field):
+        if field.data:
+            new_keywords = field.data.strip().split(',')
+            with db_session_cm() as session:
+                impresses = session.query(PlanKeyword). \
+                    filter(PlanKeyword.content.in_(new_keywords)).all()
+                if len(impresses) > 0:
+                    raise ValidationError(_(u'印象【%(content)s】已经存在', content=impresses[0].content))

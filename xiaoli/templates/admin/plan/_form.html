@@ -1,5 +1,12 @@
 {{ form.csrf_token }}
 <div class="form-group">
+    <label>{{ form.keywords.description }}</label>
+    {{ form.keywords(class="form-control", placeholder=_("方案标签，多个标签用‘,’分割")) }}
+    {% if form.errors.keywords %}
+        <p class="text-danger">{{ form.errors.keywords[0] }}</p>
+    {% endif %}
+</div>
+<div class="form-group">
     <label>{{ form.title.description }}</label>
     {{ form.title(class="form-control", placeholder=form.title.description) }}
     {% if form.errors.title %}
@@ -21,16 +28,6 @@
 <div class="form-group">
     <label>{{_("封面图片") }}</label>
     <input type="file" name="image">
-</div>
-
-
-
-<div class="form-group">
-    <label>{{ form.keyword.description }}</label>
-    {{ form.keyword(class="form-control", placeholder=_("方案标签，多个标签用‘,’分割")) }}
-    {% if form.errors.keyword %}
-        <p class="text-danger">{{ form.errors.keyword[0] }}</p>
-    {% endif %}
 </div>
 <div class="clear"></div>
 <script type="text/javascript">

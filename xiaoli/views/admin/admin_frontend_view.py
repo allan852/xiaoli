@@ -104,7 +104,7 @@ def plan_show(plan_id):
     with db_session_cm() as session:
         plan_alias =aliased(Plan)
         plan = session.query(Plan).options(subqueryload(Plan.content)).join(plan_alias.keywords).filter(Plan.id == plan_id).first()
-    return render_template("admin/plan/show.html",plan=plan)
+    return render_template("admin/plan/show.html", plan=plan)
 
 
 @admin_frontend.route('/plan/edit/<int:plan_id>', methods=["GET", "POST"])
@@ -113,13 +113,13 @@ def plan_edit(plan_id):
     u"""修改方案"""
     try:
         with db_session_cm() as session:
-            plan = session.query(Plan).options(subqueryload(Plan.content)).filter(Plan.id == plan_id).first()
+            plan = session.query(Plan).options(subqueryload(Plan.content)).get(plan_id)
             plan_form = PlanForm(
-                id=plan.id,
                 title=plan.title,
-                content=plan.content.content,
-                keywords=','.join([kw.content for kw in plan.keywords])
+                content=plan.content and plan.content.content or "",
+                keywords=[kw.id for kw in plan.keywords]
             )
+            plan_form.keywords.choices = PlanKeyword.choices()
             context = {
                 'form': plan_form,
                 'plan': plan
@@ -137,20 +137,20 @@ def plan_update(plan_id):
     u"""更新方案"""
     try:
         plan_form = PlanForm(request.form)
+        plan_form.keywords.choices = PlanKeyword.choices()
 
-        if request.method == 'POST':
+        if request.method == 'POST' and plan_form.validate_on_submit():
             with db_session_cm() as session:
                 title = plan_form.title.data.strip()
                 content = plan_form.content.data.strip()
-                keyword = plan_form.keyword.data.strip()
-
+                keywords = plan_form.keywords.data
                 request_file = request.files['image']
 
                 plan_alias = aliased(Plan)
                 plan = session.query(Plan).options(subqueryload(Plan.content)).\
                     join(plan_alias.keywords).filter(Plan.id == plan_id).first()
                 plan_content = PlanContent(content=content)
-                plan_keyword = PlanKeyword(content=keyword)
+                plan.content = plan_content
                 plan.title = title
                 if current_user and current_user.is_authenticated:
                     plan.author_id = current_user.get_id()
@@ -162,16 +162,16 @@ def plan_update(plan_id):
                     session.commit()
                     session.query(Plan).filter_by(plan_alias.id ==  plan_id).update({"cover_image_id": irs.id })
 
-                plan.content = plan_content
-                plan.keywords = [plan_keyword]
+                if keywords:
+                    keywords = session.query(PlanKeyword).filter(PlanKeyword.id.in_(keywords)).all()
+                    plan.keywords = keywords
                 session.merge(plan)
                 session.commit()
                 flash(_(u"方案编辑成功!"), category="success")
-                return redirect(url_for('admin_frontend.plan_show', plan_id = plan.id))
+                return redirect(url_for('admin_frontend.plan_show', plan_id=plan.id))
     except Exception, e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
-        return redirect(url_for('admin_frontend.plans'))
+        return redirect(url_for('admin_frontend.plan_show', plan_id=plan.id))
 
 
 @admin_frontend.route('/plan/delete/<int:plan_id>',methods=["GET","POST"])
@@ -201,18 +201,18 @@ def plan_new():
     u"""新建方案"""
     try:
         plan_form = PlanForm(request.form)
+        plan_form.keywords.choices = PlanKeyword.choices()
         context = {
             'form': plan_form,
         }
         if request.method == 'POST' and plan_form.validate_on_submit():
             title = plan_form.title.data.strip()
             content = plan_form.content.data.strip()
-            print content
-            keyword = plan_form.keyword.data.strip()
+            keywords = plan_form.keywords.data
             with db_session_cm() as session:
                 plan = Plan(title)
                 plan_content = PlanContent(content=content)
-                plan_keyword = PlanKeyword(content=keyword)
+                plan.content = plan_content
                 u"""upload image """
                 request_file = request.files['image']
 
@@ -226,8 +226,9 @@ def plan_new():
 
                 if current_user and current_user.is_authenticated:
                     plan.author_id = current_user.get_id()
-                plan.content = plan_content
-                plan.keywords = [plan_keyword]
+                if keywords:
+                    keywords = session.query(PlanKeyword).filter(PlanKeyword.id.in_(keywords)).all()
+                    plan.keywords = keywords
                 session.add(plan)
                 session.commit()
             flash(_(u"方案添加成功!"), category="success")

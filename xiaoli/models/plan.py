@@ -133,3 +133,12 @@ class PlanKeyword(Base):
             if sign == self.type:
                 return text
 
+    @classmethod
+    def choices(cls):
+        options = []
+        with db_session_cm() as session:
+            keywords = session.query(PlanKeyword).all()
+            for kw in keywords:
+                options.append((kw.id, kw.content))
+        return options
+
