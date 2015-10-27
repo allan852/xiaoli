@@ -1,5 +1,4 @@
 {{ form.csrf_token }}
-{{form.hidden_tag()}}
 <div class="form-group">
     <label>{{ form.title.description }}</label>
     {{ form.title(class="form-control", placeholder=form.title.description) }}
@@ -9,10 +8,13 @@
 </div>
 
 <div class="form-group">
-<label>{{_("内容")}}</label>
-<script type="text/plain" id="editor" style="width:600px;height:240px;">
-<p></p>
-</script>
+    <label>{{ _("内容") }}</label>
+    <script type="text/plain" id="editor" name="content">
+
+    </script>
+    {% if form.errors.content %}
+        <p class="text-danger">{{ form.errors.content[0] }}</p>
+    {% endif %}
 </div>
 <div class="clear"></div>
 
@@ -25,7 +27,7 @@
 
 <div class="form-group">
     <label>{{ form.keyword.description }}</label>
-    {{ form.keyword(class="form-control", placeholder=form.keyword.description) }}
+    {{ form.keyword(class="form-control", placeholder=_("方案标签，多个标签用‘,’分割")) }}
     {% if form.errors.keyword %}
         <p class="text-danger">{{ form.errors.keyword[0] }}</p>
     {% endif %}
@@ -33,10 +35,19 @@
 <div class="clear"></div>
 <script type="text/javascript">
     $(document).ready(function () {
-        var ue = UE.getEditor('editor');
+        var ue = UE.getEditor('editor', {
+            toolbars: [
+                ['fullscreen', 'fontsize', '|','blockquote', '|', 'removeformat', '|', 'link', 'unlink', '|', 'simpleupload', '|', 'undo', 'redo'],
+                ['bold', 'italic', 'underline', 'forecolor', 'backcolor', '|', 'justifyleft', 'justifycenter', 'justifyright', '|', 'rowspacingtop', 'rowspacingbottom', 'lineheight', '|', 'insertorderedlist', 'insertunorderedlist', '|', 'imagenone', 'imageleft', 'imageright', 'imagecenter']
+            ],
+            initialFrameHeight: 360,
+            autoClearEmptyNode: true,
+        });
+
+
         ue.addListener("ready", function () {
-　　        if('{{form.content.data}}' != 'None'){
-                ue.setContent('{{form.content.data}}', false);
+            if ('{{form.content.data}}' != 'None') {
+                ue.setContent('{{form.content.data|safe}}', false );
             }
 
         });

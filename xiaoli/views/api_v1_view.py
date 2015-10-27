@@ -236,6 +236,82 @@ def account_impresses(account_id):
         abort(400)
 
 
+@api_v1.route("/account/<account_id>/impress_details", methods=["GET"])
+def impress_details(account_id):
+    u"""获取用户印象详情"""
+    try:
+        # TODO: 需要完善
+        res = api_response()
+        with db_session_cm() as session:
+            account = session.query(Impress).get(account_id)
+            if not account:
+                res.update(status="fail",response={
+                    "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
+                    "message": "user not exists"
+                })
+                return jsonify(res)
+            impress_query = session.query(Impress).\
+                join(Account.impresses, Impress.content).\
+                filter(Impress.target == account).order_by(Impress.create_time.desc())
+            impresses = impress_query.all()
+            impress_dicts = []
+            for impress, count in impresses:
+                d = {
+                    "content": impress.content.content,
+                    "count": count
+                }
+                impress_dicts.append(d)
+            res.update(response={
+                "impresses": impress_dicts
+            })
+        return jsonify(res)
+    except Exception as e:
+        api_logger.error(traceback.format_exc(e))
+        abort(400)
+
+
+@api_v1.route("/system/preset_impresses", methods=["GET"])
+def preset_impresses():
+    u"""获取系统预设印象"""
+    try:
+        res = api_response()
+        with db_session_cm() as session:
+            preset_impresses_query = session.query(Impress).join(Impress.preset_contents)
+            impresses = preset_impresses_query.all()
+            impress_dicts = []
+            for impress in impresses:
+                impress_dicts.append(impress.to_dict())
+            res.update(response={
+                "impresses": impress_dicts
+            })
+        return jsonify(res)
+    except Exception as e:
+        api_logger.error(traceback.format_exc(e))
+        abort(400)
+
+
+@api_v1.route("/system/preset_keywords", methods=["GET"])
+def preset_keywords():
+    u"""获取系统预设关键字"""
+    try:
+        res = api_response()
+        # TODO: 需要完善
+        with db_session_cm() as session:
+            plan_keyword_query = session.query(PlanKeyword).\
+                filter(PlanKeyword.type == PlanKeyword.TYPE_PRESET)
+            keywords = plan_keyword_query.all()
+            keywords_dicts = []
+            for keyword in keywords:
+                keywords_dicts.append(keyword.to_dict())
+            res.update(response={
+                "impresses": keywords_dicts
+            })
+        return jsonify(res)
+    except Exception as e:
+        api_logger.error(traceback.format_exc(e))
+        abort(400)
+
+
 @api_v1.route("/account/<account_id>/comments", methods=["GET"])
 def account_comments(account_id):
     u"""获取用户评论"""

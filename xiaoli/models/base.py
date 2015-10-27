@@ -15,8 +15,8 @@ engine = create_engine(database_url)
 
 class BaseModel(object):
     u"""A base model that will use our database"""
-    create_time = Column(DateTime, default=datetime.datetime.now)
-    update_time = Column(DateTime, onupdate=datetime.datetime.now)
+    create_time = Column(DateTime, default=datetime.datetime.now, index=True)
+    update_time = Column(DateTime, onupdate=datetime.datetime.now, index=True)
 
     @property
     def screen_create_time(self):

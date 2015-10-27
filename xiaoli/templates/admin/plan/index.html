@@ -25,7 +25,9 @@
                         <tbody>
                         {% for plan in plans %}
                             <tr>
-                                <td>{{ plan.title }}</td>
+                                <td>
+                                    <a href="{{ url_for("admin_frontend.plan_show", plan_id=plan.id) }}">{{ plan.title }}</a>
+                                </td>
                                 <td>{{ plan.account.name or plan.account.cellphone }}</td>
                                 <td>{{ plan.view_count }}</td>
                                 <td>{{ plan.view_count }}</td>
@@ -33,8 +35,6 @@
                                 <td>{{ plan.screen_create_time }}</td>
                                 <td>{{ plan.screen_publish_time }}</td>
                                 <td>
-                                    <a href="{{ url_for("admin_frontend.plan_show", plan_id=plan.id) }}">{{ _("查看") }}</a>
-                                    |
                                     <a href="{{ url_for("admin_frontend.plan_edit", plan_id=plan.id) }}">{{ _("编辑") }}</a>
                                     |
                                     <a href="{{ url_for("admin_frontend.plan_publish", plan_id=plan.id) }}">{{ _("发布") }}</a>

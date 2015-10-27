@@ -47,8 +47,8 @@ class RegisterForm(Form):
                                    description=_(u'确认密码'))
 
     nickname = StringField(_(u'昵称'),
-                        validators=[DataRequired(message=_(u'昵称不能为空'))],
-                        description=_(u'昵称'))
+                           validators=[DataRequired(message=_(u'昵称不能为空'))],
+                           description=_(u'昵称'))
 
     def validate_phone(form, field):
         with db_session_cm() as session:
@@ -96,7 +96,6 @@ class ResetPasswordForm(Form):
 
 
 class PlanForm(Form):
-
     id = HiddenField(_(u'ID'))
 
     title = StringField(_(u'标题'),
@@ -104,12 +103,14 @@ class PlanForm(Form):
                         description=_(u'标题'))
 
     content = TextAreaField(_(u'方案内容'),
-                          description=_(u'方案内容')
-                          )
+                            validators=[DataRequired(message=_(u'方案内容不能为空'))],
+                            description=_(u'方案内容')
+                            )
 
     keyword = StringField(_(u'方案标签'),
                           validators=[DataRequired(message=_(u'方案标签不能为空'))],
                           description=_(u'方案标签'))
+
 
 class PlanKeywordsForm(Form):
 
