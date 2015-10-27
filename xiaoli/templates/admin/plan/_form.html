@@ -40,8 +40,6 @@
             initialFrameHeight: 360,
             autoClearEmptyNode: true,
         });
-
-
         ue.addListener("ready", function () {
             if ('{{form.content.data}}' != 'None') {
                 ue.setContent('{{form.content.data|safe}}', false );
