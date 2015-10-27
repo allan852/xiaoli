@@ -29,7 +29,7 @@ SMS = {
 }
 
 UPLOADS_DEFAULT_DEST = "/home/eplus/uploads/xiaoli"
-UPLOADS_DEFAULT_URL = "http://xiaoliapi.waiyijia.com"
+UPLOADS_DEFAULT_URL = "http://xiaoliapi.waiyijia.com/"
 
 EDITOR_CONFIG = {
      #/* 上传图片配置项 */
