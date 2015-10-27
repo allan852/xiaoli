@@ -9,6 +9,5 @@ from xiaoli.models.notice import Notice
 from xiaoli.models.plan import Plan, PlanContent, PlanKeyword
 from xiaoli.models.token import Token
 from xiaoli.models.sms import Sms
-from xiaoli.models.uploader import Uploader
 
 __author__ = 'zouyingjun'
