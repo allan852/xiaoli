@@ -8,12 +8,14 @@ from flask.ext.babel import gettext as _
 from flask.ext.paginate import Pagination
 from flask_login import current_user
 from sqlalchemy.orm import subqueryload, aliased
-from xiaoli.models import Account, Plan,Uploader, PlanContent, PlanKeyword
+from xiaoli.extensions.upload_set import image_resources
+from xiaoli.models import Account, Plan, PlanContent, PlanKeyword, ImageResource
 from xiaoli.models.session import db_session_cm
 from xiaoli.config import setting
 from xiaoli.utils.account_util import admin_required
 from xiaoli.utils.logs.logger import common_logger
 from xiaoli.forms import PlanForm
+
 
 __author__ = 'zouyingjun'
 
@@ -135,8 +137,9 @@ def plan_update():
                 plan_id = plan_form.id.data.strip()
 
                 title = plan_form.title.data.strip()
-                content = plan_form.content.data.strip()
-                keyword = plan_form.content.data.strip()
+                content = request.form.get("editorValue")
+                keyword = plan_form.keyword.data.strip()
+
                 plan_alias = aliased(Plan)
                 plan = session.query(Plan).options(subqueryload(Plan.content)).join(plan_alias.keywords).filter(Plan.id == plan_id).first()
                 plan_content = PlanContent(content=content)
@@ -188,7 +191,7 @@ def plan_new():
         }
         if request.method == 'POST' and plan_form.validate_on_submit():
             title = plan_form.title.data.strip()
-            content = plan_form.content.data.strip()
+            content = request.form.get("editorValue")
             keyword = plan_form.keyword.data.strip()
             with db_session_cm() as session:
                 plan_content = PlanContent(content=content)
@@ -211,7 +214,7 @@ def plan_new():
 
 @admin_frontend.route('/upload/',methods=['GET', 'POST','OPTIONS'])
 @admin_required
-def upload():
+def upload(request_file=None):
     u"""UEditor文件上传接口
     config 配置文件
     result 返回结果
@@ -249,66 +252,37 @@ def upload():
                 "allowFiles": CONFIG['fileAllowFiles']
             }
         if fieldName in request.files:
-            field = request.files[fieldName]
-            uploader = Uploader(field, config, 'public/static')
-            result = uploader.getFileInfo()
+            try:
+                field = request.files[fieldName]
+                with db_session_cm() as session:
+                    filename = image_resources.save(field, folder=str(current_user.id))
+                    irs = ImageResource(filename, current_user.id)
+                    irs.format = request_file.mimetype
+                    session.add(irs)
+                    session.commit()
+                    image = session.query(ImageResource).get(id)
+                    if image is None:
+                        result['state'] = 'SUCCESS'
+                        result['url'] = ''
+                    else:
+                        url = image_resources.url(image.path)
+                        result['state'] = 'SUCCESS'
+                        result['url'] = url
+                        result['title'] = filename
+            except Exception, e:
+                common_logger.error(traceback.format_exc(e))
+                print traceback.format_exc(e)
         else:
             result['state'] = '上传接口出错'
-    elif action in ('uploadscrawl'):
-        # 涂鸦上传
-        fieldName = CONFIG.get('scrawlFieldName')
-        config = {
-            "pathFormat": CONFIG.get('scrawlPathFormat'),
-            "maxSize": CONFIG.get('scrawlMaxSize'),
-            "allowFiles": CONFIG.get('scrawlAllowFiles'),
-            "oriName": "scrawl.png"
-        }
-        if fieldName in request.form:
-            field = request.form[fieldName]
-            uploader = Uploader(field, config, app.static_folder, 'base64')
-            result = uploader.getFileInfo()
-        else:
-            result['state'] = '上传接口出错'
-    elif action in ('catchimage'):
-        config = {
-            "pathFormat": CONFIG['catcherPathFormat'],
-            "maxSize": CONFIG['catcherMaxSize'],
-            "allowFiles": CONFIG['catcherAllowFiles'],
-            "oriName": "remote.png"
-        }
-        fieldName = CONFIG['catcherFieldName']
-        if fieldName in request.form:
-            source = []
-        elif '%s[]' % fieldName in request.form:
-            source = request.form.getlist('%s[]' % fieldName)
-        _list = []
-        for imgurl in source:
-            uploader = Uploader(imgurl, config, app.static_folder, 'remote')
-            info = uploader.getFileInfo()
-            _list.append({
-                'state': info['state'],
-                'url': info['url'],
-                'original': info['original'],
-                'source': imgurl,
-            })
-        result['state'] = 'SUCCESS' if len(_list) > 0 else 'ERROR'
-        result['list'] = _list
+
     else:
         result['state'] = '请求地址出错'
     result = json.dumps(result)
-    if 'callback' in request.args:
-        callback = request.args.get('callback')
-        if re.match(r'^[\w_]+$', callback):
-            result = '%s(%s)' % (callback, result)
-            mimetype = 'application/javascript'
-        else:
-            result = json.dumps({'state': 'callback参数不合法'})
     res = make_response(result)
     res.mimetype = mimetype
     res.headers['Access-Control-Allow-Origin'] = '*'
     res.headers['Access-Control-Allow-Headers'] = 'X-Requested-With,X_Requested_With'
     return res
-
 
 @admin_frontend.route('/plan/publish/<int:plan_id>')
 @admin_required
