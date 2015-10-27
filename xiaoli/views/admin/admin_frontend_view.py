@@ -191,7 +191,7 @@ def plan_new():
         }
         if request.method == 'POST' and plan_form.validate_on_submit():
             title = plan_form.title.data.strip()
-            content = request.form.get("editorValue")
+            content = plan_form.content.data.strip()
             keyword = plan_form.keyword.data.strip()
             with db_session_cm() as session:
                 plan_content = PlanContent(content=content)
