@@ -1,63 +1,73 @@
 {% extends "layout/admin_layout.html" %}
 
 {% block content %}
-<div class="container">
-    <div class="row" id="login-register-div">
-        <div class="col-md-8 col-md-offset-2">
-            <div class="plan-show">
+    <div class="container">
+        <a class="btn btn-info" href="{{ url_for("admin_frontend.plans") }}">{{ _("返回") }}</a>
+
+        <div class="row" id="login-register-div">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="plan-show">
                     <label>{{ _("标题") }}</label>
+
                     <p>
-                        {{plan.title}}
+                        {{ plan.title }}
                     </p>
                     <hr>
-                    <label>{{_("内容")}}</label>
+                    <label>{{ _("内容") }}</label>
+
                     <p>
-                        {{plan.content.content|safe}}
+                        {{ plan.content.content|safe }}
                     </p>
                     <hr>
                     <label>{{ _("作者") }}</label>
+
                     <p>
-                        {{plan.author_id}}
+                        {{ plan.author_id }}
                     </p>
                     <label>{{ _("阅读") }}</label>
+
                     <p>
-                        {{plan.view_count}}
+                        {{ plan.view_count }}
                     </p>
                     <hr>
                     <label>{{ _("收藏") }}</label>
+
                     <p>
-                        {{plan.share_count}}
+                        {{ plan.share_count }}
                     </p>
                     <hr>
                     <label>{{ _("状态") }}</label>
+
                     <p>
-                        {{plan.status}}
+                        {{ plan.status }}
                     </p>
                     <hr>
                     <label>{{ _("发布时间") }}</label>
+
                     <p>
-                        {{plan.publish_date}}
+                        {{ plan.publish_date }}
                     </p>
                     <hr>
-                    <label>{{_("标签")}}</label>
-                    <p>
+                    <label>{{ _("标签") }}</label>
+
+                    <div>
                         <ul>
                             {% for word in plan.keywords %}
-                              <li class="{{ loop.cycle('odd', 'even') }}">{{ row }}</li>
+                                <li class="{{ loop.cycle('odd', 'even') }}">{{ word }}</li>
                             {% endfor %}
                         </ul>
-                    </p>
+                    </div>
                     <hr>
                     <a class="btn btn-info" href="{{ url_for("admin_frontend.plans") }}">{{ _("返回") }}</a>
-            </div>
+                </div>
 
+            </div>
         </div>
     </div>
-</div>
 {% endblock %}
 
 
 
 
-                            <th>{{ _("状态") }}</th>
-                            <th></th>
+<th>{{ _("状态") }}</th>
+<th></th>
