@@ -4,7 +4,10 @@ import datetime
 from flask.ext.babel import gettext as _, format_datetime
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, BigInteger, Text
 from sqlalchemy.orm import relationship
+from xiaoli.extensions.upload_set import image_resources
+from xiaoli.models import ImageResource
 from xiaoli.models.base import Base
+from xiaoli.models.session import db_session_cm
 
 __author__ = 'zouyingjun'
 
@@ -18,10 +21,10 @@ class Plan(Base):
     STATUS_UNSHELVE = "unshelve"
     STATUS_DELETE = "unshelve"
     STATUS_CHOICES = (
-        (STATUS_UNPUBLISHED, _("未发布")),
-        (STATUS_PUBLISH, _("已经发布")),
-        (STATUS_UNSHELVE, _("已下架")),
-        (STATUS_DELETE, _("删除")),
+        (STATUS_UNPUBLISHED, u"未发布"),
+        (STATUS_PUBLISH, u"已经发布"),
+        (STATUS_UNSHELVE, u"已下架"),
+        (STATUS_DELETE, u"删除"),
     )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -43,6 +46,7 @@ class Plan(Base):
     content = relationship("PlanContent",uselist=False,backref='plan',cascade="all, delete-orphan")
     keywords = relationship("PlanKeyword",backref='plan',secondary="plan_keyword_rel", lazy='dynamic')
 
+
     def __init__(self, title):
         self.title = title
         self.status = Plan.STATUS_UNPUBLISHED
@@ -53,7 +57,7 @@ class Plan(Base):
     def screen_status(self):
         for sign, text in Plan.STATUS_CHOICES:
             if sign == self.status:
-                return sign
+                return text
 
     @property
     def screen_publish_time(self):
@@ -64,6 +68,19 @@ class Plan(Base):
         if not self.publish_date:
             self.publish_date = datetime.datetime.now()
 
+    @property
+    def cover_image(self):
+        with db_session_cm() as session:
+            if self.cover_image_id:
+                image = session.query(ImageResource).get(self.cover_image_id)
+                if image is None:
+                    return ""
+                else:
+                    url = image_resources.url(image.path)
+                    return url
+            else:
+                return ""
+
     def to_dict(self):
         d = {
             "id": self.id,
@@ -72,7 +89,7 @@ class Plan(Base):
             "publish_date": self.publish_date,
             "author_id": self.author_id,
             "cover_image_id": self.cover_image_id,
-            "cover_image_url": '',
+            "cover_image_url": self.cover_image,
             "view_count": self.view_count,
             "share_count": self.share_count,
             "content": self.content.content,
@@ -99,8 +116,8 @@ class PlanKeyword(Base):
     TYPE_PRESET = "preset"
     TYPE_USERADD = "useradd"
     TYPE_CHOICES = (
-        (TYPE_PRESET, _("系统预设")),
-        (TYPE_USERADD, _("用户添加")),
+        (TYPE_PRESET, u"系统预设"),
+        (TYPE_USERADD, u"用户添加"),
     )
 
     id = Column(Integer, primary_key=True, autoincrement=True)

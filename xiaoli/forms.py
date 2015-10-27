@@ -110,3 +110,11 @@ class PlanForm(Form):
     keyword = StringField(_(u'方案标签'),
                           validators=[DataRequired(message=_(u'方案标签不能为空'))],
                           description=_(u'方案标签'))
+
+class PlanKeywordsForm(Form):
+
+    id = HiddenField(_(u'ID'))
+    content = StringField(_(u'关键词'),
+                          validators=[DataRequired(message=_(u'关键词不能为空'))],
+                          description=_(u'关键词')
+                          )

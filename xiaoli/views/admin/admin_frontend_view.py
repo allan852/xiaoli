@@ -14,8 +14,7 @@ from xiaoli.models.session import db_session_cm
 from xiaoli.config import setting
 from xiaoli.utils.account_util import admin_required
 from xiaoli.utils.logs.logger import common_logger
-from xiaoli.forms import PlanForm
-
+from xiaoli.forms import PlanForm, PlanKeywordsForm
 
 __author__ = 'zouyingjun'
 
@@ -140,6 +139,8 @@ def plan_update():
                 content = request.form.get("editorValue")
                 keyword = plan_form.keyword.data.strip()
 
+                request_file = request.files['image']
+
                 plan_alias = aliased(Plan)
                 plan = session.query(Plan).options(subqueryload(Plan.content)).join(plan_alias.keywords).filter(Plan.id == plan_id).first()
                 plan_content = PlanContent(content=content)
@@ -147,6 +148,14 @@ def plan_update():
                 plan.title = title
                 if current_user and current_user.is_authenticated:
                     plan.author_id = current_user.get_id()
+                if request_file:
+                    filename = image_resources.save(request_file, folder=str(current_user.id))
+                    irs = ImageResource(filename, current_user.id)
+                    irs.format = request_file.mimetype
+                    session.add(irs)
+                    session.commit()
+                    session.query(Plan).filter_by(plan_alias.id ==  plan_id).update({"cover_image_id": irs.id })
+
                 plan.content = plan_content
                 plan.keywords = [plan_keyword]
                 session.merge(plan)
@@ -194,9 +203,20 @@ def plan_new():
             content = request.form.get("editorValue")
             keyword = plan_form.keyword.data.strip()
             with db_session_cm() as session:
+                plan = Plan(title)
                 plan_content = PlanContent(content=content)
                 plan_keyword = PlanKeyword(content=keyword)
-                plan = Plan(title)
+                u"""upload image """
+                request_file = request.files['image']
+
+                if request_file:
+                    filename = image_resources.save(request_file, folder=str(current_user.id))
+                    irs = ImageResource(filename, current_user.id)
+                    irs.format = request_file.mimetype
+                    session.add(irs)
+                    session.commit()
+                    plan.cover_image_id = irs.id
+
                 if current_user and current_user.is_authenticated:
                     plan.author_id = current_user.get_id()
                 plan.content = plan_content
@@ -337,21 +357,82 @@ def keywords():
 @admin_required
 def keyword_new():
     u"""新建关键字"""
-    return render_template("admin/keyword/new.html")
+    try:
+        plan_form = PlanKeywordsForm(request.form)
+        context = {
+            'form': plan_form,
+        }
+        if request.method == 'POST' and plan_form.validate_on_submit():
+            content = plan_form.content.data.strip()
+            with db_session_cm() as session:
+                plan_keyword = PlanKeyword(content=content)
+                plan_keyword.type = PlanKeyword.TYPE_PRESET
+                session.add(plan_keyword)
+                session.commit()
+            flash(_(u"添加成功!"), category="success")
+            return redirect(url_for('admin_frontend.keywords'))
+        return render_template("admin/keyword/new.html", **context)
+    except Exception, e:
+        common_logger.error(traceback.format_exc(e))
+        print traceback.format_exc(e)
+        abort(500)
 
-
-@admin_frontend.route('/keyword/<int:keyword_id>')
+@admin_frontend.route('/keyword/edit/<int:keyword_id>',methods=["GET"])
 @admin_required
-def keyword_show(keyword_id):
+def keyword_edit(keyword_id):
     u"""关键之详情"""
-    return render_template("admin/keyword/show.html")
+    try:
+        with db_session_cm() as session:
+            keyword = session.query(PlanKeyword).filter(PlanKeyword.id == keyword_id).first()
+            plan_form = PlanKeywordsForm(id=keyword.id,content = keyword.content)
+            context = {
+                'form': plan_form
+            }
+        return render_template("admin/keyword/edit.html",**context)
+    except Exception , e:
+        common_logger.error(traceback.format_exc(e))
+        print traceback.format_exc(e)
+        abort(500)
+
+@admin_frontend.route('/keyword/update',methods=["POST"])
+@admin_required
+def keyword_update():
+   u"""keyword Update"""
+   try:
+        with db_session_cm() as session:
+            if request.method == 'POST':
+                plan_form = PlanKeywordsForm(request.form)
+                keyword_id = plan_form.id.data.strip()
+                content = plan_form.content.data.strip()
+                session.query(PlanKeyword).filter(PlanKeyword.id == keyword_id).update(dict(content=content))
+                session.commit()
+        return redirect(url_for('admin_frontend.keywords'))
+   except Exception ,e:
+        common_logger.error(traceback.format_exc(e))
+        print traceback.format_exc(e)
+        abort(500)
 
 
-@admin_frontend.route('/keyword/<int:keyword_id>')
+@admin_frontend.route('/keyword/del/<int:keyword_id>')
 @admin_required
 def keyword_delete(keyword_id):
     u"""删除关键字"""
-    return render_template("admin/keyword/index.html")
+    try:
+        with db_session_cm() as session:
+            keyword = session.query(PlanKeyword).get(keyword_id)
+            if current_user and current_user.is_authenticated:
+                session.delete(keyword)
+                session.commit()
+                flash(_(u"删除成功!"))
+            else:
+                flash(_(u"没有权限!"))
+        return redirect(url_for('admin_frontend.keywords'))
+    except Exception as e:
+        common_logger.error(traceback.format_exc(e))
+        print traceback.format_exc(e)
+        flash(_(u"删除失败!"))
+        return redirect(url_for('admin_frontend.keywords'))
+
 
 
 @admin_frontend.route('/impresses')

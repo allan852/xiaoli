@@ -6,7 +6,7 @@
             <a href="{{ url_for("admin_frontend.keyword_new") }}" class="btn btn-info">{{ _("新建关键字") }}</a>
         </div>
         <p></p>
-        {% if kewwords %}
+        {% if keywords %}
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <div class="panel-title">{{ _("全部关键字") }}</div>
@@ -27,14 +27,15 @@
 
                         {% for keyword in keywords %}
                             <tr>
+                                <td>{{ keyword.id }}</td>
                                 <td>{{ keyword.content }}</td>
                                 <td>{{ keyword.screen_type }}</td>
                                 <td>{{ keyword.screen_create_time }}</td>
                                 <td>
-                                    <a href="{{ url_for("admin_frontend.keyword_edit", account_id=keyword.id) }}">{{ _("编辑") }}</a>
+                                    <a href="{{ url_for("admin_frontend.keyword_edit", keyword_id=keyword.id) }}">{{ _("编辑") }}</a>
                                     |
                                     <a class="text-danger"
-                                       href="{{ url_for("admin_frontend.keyword_delete", account_id=keyword.id) }}">{{ _("删除") }}</a>
+                                       href="{{ url_for("admin_frontend.keyword_delete", keyword_id=keyword.id) }}">{{ _("删除") }}</a>
                                 </td>
                             </tr>
                         {% endfor %}

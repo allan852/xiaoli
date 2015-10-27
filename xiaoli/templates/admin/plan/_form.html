@@ -17,6 +17,13 @@
 <div class="clear"></div>
 
 <div class="form-group">
+    <label>{{_("封面图片") }}</label>
+    <input type="file" name="image">
+</div>
+
+
+
+<div class="form-group">
     <label>{{ form.keyword.description }}</label>
     {{ form.keyword(class="form-control", placeholder=form.keyword.description) }}
     {% if form.errors.keyword %}
