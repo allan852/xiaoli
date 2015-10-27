@@ -104,7 +104,6 @@ class PlanForm(Form):
                         description=_(u'标题'))
 
     content = TextAreaField(_(u'方案内容'),
-                          validators=[DataRequired(message=_(u'方案内容不能为空'))],
                           description=_(u'方案内容')
                           )
 
