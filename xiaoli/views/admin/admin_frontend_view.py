@@ -115,33 +115,39 @@ def plan_edit(plan_id):
     try:
         with db_session_cm() as session:
             plan = session.query(Plan).options(subqueryload(Plan.content)).filter(Plan.id == plan_id).first()
-            plan_form = PlanForm(id=plan.id,title=plan.title,content = plan.content.content,keywords=plan.keywords)
+            plan_form = PlanForm(
+                id=plan.id,
+                title=plan.title,
+                content=plan.content.content,
+                keywords=','.join([kw.content for kw in plan.keywords])
+            )
             context = {
-                'form': plan_form
+                'form': plan_form,
+                'plan': plan
             }
-        return render_template("admin/plan/edit.html",**context)
+        return render_template("admin/plan/edit.html", **context)
     except Exception as e:
         common_logger.error(traceback.format_exc(e))
         print traceback.format_exc(e)
         abort(500)
 
 
-@admin_frontend.route('/plan/plan_update',methods=["POST"])
+@admin_frontend.route('/plan/plan_update/<int:plan_id>',methods=["POST"])
 @admin_required
-def plan_update():
+def plan_update(plan_id):
+    u"""更新方案"""
     try:
         plan_form = PlanForm(request.form)
 
         if request.method == 'POST':
             with db_session_cm() as session:
-                plan_id = plan_form.id.data.strip()
-
                 title = plan_form.title.data.strip()
-                content = request.form.get("editorValue")
+                content = plan_form.content.data.strip()
                 keyword = plan_form.keyword.data.strip()
 
                 plan_alias = aliased(Plan)
-                plan = session.query(Plan).options(subqueryload(Plan.content)).join(plan_alias.keywords).filter(Plan.id == plan_id).first()
+                plan = session.query(Plan).options(subqueryload(Plan.content)).\
+                    join(plan_alias.keywords).filter(Plan.id == plan_id).first()
                 plan_content = PlanContent(content=content)
                 plan_keyword = PlanKeyword(content=keyword)
                 plan.title = title
@@ -152,7 +158,7 @@ def plan_update():
                 session.merge(plan)
                 session.commit()
                 flash(_(u"方案编辑成功!"), category="success")
-                return redirect(url_for('admin_frontend.plan_show',plan_id = plan.id))
+                return redirect(url_for('admin_frontend.plan_show', plan_id = plan.id))
     except Exception, e:
         common_logger.error(traceback.format_exc(e))
         print traceback.format_exc(e)
@@ -192,6 +198,7 @@ def plan_new():
         if request.method == 'POST' and plan_form.validate_on_submit():
             title = plan_form.title.data.strip()
             content = plan_form.content.data.strip()
+            print content
             keyword = plan_form.keyword.data.strip()
             with db_session_cm() as session:
                 plan_content = PlanContent(content=content)

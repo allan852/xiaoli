@@ -2,6 +2,7 @@
 
 {% block content %}
     <div class="container">
+        {% include "includes/_flash.html" %}
         <a class="btn btn-info" href="{{ url_for("admin_frontend.plans") }}">{{ _("返回") }}</a>
 
         <div class="row" id="login-register-div">
