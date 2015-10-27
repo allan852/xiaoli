@@ -9,12 +9,12 @@ from flask.ext.paginate import Pagination
 from flask_login import current_user
 from sqlalchemy.orm import subqueryload, aliased
 from xiaoli.extensions.upload_set import image_resources
-from xiaoli.models import Account, Plan, PlanContent, PlanKeyword, ImageResource
+from xiaoli.models import Account, Plan, PlanContent, PlanKeyword, ImageResource, Impress, ImpressContent
 from xiaoli.models.session import db_session_cm
 from xiaoli.config import setting
 from xiaoli.utils.account_util import admin_required
 from xiaoli.utils.logs.logger import common_logger
-from xiaoli.forms import PlanForm, PlanKeywordsForm
+from xiaoli.forms import PlanForm, PlanKeywordsForm, PresetImpressForm
 
 __author__ = 'zouyingjun'
 
@@ -386,6 +386,7 @@ def keyword_new():
         print traceback.format_exc(e)
         abort(500)
 
+
 @admin_frontend.route('/keyword/edit/<int:keyword_id>',methods=["GET"])
 @admin_required
 def keyword_edit(keyword_id):
@@ -402,6 +403,7 @@ def keyword_edit(keyword_id):
         common_logger.error(traceback.format_exc(e))
         print traceback.format_exc(e)
         abort(500)
+
 
 @admin_frontend.route('/keyword/update',methods=["POST"])
 @admin_required
@@ -443,19 +445,18 @@ def keyword_delete(keyword_id):
         return redirect(url_for('admin_frontend.keywords'))
 
 
-
 @admin_frontend.route('/impresses')
 @admin_required
 def impresses():
     u"""印象管理"""
     page = request.args.get("page", 1, type=int)
-    per_page = request.args.get("per_page", PlanKeyword.PER_PAGE, type=int)
+    per_page = request.args.get("per_page", ImpressContent.PER_PAGE, type=int)
     with db_session_cm() as session:
-        keywords_query = session.query(PlanKeyword)
-        pagination = Pagination(page=page, total=keywords_query.count(), record_name=_(u"印象"), bs_version=3)
-        keywords = keywords_query.order_by(PlanKeyword.id.desc()).offset((page - 1) * per_page).limit(per_page)
+        impresses_query = session.query(ImpressContent)
+        pagination = Pagination(page=page, total=impresses_query.count(), record_name=_(u"印象"), bs_version=3)
+        impresses_query = impresses_query.order_by(ImpressContent.id.desc()).offset((page - 1) * per_page).limit(per_page)
         context = {
-            "keywords": keywords.all(),
+            "impresses": impresses_query.all(),
             "pagination": pagination
         }
         return render_template("admin/impress/index.html", **context)
@@ -465,7 +466,25 @@ def impresses():
 @admin_required
 def impress_new():
     u"""新建印象"""
-    return render_template("admin/impress/new.html")
+    try:
+        impress_form = PresetImpressForm(request.form)
+        context = {
+            'form': impress_form,
+        }
+        if request.method == 'POST' and impress_form.validate_on_submit():
+            content = impress_form.content.data.strip()
+            with db_session_cm() as session:
+                impress_content = ImpressContent(content=content)
+                impress_content.type = ImpressContent.TYPE_PRESET
+                session.add(impress_content)
+                session.commit()
+            flash(_(u"添加成功!"), category="success")
+            return redirect(url_for('admin_frontend.impresses'))
+        return render_template("admin/impress/new.html", **context)
+    except Exception, e:
+        common_logger.error(traceback.format_exc(e))
+        print traceback.format_exc(e)
+        abort(500)
 
 
 @admin_frontend.route('/impress/<int:impress_id>')

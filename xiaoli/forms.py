@@ -6,7 +6,7 @@ from flask.ext.babel import lazy_gettext as _
 from wtforms.validators import ValidationError, Email, Length, EqualTo, DataRequired
 from xiaoli.models import PlanKeyword
 
-from xiaoli.models.account import Account
+from xiaoli.models.account import Account, ImpressContent
 from xiaoli.models.session import db_session_cm
 
 
@@ -121,10 +121,10 @@ class PlanKeywordsForm(Form):
 
 class PresetKeywordForm(Form):
     u"""关键字表单"""
-    content = TextAreaField(_(u'关键字'),
-                            validators=[DataRequired(message=_(u'关键字内容不能为空'))],
-                            description=_(u'关键字内容')
-                            )
+    content = StringField(_(u'关键字'),
+                          validators=[DataRequired(message=_(u'关键字内容不能为空'))],
+                          description=_(u'关键字内容')
+                          )
 
     def validate_content(form, field):
         if field.data:
@@ -138,16 +138,19 @@ class PresetKeywordForm(Form):
 
 class PresetImpressForm(Form):
     u"""印象表单"""
-    content = TextAreaField(_(u'印象'),
-                            validators=[DataRequired(message=_(u'印象内容不能为空'))],
-                            description=_(u'印象内容')
-                            )
+    content = StringField(_(u'印象'),
+                          validators=[
+                              DataRequired(message=_(u'印象内容不能为空')),
+                              Length(min=1, max=8, message=_(u'印象长度不能超过8个字符'))
+                          ],
+                          description=_(u'印象内容')
+                          )
 
     def validate_content(form, field):
         if field.data:
-            new_keywords = field.data.strip().split(',')
+            new_impresses = field.data.strip().split(',')
             with db_session_cm() as session:
                 impresses = session.query(PlanKeyword). \
-                    filter(PlanKeyword.content.in_(new_keywords)).all()
+                    filter(ImpressContent.content.in_(new_impresses)).all()
                 if len(impresses) > 0:
                     raise ValidationError(_(u'印象【%(content)s】已经存在', content=impresses[0].content))

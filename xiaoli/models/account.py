@@ -303,6 +303,8 @@ class Comment(Base):
 class ImpressContent(Base):
     __tablename__ = "impress_contents"
 
+    PER_PAGE = 10
+
     TYPE_PRESET = "preset"
     TYPE_USERADDED = "useradded"
 
@@ -314,6 +316,13 @@ class ImpressContent(Base):
 
     def __init__(self, content):
         self.content = content
+
+    @property
+    def screen_type(self):
+        u"""用户类型显示名称"""
+        for sign, text in ImpressContent.TYPE_CHOICES:
+            if sign == self.type:
+                return text
 
     @classmethod
     def get_or_create(cls, session, content):

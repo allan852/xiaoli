@@ -2,6 +2,7 @@
 
 {% block content %}
     <div class="container">
+        {% include "includes/_flash.html" %}
         <div class="btn-group">
             <a href="{{ url_for("admin_frontend.keyword_new") }}" class="btn btn-info">{{ _("新建关键字") }}</a>
         </div>
@@ -42,8 +43,9 @@
                         </tbody>
                     </table>
                 </div>
-                {{ pagination.links }}
+
             </div>
+            {{ pagination.links }}
         {% else %}
             <div class="alert alert-success" role="alert">{{ _("没有关键字") }}</div>
         {% endif %}

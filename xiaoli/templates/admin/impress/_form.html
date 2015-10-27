@@ -1,0 +1,8 @@
+{{ form.csrf_token }}
+<div class="form-group">
+    <label>{{ form.content.description }}</label>
+    {{ form.content(class="form-control", placeholder=form.content.description) }}
+    {% if form.errors.content %}
+        <p class="text-danger">{{ form.errors.content[0] }}</p>
+    {% endif %}
+</div>
