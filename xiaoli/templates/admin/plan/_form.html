@@ -28,7 +28,10 @@
     $(document).ready(function () {
         var ue = UE.getEditor('editor');
         ue.addListener("ready", function () {
-　　          ue.setContent('{{form.content.data}}', true);
+　　        if('{{form.content.data}}' != 'None'){
+                ue.setContent('{{form.content.data}}', false);
+            }
+
         });
     });
 </script>

@@ -212,9 +212,9 @@ def plan_new():
         abort(500)
 
 
-@admin_frontend.route('/upload/',methods=['GET', 'POST','OPTIONS'])
+@admin_frontend.route('/upload',methods=['GET', 'POST','OPTIONS'])
 @admin_required
-def upload(request_file=None):
+def upload():
     u"""UEditor文件上传接口
     config 配置文件
     result 返回结果
@@ -232,35 +232,20 @@ def upload(request_file=None):
         # 图片、文件、视频上传
         if action == 'uploadimage':
             fieldName = CONFIG.get('imageFieldName')
-            config = {
-                "pathFormat": CONFIG['imagePathFormat'],
-                "maxSize": CONFIG['imageMaxSize'],
-                "allowFiles": CONFIG['imageAllowFiles']
-            }
         elif action == 'uploadvideo':
             fieldName = CONFIG.get('videoFieldName')
-            config = {
-                "pathFormat": CONFIG['videoPathFormat'],
-                "maxSize": CONFIG['videoMaxSize'],
-                "allowFiles": CONFIG['videoAllowFiles']
-            }
         else:
             fieldName = CONFIG.get('fileFieldName')
-            config = {
-                "pathFormat": CONFIG['filePathFormat'],
-                "maxSize": CONFIG['fileMaxSize'],
-                "allowFiles": CONFIG['fileAllowFiles']
-            }
         if fieldName in request.files:
             try:
                 field = request.files[fieldName]
                 with db_session_cm() as session:
                     filename = image_resources.save(field, folder=str(current_user.id))
                     irs = ImageResource(filename, current_user.id)
-                    irs.format = request_file.mimetype
+                    irs.format = field.mimetype
                     session.add(irs)
                     session.commit()
-                    image = session.query(ImageResource).get(id)
+                    image = session.query(ImageResource).get(irs.id)
                     if image is None:
                         result['state'] = 'SUCCESS'
                         result['url'] = ''
@@ -269,11 +254,14 @@ def upload(request_file=None):
                         result['state'] = 'SUCCESS'
                         result['url'] = url
                         result['title'] = filename
+                        result = json.dumps(result)
+                        res = make_response(result)
+                        return res
             except Exception, e:
                 common_logger.error(traceback.format_exc(e))
                 print traceback.format_exc(e)
-        else:
-            result['state'] = '上传接口出错'
+            else:
+                result['state'] = '上传接口出错'
 
     else:
         result['state'] = '请求地址出错'
