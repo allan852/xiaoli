@@ -17,7 +17,9 @@
 <div class="form-group">
     <label>{{ _("内容") }}</label>
     <script type="text/plain" id="editor" name="content">
-
+        {% if form.content.data != None %}
+            {{form.content.data|safe}}
+        {% endif %}
     </script>
     {% if form.errors.content %}
         <p class="text-danger">{{ form.errors.content[0] }}</p>
@@ -41,11 +43,11 @@
             autoClearEmptyNode: true,
         });
 
-        ue.addListener("ready", function () {
-            if ('{{ form.content.data == None }}' != 'True') {
-                ue.setContent('{{form.content.data|safe}}', false );
-            }
-
-        });
+{#        ue.addListener("ready", function () {#}
+{#            if ('{{ form.content.data == None }}' != 'True') {#}
+{#                ue.setContent('{{form.content.data|safe}}', false );#}
+{#            }#}
+{##}
+{#        });#}
     });
 </script>
