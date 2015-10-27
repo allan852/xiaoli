@@ -26,7 +26,9 @@
                         <tbody>
                         {% for plan in plans %}
                             <tr>
-                                <td>{{ plan.title }}</td>
+                                <td>
+                                    <a href="{{ url_for("admin_frontend.plan_show", plan_id=plan.id) }}">{{ plan.title }}</a>
+                                </td>
                                 <td>{{ plan.account.name or plan.account.cellphone }}</td>
                                 <td>{{ plan.view_count }}</td>
                                 <td>{{ plan.view_count }}</td>

@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container">
     <div class="row" id="login-register-div">
-        <div class="col-md-6 col-md-offset-3">
+        <div class="col-md-8 col-md-offset-2">
             <div class="plan-show">
                     <label>{{ _("标题") }}</label>
                     <p>
@@ -12,7 +12,7 @@
                     <hr>
                     <label>{{_("内容")}}</label>
                     <p>
-                        {{plan.content.content}}
+                        {{plan.content.content|safe}}
                     </p>
                     <hr>
                     <label>{{ _("作者") }}</label>

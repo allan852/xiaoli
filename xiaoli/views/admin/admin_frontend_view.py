@@ -272,6 +272,7 @@ def upload():
     res.headers['Access-Control-Allow-Headers'] = 'X-Requested-With,X_Requested_With'
     return res
 
+
 @admin_frontend.route('/plan/publish/<int:plan_id>')
 @admin_required
 def plan_publish(plan_id):
