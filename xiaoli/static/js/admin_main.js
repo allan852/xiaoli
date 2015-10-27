@@ -3,6 +3,8 @@
  */
 
 $(function(){
-    console.log("domready");
-    $(".admin-plan-form #plan-keywords").select2();
+    var $keywordSelectElement = $(".admin-plan-form #plan-keywords");
+    if ($keywordSelectElement.length > 0){
+        $keywordSelectElement.select2();
+    }
 });
