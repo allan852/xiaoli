@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import datetime
+from flask import url_for
 from flask.ext.babel import gettext as _, format_datetime
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, BigInteger, Text
 from sqlalchemy.orm import relationship
@@ -92,7 +93,8 @@ class Plan(Base):
             "view_count": self.view_count,
             "share_count": self.share_count,
             "content": self.content.content if content else "",
-            "keywords": [ word.content for word in self.keywords]
+            "keywords": [ word.content for word in self.keywords],
+            "share_detail_url": url_for("plan.share_detail", plan_id=self.id, _external=True)
         }
         return d
 
