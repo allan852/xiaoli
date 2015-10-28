@@ -404,7 +404,6 @@ def keyword_edit(keyword_id):
         return render_template("admin/keyword/edit.html",**context)
     except Exception , e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
         abort(500)
 
 
@@ -423,7 +422,6 @@ def keyword_update():
         return redirect(url_for('admin_frontend.keywords'))
    except Exception ,e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
         abort(500)
 
 
@@ -491,16 +489,53 @@ def impress_new():
 
 @admin_frontend.route('/impress/<int:impress_id>')
 @admin_required
-def impress_show(impress_id):
-    u"""印象详情"""
-    return render_template("admin/impress/show.html")
+def impress_edit(impress_id):
+    u"""编辑印象"""
+    try:
+        with db_session_cm() as session:
+            impress_content = session.query(ImpressContent).filter(ImpressContent.id == impress_id).first()
+            impress_content_form = PresetImpressForm(content=impress_content.content)
+            context = {
+                'form': impress_content_form,
+                'impress': impress_content
+            }
+        return render_template("admin/impress/edit.html", **context)
+    except Exception , e:
+        common_logger.error(traceback.format_exc(e))
+        abort(500)
 
 
-@admin_frontend.route('/impress/<int:impress_id>')
+@admin_frontend.route('/impress/update/<int:impress_id>', methods=["POST"])
+@admin_required
+def impress_update(impress_id):
+   u"""impress Update"""
+   try:
+        with db_session_cm() as session:
+            impress_content_form = PresetImpressForm(request.form)
+            if request.method == 'POST' and impress_content_form.validate_on_submit():
+                content = impress_content_form.content.data.strip()
+                session.query(ImpressContent).filter(ImpressContent.id == impress_id).update(dict(content=content))
+                session.commit()
+        return redirect(url_for('admin_frontend.impresses'))
+   except Exception as e:
+        common_logger.error(traceback.format_exc(e))
+        abort(500)
+
+
+@admin_frontend.route('/impress/delete/<int:impress_id>')
 @admin_required
 def impress_delete(impress_id):
     u"""删除印象"""
-    return render_template("admin/impress/index.html")
+    try:
+        with db_session_cm() as session:
+            impress_content = session.query(ImpressContent).get(impress_id)
+            session.delete(impress_content)
+            session.commit()
+            flash(_(u"删除成功!"))
+    except Exception as e:
+        common_logger.error(traceback.format_exc(e))
+        flash(_(u"删除失败!"))
+    return redirect(url_for('admin_frontend.impresses'))
 
 
 @admin_frontend.route('/comments')

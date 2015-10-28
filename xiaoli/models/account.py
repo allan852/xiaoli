@@ -307,6 +307,10 @@ class ImpressContent(Base):
 
     TYPE_PRESET = "preset"
     TYPE_USERADDED = "useradded"
+    TYPE_CHOICES = (
+        (TYPE_PRESET, u"系统预设"),
+        (TYPE_USERADDED, u"用户添加"),
+    )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     # 印象内容类型

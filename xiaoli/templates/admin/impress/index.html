@@ -7,7 +7,7 @@
             <a href="{{ url_for("admin_frontend.impress_new") }}" class="btn btn-info">{{ _("新建印象") }}</a>
         </div>
         <p></p>
-        {% if kewwords %}
+        {% if impresses %}
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <div class="panel-title">{{ _("全部印象") }}</div>
@@ -28,6 +28,7 @@
 
                         {% for impress in impresses %}
                             <tr>
+                                <td>{{ impress.id }}</td>
                                 <td>{{ impress.content }}</td>
                                 <td>{{ impress.screen_type }}</td>
                                 <td>{{ impress.screen_create_time }}</td>
@@ -42,8 +43,8 @@
                         </tbody>
                     </table>
                 </div>
-                {{ pagination.links }}
             </div>
+            {{ pagination.links }}
         {% else %}
             <div class="alert alert-success" role="alert">{{ _("没有印象") }}</div>
         {% endif %}

@@ -1,0 +1,22 @@
+{% extends "layout/admin_layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row" id="login-register-div">
+        <div class="col-md-6 col-md-offset-3">
+            <div class="impress-new">
+                <form class="form" action="{{ url_for('admin_frontend.impress_update', impress_id=impress.id) }}" method="post">
+                    <fieldset>
+                        {% include "admin/impress/_form.html" %}
+                        <button type="submit" class="btn btn-primary btn-full">{{ _('编辑印象') }}</button>
+                        <a class="btn btn-link" href="{{ url_for("admin_frontend.impresses") }}">{{ _("取消") }}</a>
+                    </fieldset>
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
