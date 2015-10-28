@@ -205,7 +205,7 @@ def plan_update(plan_id):
                     irs.format = request_file.mimetype
                     session.add(irs)
                     session.commit()
-                    session.query(Plan).filter_by(plan_alias.id ==  plan_id).update({"cover_image_id": irs.id })
+                    session.query(Plan).filter_by(plan_alias.id == plan_id).update({"cover_image_id": irs.id })
 
                 if keywords:
                     keywords = session.query(PlanKeyword).filter(PlanKeyword.id.in_(keywords)).all()
@@ -216,10 +216,10 @@ def plan_update(plan_id):
                 return redirect(url_for('admin_frontend.plan_show', plan_id=plan.id))
     except Exception, e:
         common_logger.error(traceback.format_exc(e))
-        return redirect(url_for('admin_frontend.plan_show', plan_id=plan.id))
+        return redirect(url_for('admin_frontend.plan_show', plan_id=plan_id))
 
 
-@admin_frontend.route('/plan/delete/<int:plan_id>',methods=["GET","POST"])
+@admin_frontend.route('/plan/delete/<int:plan_id>',methods=["GET", "POST"])
 @admin_required
 def plan_delete(plan_id):
     u"""删除方案"""
@@ -256,7 +256,7 @@ def upload():
     if action == 'config':
         # 初始化时，返回配置文件给客户端
         result = CONFIG
-    elif action in ('uploadimage', 'uploadfile', 'uploadvideo'):
+    elif action in ('uploadimage', 'uploadfile', 'uploadvideo',):
         # 图片、文件、视频上传
         if action == 'uploadimage':
             fieldName = CONFIG.get('imageFieldName')
