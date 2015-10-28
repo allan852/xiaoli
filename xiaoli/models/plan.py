@@ -43,8 +43,8 @@ class Plan(Base):
     # 分享次数
     share_count = Column(BigInteger, default=0)
 
-    content = relationship("PlanContent",uselist=False,backref='plan',cascade="all, delete-orphan")
-    keywords = relationship("PlanKeyword",backref='plan',secondary="plan_keyword_rel", lazy='dynamic')
+    content = relationship("PlanContent", uselist=False,backref='plan',cascade="all, delete-orphan")
+    keywords = relationship("PlanKeyword", backref='plan', secondary="plan_keyword_rel")
 
     def __init__(self, title):
         self.title = title

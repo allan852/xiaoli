@@ -101,10 +101,13 @@ def plans():
 @admin_required
 def plan_show(plan_id):
     u"""查看方案"""
-    with db_session_cm() as session:
-        plan_alias =aliased(Plan)
-        plan = session.query(Plan).options(subqueryload(Plan.content)).join(plan_alias.keywords).filter(Plan.id == plan_id).first()
-    return render_template("admin/plan/show.html", plan=plan)
+    try:
+        with db_session_cm() as session:
+            plan = session.query(Plan).join(Plan.keywords).join(Plan.content).filter(Plan.id == plan_id).first()
+            return render_template("admin/plan/show.html", plan=plan)
+    except Exception as e:
+        common_logger.error(traceback.format_exc(e))
+        abort(500)
 
 
 @admin_frontend.route('/plan/new',methods=["GET","POST"])
