@@ -238,7 +238,7 @@ class Account(Base, UserMixin):
             "nickname": self.nickname or "",
             "cellphone": self.cellphone,
             "email": self.email or "",
-            "sex": self.sex,
+            "sex": self.sex or "",
             "birthday": self.birthday,
             "horoscope": self.horoscope or "",
             "status": self.status,
@@ -336,9 +336,18 @@ class ImpressContent(Base):
         new_impress_content = cls(content)
         return new_impress_content
 
+    def to_dict(self):
+        d = {
+            "id": self.id,
+            "content": self.content
+        }
+        return d
+
 
 class Impress(Base):
     __tablename__ = "impresses"
+
+    PER_PAGE = 10
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     # 被添加影响人id， 外键

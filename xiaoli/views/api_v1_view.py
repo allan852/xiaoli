@@ -240,29 +240,36 @@ def account_impresses(account_id):
 def impress_details(account_id):
     u"""获取用户印象详情"""
     try:
+        page = request.args.get("page", 1, int)
+        per_page = request.args.get("per_page", Impress.PER_PAGE, int)
         # TODO: 需要完善, 这里是拷贝内容
         res = api_response()
         with db_session_cm() as session:
-            account = session.query(Impress).get(account_id)
+            account = session.query(Account).get(account_id)
             if not account:
-                res.update(status="fail",response={
+                res.update(status="fail", response={
                     "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
                     "message": "user not exists"
                 })
                 return jsonify(res)
-            impress_query = session.query(Impress).\
-                join(Account.impresses, Impress.content).\
-                filter(Impress.target == account).order_by(Impress.create_time.desc())
-            impresses = impress_query.all()
+            impress_query = session.query(Impress, func.group_concat(ImpressContent.id)).\
+                join(Account.added_impresses, Impress.content).\
+                filter(Impress.target == account).group_by(Impress.operator_id).order_by(Impress.create_time.desc())
+
+            paginate = Page(total_entries=impress_query.count(), entries_per_page=per_page, current_page=page)
+            impresses = impress_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
             impress_dicts = []
-            for impress, count in impresses:
+            for impress, content_ids in impresses:
                 d = {
-                    "content": impress.content.content,
-                    "count": count
+                    "account": impress.operator.to_dict(),
+                    "contents": [c.to_dict() for c in session.query(ImpressContent).filter(ImpressContent.id.in_(content_ids.split(',')))]
                 }
                 impress_dicts.append(d)
             res.update(response={
-                "impresses": impress_dicts
+                "impress_details": impress_dicts,
+                "page": page,
+                "per_page": per_page,
+                "total": paginate.total_entries()
             })
         return jsonify(res)
     except Exception as e:
