@@ -242,7 +242,6 @@ def impress_details(account_id):
     try:
         page = request.args.get("page", 1, int)
         per_page = request.args.get("per_page", Impress.PER_PAGE, int)
-        # TODO: 需要完善, 这里是拷贝内容
         res = api_response()
         with db_session_cm() as session:
             account = session.query(Account).get(account_id)
