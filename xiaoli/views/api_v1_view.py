@@ -398,8 +398,6 @@ def plans():
                 "total": paginate.total_entries(),
                 "plans": [plan.to_dict() for plan in results]
             })
-            import pprint
-            pprint.pprint(res)
 
         return jsonify(res)
     except Exception as e:
