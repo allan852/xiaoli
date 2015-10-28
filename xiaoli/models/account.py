@@ -156,12 +156,13 @@ class Account(Base, UserMixin):
             new_password = kwargs.get("new_password")
             self.password = new_password
 
+        # 日期格式 值更新
         if kwargs.has_key("birthday"):
             birthday = kwargs.get("birthday")
             self.birthday = datetime.datetime.strptime(birthday, Account.BIRTHDAY_FORMAT)
 
         # 字符串 值更新
-        for key in ["sex", "horoscope"]:
+        for key in ["sex", "horoscope", "nickname"]:
             if kwargs.has_key(key):
                 value = kwargs.get(key)
                 setattr(self, key, value)

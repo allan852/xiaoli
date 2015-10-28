@@ -671,6 +671,7 @@ def update_account_info(account_id):
         "new_password2": new_password2,
         "sex": sex,
         "birthday": birthday,
+        "nickname": nickname,
         "horoscope": horoscope,
         "allow_notice": allow_notice,
         "allow_score": allow_score

@@ -43,6 +43,8 @@ class ErrorCode(object):
     CODE_UPDATE_INFO_PASSWORD_NOT_EQUAL = 2103
     # 新密码和旧密码一致
     CODE_UPDATE_INFO_USE_OLD_PASSWORD = 2103
+    # 昵称存在
+    CODE_UPDATE_INFO_NICKNAME_EXISTS = 2104
 
     # 方案不存在
     CODE_PLAN_NOT_EXISTS = 2200
