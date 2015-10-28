@@ -219,7 +219,7 @@ def plan_update(plan_id):
         return redirect(url_for('admin_frontend.plan_show', plan_id=plan_id))
 
 
-@admin_frontend.route('/plan/delete/<int:plan_id>',methods=["GET", "POST"])
+@admin_frontend.route('/plan/delete/<int:plan_id>', methods=["GET", "POST"])
 @admin_required
 def plan_delete(plan_id):
     u"""删除方案"""
@@ -240,7 +240,7 @@ def plan_delete(plan_id):
         return redirect(url_for('admin_frontend.plans'))
 
 
-@admin_frontend.route('/upload',methods=['GET', 'POST','OPTIONS'])
+@admin_frontend.route('/upload',methods=['GET', 'POST', 'OPTIONS'])
 @admin_required
 def upload():
     u"""UEditor文件上传接口
@@ -405,7 +405,7 @@ def keyword_edit(keyword_id):
         abort(500)
 
 
-@admin_frontend.route('/keyword/update',methods=["POST"])
+@admin_frontend.route('/keyword/update', methods=["POST"])
 @admin_required
 def keyword_update():
    u"""keyword Update"""
@@ -483,7 +483,6 @@ def impress_new():
         return render_template("admin/impress/new.html", **context)
     except Exception, e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
         abort(500)
 
 

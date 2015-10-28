@@ -5,6 +5,10 @@
     {% if form.errors.keywords %}
         <p class="text-danger">{{ form.errors.keywords[0] }}</p>
     {% endif %}
+    <div class="text-info">
+        {{ _("如果未找到需要的关键字，请先去关键字管理中") }}
+        <a href="{{ url_for("admin_frontend.keyword_new") }}">{{ _("添加关键字") }}</a>
+    </div>
 </div>
 <div class="form-group">
     <label>{{ form.title.description }}</label>
