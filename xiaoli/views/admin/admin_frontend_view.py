@@ -107,6 +107,51 @@ def plan_show(plan_id):
     return render_template("admin/plan/show.html", plan=plan)
 
 
+@admin_frontend.route('/plan/new',methods=["GET","POST"])
+@admin_required
+def plan_new():
+    u"""新建方案"""
+    try:
+        plan_form = PlanForm(request.form)
+        plan_form.keywords.choices = PlanKeyword.choices()
+        context = {
+            'form': plan_form,
+        }
+        if request.method == 'POST' and plan_form.validate_on_submit():
+            title = plan_form.title.data.strip()
+            content = plan_form.content.data.strip()
+            keywords = plan_form.keywords.data
+            with db_session_cm() as session:
+                plan = Plan(title)
+                plan_content = PlanContent(content=content)
+                plan.content = plan_content
+                u"""upload image """
+                request_file = request.files['image']
+
+                if request_file:
+                    filename = image_resources.save(request_file, folder=str(current_user.id))
+                    irs = ImageResource(filename, current_user.id)
+                    irs.format = request_file.mimetype
+                    session.add(irs)
+                    session.commit()
+                    plan.cover_image_id = irs.id
+
+                if current_user and current_user.is_authenticated:
+                    plan.author_id = current_user.get_id()
+                if keywords:
+                    keywords = session.query(PlanKeyword).filter(PlanKeyword.id.in_(keywords)).all()
+                    plan.keywords = keywords
+                session.add(plan)
+                session.commit()
+            flash(_(u"方案添加成功!"), category="success")
+            return redirect(url_for('admin_frontend.plans'))
+        return render_template("admin/plan/new.html", **context)
+    except Exception, e:
+        common_logger.error(traceback.format_exc(e))
+        print traceback.format_exc(e)
+        abort(500)
+
+
 @admin_frontend.route('/plan/edit/<int:plan_id>', methods=["GET", "POST"])
 @admin_required
 def plan_edit(plan_id):
@@ -193,51 +238,6 @@ def plan_delete(plan_id):
         print traceback.format_exc(e)
         flash(_(u"删除失败!"))
         return redirect(url_for('admin_frontend.plans'))
-
-
-@admin_frontend.route('/plan/new',methods=["GET","POST"])
-@admin_required
-def plan_new():
-    u"""新建方案"""
-    try:
-        plan_form = PlanForm(request.form)
-        plan_form.keywords.choices = PlanKeyword.choices()
-        context = {
-            'form': plan_form,
-        }
-        if request.method == 'POST' and plan_form.validate_on_submit():
-            title = plan_form.title.data.strip()
-            content = plan_form.content.data.strip()
-            keywords = plan_form.keywords.data
-            with db_session_cm() as session:
-                plan = Plan(title)
-                plan_content = PlanContent(content=content)
-                plan.content = plan_content
-                u"""upload image """
-                request_file = request.files['image']
-
-                if request_file:
-                    filename = image_resources.save(request_file, folder=str(current_user.id))
-                    irs = ImageResource(filename, current_user.id)
-                    irs.format = request_file.mimetype
-                    session.add(irs)
-                    session.commit()
-                    plan.cover_image_id = irs.id
-
-                if current_user and current_user.is_authenticated:
-                    plan.author_id = current_user.get_id()
-                if keywords:
-                    keywords = session.query(PlanKeyword).filter(PlanKeyword.id.in_(keywords)).all()
-                    plan.keywords = keywords
-                session.add(plan)
-                session.commit()
-            flash(_(u"方案添加成功!"), category="success")
-            return redirect(url_for('admin_frontend.plans'))
-        return render_template("admin/plan/new.html", **context)
-    except Exception, e:
-        common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
-        abort(500)
 
 
 @admin_frontend.route('/upload',methods=['GET', 'POST','OPTIONS'])
