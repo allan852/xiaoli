@@ -240,7 +240,7 @@ def account_impresses(account_id):
 def impress_details(account_id):
     u"""获取用户印象详情"""
     try:
-        # TODO: 需要完善
+        # TODO: 需要完善, 这里是拷贝内容
         res = api_response()
         with db_session_cm() as session:
             account = session.query(Impress).get(account_id)
@@ -275,6 +275,7 @@ def preset_impresses():
     u"""获取系统预设印象"""
     try:
         res = api_response()
+        # TODO: 需要完善, 这里是拷贝内容
         with db_session_cm() as session:
             preset_impresses_query = session.query(Impress).join(Impress.preset_contents)
             impresses = preset_impresses_query.all()
@@ -295,7 +296,7 @@ def preset_keywords():
     u"""获取系统预设关键字"""
     try:
         res = api_response()
-        # TODO: 需要完善
+        # TODO: 需要完善, 这里是拷贝内容
         with db_session_cm() as session:
             plan_keyword_query = session.query(PlanKeyword).\
                 filter(PlanKeyword.type == PlanKeyword.TYPE_PRESET)
@@ -344,10 +345,12 @@ def account_comments(account_id):
 
 @api_v1.route("/account/<account_id>/friends", methods=["GET"])
 def account_friends(account_id):
-    u"""获取用户好友"""
+    u"""获取用户好友
+    """
     try:
         page = request.args.get("page", 1, int)
         per_page = request.args.get("per_page", Comment.PER_PAGE, int)
+
         res = api_response()
         with db_session_cm() as session:
             account = session.query(Account).get(account_id)
@@ -425,7 +428,7 @@ def plan_info(plan_id):
                 session.add(plan)
                 session.commit()
                 res.update(response={
-                    "plan": plan.to_dict()
+                    "plan": plan.to_dict(content=True)
                 })
                 return jsonify(res)
     except Exception as e:

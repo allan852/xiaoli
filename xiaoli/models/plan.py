@@ -80,7 +80,7 @@ class Plan(Base):
             else:
                 return ""
 
-    def to_dict(self):
+    def to_dict(self, content=False):
         d = {
             "id": self.id,
             "title": self.title,
@@ -91,7 +91,7 @@ class Plan(Base):
             "cover_image_url": self.cover_image or "",
             "view_count": self.view_count,
             "share_count": self.share_count,
-            "content": self.content.content,
+            "content": self.content.content if content else "",
             "keywords": [ word.content for word in self.keywords]
         }
         return d
