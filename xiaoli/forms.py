@@ -106,16 +106,16 @@ class PlanForm(Form):
                             validators=[DataRequired(message=_(u'方案内容不能为空'))],
                             description=_(u'方案内容')
                             )
-    keywords = SelectMultipleField(_(u'方案标签'),
-                                   validators=[DataRequired(message=_(u'方案标签不能为空'))],
-                                   description=_(u'方案标签'), coerce=int)
+    keywords = SelectMultipleField(_(u'方案关键字'),
+                                   validators=[DataRequired(message=_(u'方案关键字不能为空'))],
+                                   description=_(u'方案关键字'), coerce=int)
 
 
 class PlanKeywordsForm(Form):
     id = HiddenField(_(u'ID'))
-    content = StringField(_(u'关键词'),
+    content = StringField(_(u'关键字'),
                           validators=[DataRequired(message=_(u'关键词不能为空'))],
-                          description=_(u'关键词')
+                          description=_(u'关键字')
                           )
 
 

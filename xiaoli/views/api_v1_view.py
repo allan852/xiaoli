@@ -384,12 +384,11 @@ def plans():
         key_word_id = request.args.get("key_word_id", None)
         res = api_response()
         with db_session_cm() as session:
-            plan_alias =aliased(Plan)
-            plans = session.query(Plan).join(plan_alias.content).join(plan_alias.keywords).filter(plan_alias.status == Plan.STATUS_PUBLISH)
+            plans = session.query(Plan).join(Plan.content).join(Plan.keywords).filter(Plan.status == Plan.STATUS_PUBLISH)
             if search_key:
-                plans = plans.filter(plan_alias.title.like('%' + search_key + '%'))
+                plans = plans.filter(Plan.title.like('%' + search_key + '%'))
             if key_word_id:
-                plans = plans.filter(plan_alias.id == key_word_id)
+                plans = plans.filter(Plan.id == key_word_id)
             paginate = Page(total_entries=plans.count(), entries_per_page=per_page, current_page=page)
             results = plans.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
 
@@ -399,6 +398,8 @@ def plans():
                 "total": paginate.total_entries(),
                 "plans": [plan.to_dict() for plan in results]
             })
+            import pprint
+            pprint.pprint(res)
 
         return jsonify(res)
     except Exception as e:

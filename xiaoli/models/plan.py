@@ -46,7 +46,6 @@ class Plan(Base):
     content = relationship("PlanContent",uselist=False,backref='plan',cascade="all, delete-orphan")
     keywords = relationship("PlanKeyword",backref='plan',secondary="plan_keyword_rel", lazy='dynamic')
 
-
     def __init__(self, title):
         self.title = title
         self.status = Plan.STATUS_UNPUBLISHED
@@ -86,10 +85,10 @@ class Plan(Base):
             "id": self.id,
             "title": self.title,
             "status": self.status,
-            "publish_date": self.publish_date,
+            "publish_date": self.publish_date or "",
             "author_id": self.author_id,
-            "cover_image_id": self.cover_image_id,
-            "cover_image_url": self.cover_image,
+            "cover_image_id": self.cover_image_id or "",
+            "cover_image_url": self.cover_image or "",
             "view_count": self.view_count,
             "share_count": self.share_count,
             "content": self.content.content,
