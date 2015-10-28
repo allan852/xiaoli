@@ -141,3 +141,10 @@ class PlanKeyword(Base):
                 options.append((kw.id, kw.content))
         return options
 
+    def to_dict(self):
+        d = {
+            "id": self.id,
+            "type": self.type,
+            "content": self.content,
+        }
+        return d

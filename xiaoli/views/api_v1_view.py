@@ -281,9 +281,9 @@ def preset_impresses():
     u"""获取系统预设印象"""
     try:
         res = api_response()
-        # TODO: 需要完善, 这里是拷贝内容
         with db_session_cm() as session:
-            preset_impresses_query = session.query(Impress).join(Impress.preset_contents)
+            preset_impresses_query = session.query(ImpressContent).\
+                filter(ImpressContent.type == ImpressContent.TYPE_PRESET)
             impresses = preset_impresses_query.all()
             impress_dicts = []
             for impress in impresses:
@@ -302,7 +302,6 @@ def preset_keywords():
     u"""获取系统预设关键字"""
     try:
         res = api_response()
-        # TODO: 需要完善, 这里是拷贝内容
         with db_session_cm() as session:
             plan_keyword_query = session.query(PlanKeyword).\
                 filter(PlanKeyword.type == PlanKeyword.TYPE_PRESET)
