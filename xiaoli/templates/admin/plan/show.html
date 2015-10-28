@@ -9,58 +9,25 @@
             <div class="col-md-8 col-md-offset-2">
                 <div class="plan-show">
                     <label>{{ _("标题") }}</label>
-
-                    <p>
-                        {{ plan.title }}
-                    </p>
-                    <hr>
-                    <label>{{ _("内容") }}</label>
-
-                    <p>
-                        {{ plan.content.content|safe }}
-                    </p>
-                    <hr>
-                    <label>{{ _("封面") }}</label>
-
-                    <p>
-                        {{ plan.cover_image }}
-                    </p>
-                    <hr>
-                    <label>{{ _("作者") }}</label>
-
-                    <p>
-                        {{ plan.author_id }}
-                    </p>
-                    <label>{{ _("阅读") }}</label>
-
-                    <p>
-                        {{ plan.view_count }}
-                    </p>
-                    <hr>
-                    <label>{{ _("收藏") }}</label>
-
-                    <p>
-                        {{ plan.share_count }}
-                    </p>
-                    <hr>
-                    <label>{{ _("状态") }}</label>
-
-                    <p>
-                        {{ plan.status }}
-                    </p>
-                    <hr>
-                    <label>{{ _("发布时间") }}</label>
-
-                    <p>
-                        {{ plan.publish_date }}
-                    </p>
-                    <hr>
-                    <label>{{ _("标签") }}</label>
+                    <h4>{{ plan.title }}</h4>
+                    <div>
+                        <span>{{ _("作者：") }}{{ plan.account.cellphone }}</span>
+                        <span>{{ _("阅读：") }}{{ plan.view_count }}</span>
+                        <span>{{ _("收藏：") }}{{ plan.share_count }}</span>
+                        <span>{{ _("状态：") }}{{ plan.status }}</span>
+                        <span>{{ _("发布时间：") }}{{ plan.screen_publish_time }}</span>
+                    </div>
                     <div class="labels">
                         {% for word in plan.keywords %}
                             <span class="label label-default">{{ word.content }}</span>
                         {% endfor %}
                     </div>
+                    <hr>
+                    <label>{{ _("内容") }}</label>
+                    <div>{{ plan.content.content|safe }}</div>
+                    <hr>
+                    <label>{{ _("封面") }}</label>
+                    <div>{{ plan.cover_image }}</div>
                     <hr>
                     <a class="btn btn-info" href="{{ url_for("admin_frontend.plans") }}">{{ _("返回") }}</a>
                 </div>
@@ -68,9 +35,3 @@
         </div>
     </div>
 {% endblock %}
-
-
-
-
-<th>{{ _("状态") }}</th>
-<th></th>
