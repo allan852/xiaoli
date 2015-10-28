@@ -35,7 +35,7 @@
                                 <td>
                                     <a href="{{ url_for("admin_frontend.impress_edit", impress_id=impress.id) }}">{{ _("编辑") }}</a>
                                     |
-                                    <a class="text-danger"
+                                    <a class="text-danger action-prompt" data-prompt="{{ _("确定要删除印象[%(name)s]吗？", name=impress.content) }}"
                                        href="{{ url_for("admin_frontend.impress_delete", impress_id=impress.id) }}">{{ _("删除") }}</a>
                                 </td>
                             </tr>

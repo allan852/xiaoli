@@ -34,7 +34,7 @@
                                 <td>
                                     <a href="{{ url_for("admin_frontend.account_edit", account_id=user.id) }}">{{ _("编辑") }}</a>
                                     |
-                                    <a class="text-danger"
+                                    <a class="text-danger action-prompt" data-prompt="{{ _("确定要删除用户[%(name)s]吗？", name=user.cellphone) }}"
                                        href="{{ url_for("admin_frontend.account_delete", account_id=user.id) }}">{{ _("删除") }}</a>
                                 </td>
                             </tr>
