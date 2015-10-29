@@ -49,4 +49,7 @@ class ErrorCode(object):
     # 方案不存在
     CODE_PLAN_NOT_EXISTS = 2200
 
+    # 上传文件大小超出限制
+    CODE_UPLOAD_IMAGE_OVER_SIZE = 2300
+
 

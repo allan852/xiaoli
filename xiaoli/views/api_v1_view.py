@@ -5,10 +5,13 @@ import traceback
 from flask import Blueprint, abort, request, jsonify
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
+from werkzeug.exceptions import RequestEntityTooLarge
+from xiaoli.extensions.upload_set import image_resources
 
 from xiaoli.helpers import api_response, check_register_params, ErrorCode, check_import_contacts_params, \
-    check_update_account_info_params, check_renew_params,SendSms
-from xiaoli.models import Account, Comment, Impress, ImpressContent, account_friends_rel_table,Sms
+    check_update_account_info_params, check_renew_params,SendSms, ajax_response
+from xiaoli.models import Account, Comment, Impress, ImpressContent, account_friends_rel_table,Sms, ImageResource, \
+    Avatar
 from xiaoli.models import Plan,PlanKeyword,PlanContent
 from xiaoli.models.session import db_session_cm
 from xiaoli.models import Token
@@ -653,9 +656,38 @@ def add_impress(account_id):
 @api_v1.route("/account/<account_id>/avatar", methods=["POST"])
 def set_avatar(account_id):
     u"""设置头像"""
+    res = ajax_response()
     try:
-        image_file = request.args.get("image_file")
-        content = request.args.get("content")
+        with db_session_cm() as session:
+            account = session.query(Account).filter(Account.id == account_id).first()
+
+            if not account:
+                res.update(status="fail",response={
+                    "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
+                    "message": "user not exists"
+                })
+                return jsonify(res)
+            image_file = request.files.get("image_file")
+            filename = image_resources.save(image_file, folder=str(account_id))
+            avatar = account.avatar or Avatar(account_id)
+            avatar.path = filename
+            avatar.format = image_file.mimetype
+            session.add(avatar)
+            session.commit()
+            res.update(response={
+                "account": {
+                    "id": account.id,
+                    "avatar_url": account.avatar.url
+                }
+            })
+            return jsonify(res)
+    except RequestEntityTooLarge as e:
+        api_logger.error(traceback.format_exc(e))
+        res.update(status="fail",response={
+            "code": ErrorCode.CODE_UPLOAD_IMAGE_OVER_SIZE,
+            "message": "image content over size"
+        })
+        return jsonify(res)
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
         abort(400)

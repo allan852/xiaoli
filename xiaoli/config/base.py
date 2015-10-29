@@ -29,5 +29,7 @@ DB_META = {
 
 # for UploadSet
 UPLOADS_DEFAULT_DEST = "%s/uploads" % tempfile.gettempdir()
+#  32 * 1024 * 1024 = 32 megabytes
+DEFAULT_UPLOAD_IMAGE_SIZE = int(0.5 * 1024 * 1024)  # 512k
 
 

@@ -6,6 +6,7 @@ from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, f
 from sqlalchemy.orm import relationship, object_session
 from werkzeug.security import generate_password_hash, check_password_hash
 from xiaoli.config import setting
+from xiaoli.extensions.upload_set import image_resources
 from xiaoli.models.base import Base
 from xiaoli.models.relationships import account_plan_favorite_rel_table, \
     account_plan_vote_rel_table, account_friends_rel_table
@@ -240,12 +241,12 @@ class Account(Base, UserMixin):
             "cellphone": self.cellphone,
             "email": self.email or "",
             "sex": self.sex or "",
-            "birthday": self.birthday,
+            "birthday": self.birthday or "",
             "horoscope": self.horoscope or "",
             "status": self.status,
             "type": self.type,
             "score": 0,
-            "avatar_url": "",
+            "avatar_url": self.avatar and self.avatar.url or "",
             "allow_notice": self.allow_notice,
             "allow_score": self.allow_score
         }
@@ -262,6 +263,15 @@ class Avatar(Base):
     path = Column(String(1024))
     # 头像格式，即图片后缀名
     format = Column(String(16))
+
+    def __init__(self, account_id, path=None, ):
+        self.account_id = account_id
+        if path:
+            self.path = path
+
+    @property
+    def url(self):
+        return image_resources.url(self.path)
 
 
 class Score(Base):

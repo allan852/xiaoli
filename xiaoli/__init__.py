@@ -3,12 +3,11 @@
 from flask import Flask, url_for, request, render_template, session
 from flask.ext.babel import Babel
 from flask.ext.cdn import CDN
-from flask.ext.uploads import configure_uploads
+from flask.ext.uploads import configure_uploads, patch_request_class
 from flask.ext.wtf.i18n import Translations
 
 from xiaoli.config import setting
 from xiaoli import views
-from xiaoli.extensions.upload_set import image_resources
 from xiaoli.utils import login_manager
 from xiaoli import filters
 from xiaoli import helpers
@@ -153,7 +152,9 @@ def configure_cdn_url_for(app):
 
 def configure_upload_sets(app):
     u"""设置 Upload Sets"""
+    from xiaoli.extensions.upload_set import image_resources
     configure_uploads(app, (image_resources,))
+    patch_request_class(app, app.config["DEFAULT_UPLOAD_IMAGE_SIZE"])
 
 
 def create_app(config=None):
