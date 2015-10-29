@@ -329,6 +329,10 @@ class ImpressContent(Base):
             if sign == self.type:
                 return text
 
+    @property
+    def is_preset(self):
+        return self.type == ImpressContent.TYPE_PRESET
+
     @classmethod
     def get_or_create(cls, session, content):
         impress_content = session.query(ImpressContent).filter(ImpressContent.content==content).first()

@@ -522,6 +522,23 @@ def impress_update(impress_id):
         abort(500)
 
 
+@admin_frontend.route('/impress/to_preset/<int:impress_id>')
+@admin_required
+def impress_to_preset(impress_id):
+    u"""修改印象为预设"""
+    try:
+        with db_session_cm() as session:
+            impress_content = session.query(ImpressContent).get(impress_id)
+            impress_content.type = ImpressContent.TYPE_PRESET
+            session.add(impress_content)
+            session.commit()
+            flash(_(u"修改为预设成功!"))
+    except Exception as e:
+        common_logger.error(traceback.format_exc(e))
+        flash(_(u"修改为预设失败!"))
+    return redirect(url_for('admin_frontend.impresses'))
+
+
 @admin_frontend.route('/impress/delete/<int:impress_id>')
 @admin_required
 def impress_delete(impress_id):
