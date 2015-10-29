@@ -35,6 +35,10 @@
                                 <td>
                                     <a href="{{ url_for("admin_frontend.keyword_edit", keyword_id=keyword.id) }}">{{ _("编辑") }}</a>
                                     |
+                                    {% if not keyword.is_preset %}
+                                    <a href="{{ url_for("admin_frontend.keyword_to_preset", keyword_id=keyword.id) }}">{{ _("设为预设") }}</a>
+                                    |
+                                    {% endif %}
                                     <a class="text-danger action-prompt" data-prompt="{{ _("确定要删除关键字[%(name)s]吗？", name=keyword.content) }}"
                                        href="{{ url_for("admin_frontend.keyword_delete", keyword_id=keyword.id) }}">{{ _("删除") }}</a>
                                 </td>

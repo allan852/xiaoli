@@ -425,6 +425,23 @@ def keyword_update():
         abort(500)
 
 
+@admin_frontend.route('/keyword/to_preset/<int:keyword_id>')
+@admin_required
+def keyword_to_preset(keyword_id):
+    u"""修改关键字为预设"""
+    try:
+        with db_session_cm() as session:
+            keyword = session.query(PlanKeyword).get(keyword_id)
+            keyword.type = ImpressContent.TYPE_PRESET
+            session.add(keyword)
+            session.commit()
+            flash(_(u"修改为预设成功!"))
+    except Exception as e:
+        common_logger.error(traceback.format_exc(e))
+        flash(_(u"修改为预设失败!"))
+    return redirect(url_for('admin_frontend.keywords'))
+
+
 @admin_frontend.route('/keyword/del/<int:keyword_id>')
 @admin_required
 def keyword_delete(keyword_id):

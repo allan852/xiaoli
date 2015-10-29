@@ -134,6 +134,10 @@ class PlanKeyword(Base):
             if sign == self.type:
                 return text
 
+    @property
+    def is_preset(self):
+        return self.type == PlanKeyword.TYPE_PRESET
+
     @classmethod
     def choices(cls):
         options = []
