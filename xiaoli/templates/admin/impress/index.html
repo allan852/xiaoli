@@ -19,6 +19,7 @@
                         <tr>
                             <th>#</th>
                             <th>{{ _("内容") }}</th>
+                            <th>{{ _("添加次数") }}</th>
                             <th>{{ _("类型") }}</th>
                             <th>{{ _("创建时间") }}</th>
                             <th>{{ _("操作") }}</th>
@@ -26,10 +27,11 @@
                         </thead>
                         <tbody>
 
-                        {% for impress in impresses %}
+                        {% for impress, count in impresses %}
                             <tr>
                                 <td>{{ impress.id }}</td>
                                 <td>{{ impress.content }}</td>
+                                <td>{{ count }}</td>
                                 <td>{{ impress.screen_type }}</td>
                                 <td>{{ impress.screen_create_time }}</td>
                                 <td>

@@ -7,6 +7,7 @@ from flask import Blueprint, render_template, redirect, url_for, request,make_re
 from flask.ext.babel import gettext as _
 from flask.ext.paginate import Pagination
 from flask_login import current_user
+from sqlalchemy import func
 from sqlalchemy.orm import subqueryload, aliased
 from xiaoli.extensions.upload_set import image_resources
 from xiaoli.models import Account, Plan, PlanContent, PlanKeyword, ImageResource, Impress, ImpressContent
@@ -470,11 +471,13 @@ def impresses():
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", ImpressContent.PER_PAGE, type=int)
     with db_session_cm() as session:
-        impresses_query = session.query(ImpressContent)
+        impresses_query = session.query(ImpressContent, func.count(Impress.id)).join(Impress.content).\
+            group_by(ImpressContent.id)
         pagination = Pagination(page=page, total=impresses_query.count(), record_name=_(u"印象"), bs_version=3)
         impresses_query = impresses_query.order_by(ImpressContent.id.desc()).offset((page - 1) * per_page).limit(per_page)
+        impresses_with_count = impresses_query.all()
         context = {
-            "impresses": impresses_query.all(),
+            "impresses": impresses_with_count,
             "pagination": pagination
         }
         return render_template("admin/impress/index.html", **context)
