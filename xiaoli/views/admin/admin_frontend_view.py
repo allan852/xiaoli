@@ -36,7 +36,7 @@ def accounts():
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", Account.PER_PAGE, type=int)
     with db_session_cm() as session:
-        users_query = session.query(Account)
+        users_query = session.query(Account).outerjoin(Account.avatar)
         pagination = Pagination(page=page, total=users_query.count(), record_name=_(u"用户"), bs_version=3)
         users = users_query.order_by(Account.id.desc()).offset((page - 1) * per_page).limit(per_page)
         context = {
