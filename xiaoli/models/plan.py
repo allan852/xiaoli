@@ -81,6 +81,10 @@ class Plan(Base):
             else:
                 return ""
 
+    @property
+    def is_published(self):
+        return self.status == Plan.STATUS_PUBLISH
+
     def to_dict(self, content=False):
         d = {
             "id": self.id,

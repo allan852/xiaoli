@@ -424,10 +424,10 @@ def plan_info(plan_id):
         with db_session_cm() as session:
             plan = session.query(Plan).get(plan_id)
             res = api_response()
-            if not plan:
+            if not plan or not plan.is_published:
                 res.update(status="fail",response={
                     "code": ErrorCode.CODE_PLAN_NOT_EXISTS,
-                    "message": "user not exists"
+                    "message": "plan not exists"
                 })
                 return jsonify(res)
             else:
@@ -439,6 +439,7 @@ def plan_info(plan_id):
                     "plan": plan.to_dict(content=True)
                 })
                 return jsonify(res)
+
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
         abort(400)
