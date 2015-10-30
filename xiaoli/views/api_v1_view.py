@@ -396,7 +396,8 @@ def plans():
         key_word_id = request.args.get("key_word_id", None)
         res = api_response()
         with db_session_cm() as session:
-            plans = session.query(Plan).join(Plan.content).join(Plan.keywords).filter(Plan.status == Plan.STATUS_PUBLISH)
+            plans = session.query(Plan).outerjoin(Plan.content).outerjoin(Plan.keywords).\
+                filter(Plan.status == Plan.STATUS_PUBLISH)
             if search_key:
                 plans = plans.filter(Plan.title.like('%' + search_key + '%'))
             if key_word_id:
