@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import datetime
-from babel.dates import format_datetime
 from sqlalchemy import Column, DateTime, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from xiaoli.config import setting
+from xiaoli.utils.date_util import format_date
 
 __author__ = 'zouyingjun'
 
@@ -20,11 +20,11 @@ class BaseModel(object):
 
     @property
     def screen_create_time(self):
-        return format_datetime(self.create_time)
+        return format_date(self.create_time)
 
     @property
     def screen_update_time(self):
-        return format_datetime(self.update_time)
+        return format_date(self.update_time)
 
 Base = declarative_base(bind=engine, cls=BaseModel)
 del BaseModel
