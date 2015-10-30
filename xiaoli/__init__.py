@@ -126,11 +126,11 @@ def configure_url(app):
 
 
 def configure_error_handler(app):
-    @app.errorhandler(403)
-    def forbidden(error):
+    @app.errorhandler(404)
+    def not_found(error):
         if request.is_xhr:
             return error
-        return render_template("403.html", error=error), 403
+        return render_template("404.html", error=error), 404
 
 
 def configure_context_processor(app):
@@ -182,7 +182,7 @@ def create_app(config=None):
 
     configure_url(app)
 
-    configure_error_handler(app)
+    # configure_error_handler(app)
 
     configure_context_processor(app)
 
