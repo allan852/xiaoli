@@ -104,8 +104,10 @@ def plan_show(plan_id):
     u"""查看方案"""
     try:
         with db_session_cm() as session:
-            plan = session.query(Plan).join(Plan.keywords).join(Plan.content).filter(Plan.id == plan_id).first()
-            return render_template("admin/plan/show.html", plan=plan)
+            plan = session.query(Plan).outerjoin(Plan.keywords).outerjoin(Plan.content).filter(Plan.id == plan_id).first()
+            if plan:
+                return render_template("admin/plan/show.html", plan=plan)
+            abort(404)
     except Exception as e:
         common_logger.error(traceback.format_exc(e))
         abort(500)
