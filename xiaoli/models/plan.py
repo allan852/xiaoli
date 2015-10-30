@@ -2,13 +2,13 @@
 # -*- coding:utf-8 -*-
 import datetime
 from flask import url_for
-from flask.ext.babel import gettext as _, format_datetime
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, BigInteger, Text
 from sqlalchemy.orm import relationship
 from xiaoli.extensions.upload_set import image_resources
 from xiaoli.models import ImageResource
 from xiaoli.models.base import Base
 from xiaoli.models.session import db_session_cm
+from xiaoli.utils.date_util import format_date
 
 __author__ = 'zouyingjun'
 
@@ -61,7 +61,7 @@ class Plan(Base):
 
     @property
     def screen_publish_time(self):
-        return format_datetime(self.publish_date) if self.publish_date else ""
+        return format_date(self.publish_date) if self.publish_date else ""
 
     def publish(self):
         self.status = Plan.STATUS_PUBLISH
