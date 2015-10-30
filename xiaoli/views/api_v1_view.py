@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+import os
 
 import traceback
 from flask import Blueprint, abort, request, jsonify
@@ -676,7 +677,8 @@ def set_avatar(account_id):
             filename = image_resources.save(image_file, folder=str(account_id))
             avatar = account.avatar or Avatar(account_id)
             avatar.path = filename
-            avatar.format = image_file.mimetype
+            name, suffix = os.path.splitext(image_file.filename)
+            avatar.format = suffix
             session.add(avatar)
             session.commit()
             res.update(response={

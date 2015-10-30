@@ -7,7 +7,7 @@ from flask import Blueprint, render_template, send_file, request, url_for, redir
 from flask.ext.babel import gettext as _
 from flask.ext.login import current_user, login_user, logout_user, login_required
 from flask.ext.principal import identity_changed, Identity
-from flask.ext.uploads import UploadNotAllowed
+from flask.ext.uploads import UploadNotAllowed, os
 
 from xiaoli.forms import LoginForm, RegisterForm
 from xiaoli.models import Account, ImageResource
@@ -117,7 +117,8 @@ def upload_images():
                 request_file = request.files['image']
                 filename = image_resources.save(request_file, folder=str(current_user.id))
                 irs = ImageResource(filename, current_user.id)
-                irs.format = request_file.mimetype
+                name, suffix = os.path.splitext(request_file.filename)
+                irs.format = suffix
                 session.add(irs)
                 session.commit()
                 flash("图片上传成功", category="success")

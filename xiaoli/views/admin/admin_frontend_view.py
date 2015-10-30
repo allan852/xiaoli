@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+import os
 import re
 import json
 import traceback
@@ -137,7 +138,8 @@ def plan_new():
                 if request_file:
                     filename = image_resources.save(request_file, folder=str(current_user.id))
                     irs = ImageResource(filename, current_user.id)
-                    irs.format = request_file.mimetype
+                    name, suffix = os.path.splitext(request_file.filename)
+                    irs.format = suffix
                     session.add(irs)
                     session.commit()
                     plan.cover_image_id = irs.id
@@ -208,7 +210,8 @@ def plan_update(plan_id):
                 if request_file:
                     filename = image_resources.save(request_file, folder=str(current_user.id))
                     irs = ImageResource(filename, current_user.id)
-                    irs.format = request_file.mimetype
+                    name, suffix = os.path.splitext(request_file.filename)
+                    irs.format = suffix
                     session.add(irs)
                     session.commit()
                     session.query(Plan).filter_by(plan_alias.id == plan_id).update({"cover_image_id": irs.id })
@@ -272,11 +275,12 @@ def upload():
             fieldName = CONFIG.get('fileFieldName')
         if fieldName in request.files:
             try:
-                field = request.files[fieldName]
+                request_file = request.files[fieldName]
                 with db_session_cm() as session:
-                    filename = image_resources.save(field, folder=str(current_user.id))
+                    filename = image_resources.save(request_file, folder=str(current_user.id))
                     irs = ImageResource(filename, current_user.id)
-                    irs.format = field.mimetype
+                    name, suffix = os.path.splitext(request_file.filename)
+                    irs.format = suffix
                     session.add(irs)
                     session.commit()
                     image = session.query(ImageResource).get(irs.id)
