@@ -7,6 +7,7 @@ import traceback
 from flask import Blueprint, render_template, redirect, url_for, request,make_response,abort,current_app,flash
 from flask.ext.babel import gettext as _
 from flask.ext.paginate import Pagination
+from flask.ext.uploads import UploadNotAllowed
 from flask_login import current_user
 from sqlalchemy import func
 from sqlalchemy.orm import subqueryload, aliased
@@ -118,12 +119,12 @@ def plan_show(plan_id):
 @admin_required
 def plan_new():
     u"""新建方案"""
+    plan_form = PlanForm(request.form)
+    plan_form.keywords.choices = PlanKeyword.choices()
+    context = {
+        'form': plan_form,
+    }
     try:
-        plan_form = PlanForm(request.form)
-        plan_form.keywords.choices = PlanKeyword.choices()
-        context = {
-            'form': plan_form,
-        }
         if request.method == 'POST' and plan_form.validate_on_submit():
             title = plan_form.title.data.strip()
             content = plan_form.content.data.strip()
@@ -154,9 +155,11 @@ def plan_new():
             flash(_(u"方案添加成功!"), category="success")
             return redirect(url_for('admin_frontend.plans'))
         return render_template("admin/plan/new.html", **context)
+    except UploadNotAllowed as e:
+        flash(u"封面图片格式不支持", category="warning")
+        return render_template("admin/plan/new.html", **context)
     except Exception, e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
         abort(500)
 
 
@@ -180,7 +183,6 @@ def plan_edit(plan_id):
         return render_template("admin/plan/edit.html", **context)
     except Exception as e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
         abort(500)
 
 
@@ -244,7 +246,6 @@ def plan_delete(plan_id):
         return redirect(url_for('admin_frontend.plans'))
     except Exception as e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
         flash(_(u"删除失败!"))
         return redirect(url_for('admin_frontend.plans'))
 
@@ -297,7 +298,6 @@ def upload():
                         return res
             except Exception, e:
                 common_logger.error(traceback.format_exc(e))
-                print traceback.format_exc(e)
             else:
                 result['state'] = '上传接口出错'
 
@@ -328,7 +328,6 @@ def plan_publish(plan_id):
             return redirect(url_for('admin_frontend.plans'))
     except Exception as e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
         flash(_(u"失败!"), category="danger")
     return redirect(url_for('admin_frontend.plans'))
 
@@ -350,8 +349,7 @@ def plan_revocation(plan_id):
                 return redirect(url_for('admin_frontend.plans'))
     except Exception as e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
-    flash(_(u"失败!"))
+        flash(_(u"失败!"))
     return redirect(url_for('admin_frontend.plans'))
 
 
@@ -393,7 +391,6 @@ def keyword_new():
         return render_template("admin/keyword/new.html", **context)
     except Exception, e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
         abort(500)
 
 
@@ -465,7 +462,6 @@ def keyword_delete(keyword_id):
         return redirect(url_for('admin_frontend.keywords'))
     except Exception as e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
         flash(_(u"删除失败!"))
         return redirect(url_for('admin_frontend.keywords'))
 
