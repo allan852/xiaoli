@@ -5,6 +5,7 @@ import traceback
 from flask import Blueprint, abort, request, jsonify
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
+from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.exceptions import RequestEntityTooLarge
 from xiaoli.extensions.upload_set import image_resources
 
@@ -420,11 +421,13 @@ def plans():
 @api_v1.route("/plan/<int:plan_id>", methods=["GET"])
 def plan_info(plan_id):
     u"""获取礼物方案详情"""
+
     try:
         with db_session_cm() as session:
-            plan = session.query(Plan).get(plan_id)
+            plan = session.query(Plan).outerjoin(Plan.keywords).outerjoin(Plan.content).\
+                filter(Plan.status == Plan.STATUS_PUBLISH).filter(Plan.id == plan_id).first()
             res = api_response()
-            if not plan or not plan.is_published:
+            if not plan:
                 res.update(status="fail",response={
                     "code": ErrorCode.CODE_PLAN_NOT_EXISTS,
                     "message": "plan not exists"
@@ -439,7 +442,6 @@ def plan_info(plan_id):
                     "plan": plan.to_dict(content=True)
                 })
                 return jsonify(res)
-
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
         abort(400)
