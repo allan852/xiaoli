@@ -403,7 +403,7 @@ def plans():
                 plans = plans.filter(Plan.title.like('%' + search_key + '%'))
             if key_word_id:
                 plans = plans.filter(Plan.id == key_word_id)
-            api_logger.info(plans)
+            api_logger.debug(plans)
             paginate = Page(total_entries=plans.count(), entries_per_page=per_page, current_page=page)
             results = plans.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
 
