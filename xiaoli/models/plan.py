@@ -90,7 +90,7 @@ class Plan(Base):
             "id": self.id,
             "title": self.title,
             "status": self.status,
-            "publish_date": self.publish_date or "",
+            "publish_date": self.screen_publish_time or "",
             "author_id": self.author_id,
             "cover_image_id": self.cover_image_id or "",
             "cover_image_url": self.cover_image or "",
