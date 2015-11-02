@@ -4,8 +4,8 @@ import os
 
 import traceback
 from flask import Blueprint, abort, request, jsonify
-from sqlalchemy import func, or_
-from sqlalchemy.orm import aliased
+from sqlalchemy import func, or_, outerjoin
+from sqlalchemy.orm import aliased, joinedload, subqueryload
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.exceptions import RequestEntityTooLarge
 from xiaoli.extensions.upload_set import image_resources
@@ -435,9 +435,10 @@ def recommend_plans():
             match_keywords_query = session.query(PlanKeyword).filter(PlanKeyword.content.in_(user_impresses))
             match_keywords = [(kw.content) for kw in  match_keywords_query.all()]
             api_logger.debug(match_keywords)
-            plans_query = session.query(Plan).outerjoin(Plan.keywords).\
-                filter(Plan.status == Plan.STATUS_PUBLISH).\
-                filter(PlanKeyword.content.in_(match_keywords)).order_by(Plan.view_count.desc())
+            plans_query = session.query(Plan).filter(Plan.status == Plan.STATUS_PUBLISH).\
+                join(Plan.keywords).\
+                filter(PlanKeyword.content.in_(match_keywords)).\
+                order_by(Plan.view_count.desc())
             api_logger.debug(user_impresses)
             api_logger.debug(plans_query)
             paginate = Page(total_entries=plans_query.count(), entries_per_page=per_page, current_page=page)
