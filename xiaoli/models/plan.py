@@ -45,7 +45,7 @@ class Plan(Base):
     share_count = Column(BigInteger, default=0)
 
     content = relationship("PlanContent", uselist=False,backref='plan',cascade="all, delete-orphan")
-    keywords = relationship("PlanKeyword", backref='plan', secondary="plan_keyword_rel")
+    keywords = relationship("PlanKeyword", backref='plans', secondary="plan_keyword_rel")
 
     def __init__(self, title):
         self.title = title

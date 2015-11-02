@@ -430,12 +430,15 @@ def recommend_plans():
         account_id = request.args.get("account_id", None)
         res = api_response()
         with db_session_cm() as session:
-            account = session.query(Account).get(account_id)
-            account_impresses = [impress.content for impress in account.impresses]
+            user = session.query(Account).get(account_id)
+            user_impresses = [impress.content.content for impress in user.impresses]
+            match_keywords_query = session.query(PlanKeyword).filter(PlanKeyword.content.in_(user_impresses))
+            match_keywords = [(kw.content) for kw in  match_keywords_query.all()]
+            api_logger.debug(match_keywords)
             plans_query = session.query(Plan).outerjoin(Plan.keywords).\
                 filter(Plan.status == Plan.STATUS_PUBLISH).\
-                filter(PlanKeyword.content.in_(account_impresses))
-
+                filter(PlanKeyword.content.in_(match_keywords)).order_by(Plan.view_count.desc())
+            api_logger.debug(user_impresses)
             api_logger.debug(plans_query)
             paginate = Page(total_entries=plans_query.count(), entries_per_page=per_page, current_page=page)
             results = plans_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
