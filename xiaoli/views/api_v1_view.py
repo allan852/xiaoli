@@ -4,7 +4,7 @@ import os
 
 import traceback
 from flask import Blueprint, abort, request, jsonify
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import aliased
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.exceptions import RequestEntityTooLarge
@@ -342,7 +342,7 @@ def account_comments(account_id):
             paginate = Page(total_entries=comments_query.count(), entries_per_page=per_page, current_page=page)
             comments = comments_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
             res.update(response={
-                "page": page,
+                "page": paginate.current_page(),
                 "per_page": per_page,
                 "total": paginate.total_entries(),
                 "comments": [comment.to_dict() for comment in comments]
@@ -375,7 +375,7 @@ def account_friends(account_id):
             paginate = Page(total_entries=friends_query.count(), entries_per_page=per_page, current_page=page)
             friends = friends_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
             res.update(response={
-                "page": page,
+                "page": paginate.current_page(),
                 "per_page": per_page,
                 "total": paginate.total_entries(),
                 "friends": [friend.to_dict() for friend in friends]
@@ -408,7 +408,40 @@ def plans():
             results = plans.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
 
             res.update(response={
-                "page": page,
+                "page": paginate.current_page(),
+                "per_page": per_page,
+                "total": paginate.total_entries(),
+                "plans": [plan.to_dict() for plan in results]
+            })
+
+        return jsonify(res)
+    except Exception as e:
+        print traceback.format_exc(e)
+        api_logger.error(traceback.format_exc(e))
+        abort(400)
+
+
+@api_v1.route("/recommend_plans", methods=["GET"])
+def recommend_plans():
+    u"""获取用户推荐礼物方案列表"""
+    try:
+        page = request.args.get("page", 1, int)
+        per_page = request.args.get("per_page", Comment.PER_PAGE, int)
+        account_id = request.args.get("account_id", None)
+        res = api_response()
+        with db_session_cm() as session:
+            account = session.query(Account).get(account_id)
+            account_impresses = [impress.content for impress in account.impresses]
+            plans_query = session.query(Plan).outerjoin(Plan.keywords).\
+                filter(Plan.status == Plan.STATUS_PUBLISH).\
+                filter(PlanKeyword.content.in_(account_impresses))
+
+            api_logger.debug(plans_query)
+            paginate = Page(total_entries=plans_query.count(), entries_per_page=per_page, current_page=page)
+            results = plans_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
+
+            res.update(response={
+                "page": paginate.current_page(),
                 "per_page": per_page,
                 "total": paginate.total_entries(),
                 "plans": [plan.to_dict() for plan in results]
