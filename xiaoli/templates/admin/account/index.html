@@ -32,7 +32,9 @@
                                     <img src="{{ user.avatar.url }}" alt="{{ user.avatar.path }}" width="16" height="16">
                                 {% endif %}
                                 </td>
-                                <td>{{ user.cellphone }}</td>
+                                <td>
+                                    <a href="{{ url_for("admin_frontend.account_show", account_id=user.id) }}" class="">{{ user.cellphone }}</a>
+                                </td>
                                 <td>{{ user.nickname|d("", true) }}</td>
                                 <td>{{ user.screen_create_time }}</td>
                                 <td>{{ user.screen_status }}</td>

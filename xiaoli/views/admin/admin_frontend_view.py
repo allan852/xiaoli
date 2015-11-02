@@ -52,7 +52,9 @@ def accounts():
 @admin_required
 def account_show(account_id):
     u"""查看用户"""
-    return render_template("admin/account/index.html")
+    with db_session_cm() as session:
+        account = session.query(Account).get(account_id)
+        return render_template("admin/account/show.html", account=account)
 
 
 @admin_frontend.route('/account/edit/<int:account_id>', methods=["GET", "POST"])

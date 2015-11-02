@@ -1,0 +1,28 @@
+{% extends "layout/admin_layout.html" %}
+
+{% block content %}
+    <div class="container">
+        {% include "includes/_flash.html" %}
+        <a class="btn btn-info" href="{{ url_for("admin_frontend.accounts") }}">{{ _("返回") }}</a>
+
+        <div class="row" id="login-register-div">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="account-show">
+                    <label>{{ _("手机号") }}</label>
+                    <h4>{{ account.cellphone }}</h4>
+                    <div>
+                        <span>{{ _("昵称：") }}{{ account.nickname }}</span>
+                        <span>{{ _("状态：") }}{{ account.screen_status }}</span>
+                        <span>{{ _("类型：") }}{{ account.screen_type }}</span>
+                        <span>{{ _("注册时间：") }}{{ account.screen_create_time }}</span>
+                    </div>
+                    <div class="labels">
+                        {% for impress in account.impresses %}
+                            <span class="label label-default">{{ impress.content.content }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
