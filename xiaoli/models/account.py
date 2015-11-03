@@ -96,7 +96,6 @@ class Account(Base, UserMixin):
                             order_by="Comment.create_time.desc()", lazy="dynamic")
     added_comments = relationship("Comment", backref="operator", foreign_keys="[Comment.operator_id]",
                                   order_by="Comment.create_time.desc()", lazy="dynamic")
-    # friends_rel = relationship("AccountFriendRel", backref="owner", foreign_keys="[AccountFriendRel.account_id]")
     to_friends = association_proxy("friend_to_relations", "to_account")
     from_friends = association_proxy("friend_from_relations", "from_account")
 
@@ -213,20 +212,27 @@ class Account(Base, UserMixin):
                 new_friend.status = Account.STATUS_UNREGISTERED
                 if email:
                     new_friend.email = email
-                account.friends.append(new_friend)
-                session.add(account)
+                common_logger.debug(account.to_friends)
+                af = AccountFriend()
+                af.from_account = account
+                af.to_account = new_friend
+                session.add(new_friend)
+                session.add(af)
             else:
                 # 存在， 检测是否已经是朋友关系
                 common_logger.debug(friend)
-                exists_friend_query = session.query(Account).\
-                    filter(Account.friends.contains(friend)).filter(Account.cellphone == account.cellphone)
-                common_logger.debug(exists_friend_query)
-                exists_friend = exists_friend_query.first()
-                common_logger.debug(exists_friend)
-                if not exists_friend:
+                af_query = session.query(AccountFriend).\
+                    filter(AccountFriend.from_account == account).\
+                    filter(AccountFriend.to_account == friend)
+                common_logger.debug(af_query)
+                exists_af = af_query.first()
+                common_logger.debug(exists_af)
+                if not exists_af:
                     # 不是朋友关系则添加成朋友关系
-                    account.friends.append(friend)
-                    session.add(account)
+                    af = AccountFriend()
+                    af.from_account = account
+                    af.to_account = friend
+                    session.add(af)
 
     def impresses_with_group(self):
         u"""按照印象内容分组获得印象个数量"""
@@ -257,11 +263,12 @@ class Account(Base, UserMixin):
         return d
 
 
-class AccountFriendRel(Base):
+class AccountFriend(Base):
     u"""Association Object for Account Friends"""
-    __tablename__ = "account_friends_rel"
-    from_account_id = Column(Integer, ForeignKey("accounts.id"), primary_key=True),
-    to_account_id = Column(Integer, ForeignKey("accounts.id"), primary_key=True)
+    __tablename__ = "account_friends"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    from_account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False)
+    to_account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False)
     nickname = Column(String(64), index=True)
     note = Column(String(1024))
 

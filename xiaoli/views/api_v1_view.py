@@ -13,6 +13,7 @@ from xiaoli.helpers import api_response, check_register_params, ErrorCode, check
     check_update_account_info_params, check_renew_params,SendSms, ajax_response
 from xiaoli.models import Account, Comment, Impress, ImpressContent,Sms, Avatar
 from xiaoli.models import Plan,PlanKeyword
+from xiaoli.models.account import AccountFriend
 from xiaoli.models.session import db_session_cm
 from xiaoli.models import Token
 from xiaoli.utils.logs.logger import api_logger
@@ -375,12 +376,12 @@ def account_friends(account_id):
                     "message": "user not exists"
                 })
                 return jsonify(res)
-            account_alias = aliased(Account)
             friends_query = session.query(Account)
+            friends_query = friends_query.join(AccountFriend, AccountFriend.to_account_id == Account.id).\
+                filter(AccountFriend.from_account_id == account_id)
             if only_register:
                 api_logger.debug("*" * 10)
-                friends_query.filter(Account.status == Account.STATUS_ACTIVE)
-            friends_query = friends_query.join(account_alias.friends).filter(account_alias.id == account_id)
+                friends_query.reset_joinpoint().filter(Account.status == Account.STATUS_ACTIVE)
 
             api_logger.debug(friends_query)
             paginate = Page(total_entries=friends_query.count(), entries_per_page=per_page, current_page=page)
