@@ -53,7 +53,8 @@ def accounts():
 def account_show(account_id):
     u"""查看用户"""
     with db_session_cm() as session:
-        account = session.query(Account).get(account_id)
+        account_a = aliased(Account)
+        account = session.query(Account).filter(Account.id == account_id).first()
         return render_template("admin/account/show.html", account=account)
 
 

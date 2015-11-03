@@ -10,8 +10,9 @@
                 <div class="account-show">
                     <label>{{ _("手机号") }}</label>
                     <h4>{{ account.cellphone }}</h4>
+
                     <div>
-                        <span>{{ _("昵称：") }}{{ account.nickname }}</span>
+                        <span>{{ _("昵称：") }}{{ account.nickname|d("") }}</span>
                         <span>{{ _("状态：") }}{{ account.screen_status }}</span>
                         <span>{{ _("类型：") }}{{ account.screen_type }}</span>
                         <span>{{ _("注册时间：") }}{{ account.screen_create_time }}</span>
@@ -22,6 +23,58 @@
                         {% endfor %}
                     </div>
                 </div>
+                <hr>
+                {% if account.friends.all()|length > 0 %}
+                    <div class="panel panel-default friends">
+                        <div class="panel-heading">
+                            <div class="panel-title">
+                                <span>{{ _("全部朋友") }}</span>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>{{ _("头像") }}</th>
+                                    <th>{{ _("手机号") }}</th>
+                                    <th>{{ _("昵称") }}</th>
+                                    <th>{{ _("注册时间") }}</th>
+                                    <th>{{ _("状态") }}</th>
+                                    <th>{{ _("类型") }}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for user in account.friends %}
+                                    <tr>
+                                        <td>{{ user.id }}</td>
+                                        <td>
+                                            {% if user.avatar %}
+                                                <img src="{{ user.avatar.url }}" alt="{{ user.avatar.path }}"
+                                                     width="16"
+                                                     height="16">
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for("admin_frontend.account_show", account_id=user.id) }}"
+                                               class="">{{ user.cellphone }}</a>
+                                        </td>
+                                        <td>{{ user.nickname|d("", true) }}</td>
+                                        <td>{{ user.screen_create_time }}</td>
+                                        <td>{{ user.screen_status }}</td>
+                                        <td class="{% if user.is_admin %}text-warning{% else %}text-muted{% endif %}">{{ user.screen_type }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+{#                    {{ pagination.links }}#}
+                {% else %}
+                    <div class=" panel-body">
+                        <div class="alert alert-success" role="alert">{{ _("没有朋友") }}</div>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
