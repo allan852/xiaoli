@@ -3,13 +3,14 @@
 import datetime
 from flask.ext.login import UserMixin
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, func
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, object_session
 from werkzeug.security import generate_password_hash, check_password_hash
 from xiaoli.config import setting
 from xiaoli.extensions.upload_set import image_resources
 from xiaoli.models.base import Base
 from xiaoli.models.relationships import account_plan_favorite_rel_table, \
-    account_plan_vote_rel_table, account_friends_rel_table
+    account_plan_vote_rel_table
 from xiaoli.models.session import db_session_cm
 from xiaoli.utils.date_util import format_date
 from xiaoli.utils.logs.logger import common_logger
@@ -95,12 +96,9 @@ class Account(Base, UserMixin):
                             order_by="Comment.create_time.desc()", lazy="dynamic")
     added_comments = relationship("Comment", backref="operator", foreign_keys="[Comment.operator_id]",
                                   order_by="Comment.create_time.desc()", lazy="dynamic")
-    friends = relationship("Account",
-                           secondary=account_friends_rel_table,
-                           primaryjoin=id==account_friends_rel_table.c.account_id,
-                           secondaryjoin=id==account_friends_rel_table.c.friend_account_id,
-                           backref="account",
-                           lazy="dynamic")
+    # friends_rel = relationship("AccountFriendRel", backref="owner", foreign_keys="[AccountFriendRel.account_id]")
+    to_friends = association_proxy("friend_to_relations", "to_account")
+    from_friends = association_proxy("friend_from_relations", "from_account")
 
     favorite_plans = relationship("Plan", secondary=account_plan_favorite_rel_table, lazy="dynamic")
     vote_plans = relationship("Plan", secondary=account_plan_vote_rel_table, lazy="dynamic")
@@ -257,6 +255,18 @@ class Account(Base, UserMixin):
             "allow_score": self.allow_score
         }
         return d
+
+
+class AccountFriendRel(Base):
+    u"""Association Object for Account Friends"""
+    __tablename__ = "account_friends_rel"
+    from_account_id = Column(Integer, ForeignKey("accounts.id"), primary_key=True),
+    to_account_id = Column(Integer, ForeignKey("accounts.id"), primary_key=True)
+    nickname = Column(String(64), index=True)
+    note = Column(String(1024))
+
+    from_account = relationship(Account, backref="friend_to_relations", primaryjoin=(from_account_id == Account.id))
+    to_account = relationship(Account, backref="friend_from_relations", primaryjoin=(to_account_id == Account.id))
 
 
 class Avatar(Base):
