@@ -12,6 +12,7 @@ from xiaoli.models.relationships import account_plan_favorite_rel_table, \
     account_plan_vote_rel_table, account_friends_rel_table
 from xiaoli.models.session import db_session_cm
 from xiaoli.utils.date_util import format_date
+from xiaoli.utils.logs.logger import common_logger
 
 __author__ = 'zouyingjun'
 
@@ -176,7 +177,7 @@ class Account(Base, UserMixin):
                 setattr(self, key, bool(value))
 
     @classmethod
-    def import_friends(cls, session, account_id ,contacts):
+    def import_friends(cls, session, account_id, contacts):
         u"""导入联系人
         :param session: A DB session instance
         :param account_id: 需要添加朋友的账户id
@@ -218,7 +219,12 @@ class Account(Base, UserMixin):
                 session.add(account)
             else:
                 # 存在， 检测是否已经是朋友关系
-                exists_friend = session.query(Account).filter(Account.friends.contains(friend)).first()
+                common_logger.debug(friend)
+                exists_friend_query = session.query(Account).\
+                    filter(Account.friends.contains(friend)).filter(Account.cellphone == account.cellphone)
+                common_logger.debug(exists_friend_query)
+                exists_friend = exists_friend_query.first()
+                common_logger.debug(exists_friend)
                 if not exists_friend:
                     # 不是朋友关系则添加成朋友关系
                     account.friends.append(friend)

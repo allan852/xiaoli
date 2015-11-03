@@ -356,10 +356,17 @@ def account_comments(account_id):
 @api_v1.route("/account/<account_id>/friends", methods=["GET"])
 def account_friends(account_id):
     u"""获取用户好友
+    :param page: optional 当前页数
+    :param per_page: optional 每页显示数量
+    :param only_register: optional 是否只获取已经注册的用户
     """
     try:
         page = request.args.get("page", 1, int)
         per_page = request.args.get("per_page", Comment.PER_PAGE, int)
+        _only_register = request.args.get("only_register", 0, int)
+        only_register = bool(_only_register)
+
+        api_logger.debug(only_register)
 
         res = api_response()
         with db_session_cm() as session:
@@ -371,7 +378,13 @@ def account_friends(account_id):
                 })
                 return jsonify(res)
             account_alias = aliased(Account)
-            friends_query = session.query(Account).join(account_alias.friends).filter(account_alias.id == account_id)
+            friends_query = session.query(Account)
+            if only_register:
+                api_logger.debug("*" * 10)
+                friends_query.filter(Account.status == Account.STATUS_ACTIVE)
+            friends_query = friends_query.join(account_alias.friends).filter(account_alias.id == account_id)
+
+            api_logger.debug(friends_query)
             paginate = Page(total_entries=friends_query.count(), entries_per_page=per_page, current_page=page)
             friends = friends_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
             res.update(response={
