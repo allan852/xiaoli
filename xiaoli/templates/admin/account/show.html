@@ -6,7 +6,7 @@
         <a class="btn btn-info" href="{{ url_for("admin_frontend.accounts") }}">{{ _("返回") }}</a>
 
         <div class="row" id="login-register-div">
-            <div class="col-md-8 col-md-offset-2">
+            <div class="col-md-12">
                 <div class="account-show">
                     <label>{{ _("手机号") }}</label>
                     <h4>{{ account.cellphone }}</h4>
@@ -59,7 +59,12 @@
                                             <a href="{{ url_for("admin_frontend.account_show", account_id=user.id) }}"
                                                class="">{{ user.cellphone }}</a>
                                         </td>
-                                        <td>{{ af.nickname|d("", true) }}</td>
+                                        <td>
+                                            {{ user.nickname|d("", true) }}
+                                            {% if af.nickname %}
+                                                {{ af.nickname|d("", true) }}
+                                            {% endif %}
+                                        </td>
                                         <td>{{ user.screen_create_time }}</td>
                                         <td>{{ user.screen_status }}</td>
                                         <td class="{% if user.is_admin %}text-warning{% else %}text-muted{% endif %}">{{ user.screen_type }}</td>
