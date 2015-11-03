@@ -24,7 +24,7 @@
                     </div>
                 </div>
                 <hr>
-                {% if account.friends.all()|length > 0 %}
+                {% if account.to_friends|length > 0 %}
                     <div class="panel panel-default friends">
                         <div class="panel-heading">
                             <div class="panel-title">
@@ -45,7 +45,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {% for user in account.friends %}
+                                {% for user in account.to_friends %}
                                     <tr>
                                         <td>{{ user.id }}</td>
                                         <td>
