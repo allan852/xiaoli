@@ -371,7 +371,7 @@ def account_friends(account_id):
         with db_session_cm() as session:
             account = session.query(Account).get(account_id)
             if not account:
-                res.update(status="fail",response={
+                res.update(status="fail", response={
                     "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
                     "message": "user not exists"
                 })
@@ -380,8 +380,7 @@ def account_friends(account_id):
             friends_query = friends_query.join(AccountFriend, AccountFriend.to_account_id == Account.id).\
                 filter(AccountFriend.from_account_id == account_id)
             if only_register:
-                api_logger.debug("*" * 10)
-                friends_query.reset_joinpoint().filter(Account.status == Account.STATUS_ACTIVE)
+                friends_query = friends_query.filter(Account.status == Account.STATUS_ACTIVE)
 
             api_logger.debug(friends_query)
             paginate = Page(total_entries=friends_query.count(), entries_per_page=per_page, current_page=page)

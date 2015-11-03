@@ -207,7 +207,6 @@ class Account(Base, UserMixin):
             if not friend:
                 # 朋友不存在, 创建
                 new_friend = Account(phone, phone[5:11])
-                new_friend.nickname = name
                 # 设置成未注册
                 new_friend.status = Account.STATUS_UNREGISTERED
                 if email:
@@ -216,6 +215,7 @@ class Account(Base, UserMixin):
                 af = AccountFriend()
                 af.from_account = account
                 af.to_account = new_friend
+                af.nickname = name
                 session.add(new_friend)
                 session.add(af)
             else:
@@ -232,6 +232,7 @@ class Account(Base, UserMixin):
                     af = AccountFriend()
                     af.from_account = account
                     af.to_account = friend
+                    af.nickname = name
                     session.add(af)
 
     def impresses_with_group(self):
