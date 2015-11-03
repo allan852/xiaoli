@@ -431,7 +431,7 @@ def recommend_plans():
         res = api_response()
         with db_session_cm() as session:
             user = session.query(Account).get(account_id)
-            user_impresses = [impress.content.content for impress in user.impresses]
+            user_impresses = [impress.content.content for impress in user.impresses if impress.content]
             match_keywords_query = session.query(PlanKeyword).filter(PlanKeyword.content.in_(user_impresses))
             match_keywords = [(kw.content) for kw in  match_keywords_query.all()]
             api_logger.debug(match_keywords)

@@ -5,6 +5,7 @@ from xiaoli.models.base import Base
 
 __author__ = 'zouyingjun'
 
+# 用户好友关系表
 account_friends_rel_table = Table(
     "account_friends_rel", Base.metadata,
     Column("account_id", Integer, ForeignKey("accounts.id"), primary_key=True),
