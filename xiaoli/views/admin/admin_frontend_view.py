@@ -13,6 +13,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import subqueryload, aliased
 from xiaoli.extensions.upload_set import image_resources
 from xiaoli.models import Account, Plan, PlanContent, PlanKeyword, ImageResource, Impress, ImpressContent
+from xiaoli.models.account import AccountFriend
 from xiaoli.models.session import db_session_cm
 from xiaoli.config import setting
 from xiaoli.utils.account_util import admin_required
@@ -53,9 +54,18 @@ def accounts():
 def account_show(account_id):
     u"""查看用户"""
     with db_session_cm() as session:
-        account_a = aliased(Account)
-        account = session.query(Account).filter(Account.id == account_id).first()
-        return render_template("admin/account/show.html", account=account)
+        account = session.query(Account).get(account_id)
+        a_af_query = session.query(Account, AccountFriend).\
+            join(AccountFriend, AccountFriend.to_account_id == Account.id).\
+            filter(AccountFriend.from_account_id == account_id)
+
+        common_logger.debug(a_af_query)
+
+        results = a_af_query.all()
+
+        common_logger.debug(results)
+
+        return render_template("admin/account/show.html", account=account,  results=results)
 
 
 @admin_frontend.route('/account/edit/<int:account_id>', methods=["GET", "POST"])
