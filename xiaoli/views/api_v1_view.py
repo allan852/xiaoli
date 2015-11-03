@@ -449,13 +449,13 @@ def recommend_plans():
             plans_query = session.query(Plan).filter(Plan.status == Plan.STATUS_PUBLISH).\
                 join(Plan.keywords).\
                 filter(PlanKeyword.content.in_(match_keywords)).\
-                order_by(Plan.view_count.desc())
+                order_by(Plan.create_time.desc(), Plan.view_count.desc())
             api_logger.debug(user_impresses)
             api_logger.debug(plans_query)
 
             if not plans_query.count():
                 plans_query = session.query(Plan).filter(Plan.status == Plan.STATUS_PUBLISH).\
-                    order_by(Plan.view_count.desc(), Plan.publish_date.desc())
+                    order_by(Plan.publish_date.desc(), Plan.view_count.desc())
 
             paginate = Page(total_entries=plans_query.count(), entries_per_page=per_page, current_page=page)
             results = plans_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
