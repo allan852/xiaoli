@@ -449,7 +449,7 @@ def recommend_plans():
             plans_query = session.query(Plan).filter(Plan.status == Plan.STATUS_PUBLISH).\
                 join(Plan.keywords).\
                 filter(PlanKeyword.content.in_(match_keywords)).\
-                order_by(Plan.create_time.desc(), Plan.view_count.desc())
+                order_by(Plan.publish_date.desc(), Plan.view_count.desc())
             api_logger.debug(user_impresses)
             api_logger.debug(plans_query)
 
