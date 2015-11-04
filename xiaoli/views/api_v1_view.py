@@ -714,25 +714,35 @@ def add_impress(account_id):
 @api_v1.route("/account/<account_id>/score", methods=["POST"])
 def score(account_id):
     u"""用户打分"""
-
     code = 0
     with db_session_cm() as session:
-        s = int(request.form['score'])
-        account = session.query(Account).filter(Account.id == account_id).first()
-        target = session.query(Account).filter(Account.id == request.form['target_account_id']).first()
-        scored = session.query(Score).filter(Score.operator_id==account.id).filter(Score.target_id == target.id).first()
-        if not target.allow_score:
-            code = ErrorCode.CODE_SCORE_USER_CLOSED
-        elif(scored):
-            code = ErrorCode.CODE_SCORE_USER_MULTIPLE
-        elif(not Score.validate(s)):
-            code = ErrorCode.CODE_SCORE_INVALID
-        else:
-            score = Score(operator_id=account.id, target_id=target.id, score=s)
-            target.calculate_score(s)
-            session.add(score)
-            session.add(target)
-            session.commit()
+        try:
+            s = int(request.form['score'])
+            account = session.query(Account).filter(Account.id == account_id).first()
+            target = session.query(Account).filter(Account.id == request.form['target_account_id']).first()
+            scored = session.query(Score).filter(Score.operator_id==account.id).filter(Score.target_id == target.id).first()
+            if not target.allow_score:
+                code = ErrorCode.CODE_SCORE_USER_CLOSED
+            elif(scored):
+                code = ErrorCode.CODE_SCORE_USER_MULTIPLE
+            elif(not Score.validate(s)):
+                code = ErrorCode.CODE_SCORE_INVALID
+            else:
+                score = Score(operator_id=account.id, target_id=target.id, score=s)
+                target.calculate_score(s)
+                session.add(score)
+                session.add(target)
+                session.commit()
+        except Exception as e:
+            api_logger.error(traceback.format_exc(e))
+            session.rollback()
+            code = ErrorCode.CODE_SERVER_TEMPORARILY_UNUSABLE
+            return jsonify(api_fail({
+                "code": str(code),
+                "message": "server temporarily unusable"
+                }))
+
+
     if(code > 0):
         return jsonify(api_fail({
             "code": str(code),
