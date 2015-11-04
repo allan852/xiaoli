@@ -714,12 +714,12 @@ def add_impress(account_id):
 
 
 @api_v1.route("/account/<account_id>/score", methods=["POST"])
-def score(account_id):
+def add_score(account_id):
     u"""用户打分"""
     code = 0
     with db_session_cm() as session:
         try:
-            s = int(request.form['score'])
+            s = request.form.get('score', 0, int)
             account = session.query(Account).filter(Account.id == account_id).first()
             target = session.query(Account).filter(Account.id == request.form['target_account_id']).first()
             _scored = session.query(Score).\

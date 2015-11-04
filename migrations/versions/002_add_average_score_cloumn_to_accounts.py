@@ -6,7 +6,7 @@ def upgrade(migrate_engine):
     # Upgrade operations go here. Don't create your own engine; bind
     # migrate_engine to your metadata
     Account.metadata.bind = migrate_engine
-    score_average = Column('average_score', Integer, default=0)
+    score_average = Column('score_average', Integer, default=0)
     create_column(score_average, Account.__table__)
 
     score_count = Column('score_count', Integer, default=0)
