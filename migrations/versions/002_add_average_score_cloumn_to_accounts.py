@@ -12,7 +12,7 @@ def upgrade(migrate_engine):
     score_count = Column('score_count', Integer(11), default=0)
     create_column(score_count, Accoount.__table__)
 
-    score_total = Column('score_count', Integer(11), default=0)
+    score_total = Column('score_total', Integer(11), default=0)
     create_column(score_total, Accoount.__table__)
 
 
