@@ -408,15 +408,16 @@ def plans():
         key_word_id = request.args.get("key_word_id", None)
         res = api_response()
         with db_session_cm() as session:
-            plans = session.query(Plan).\
+            plans_query = session.query(Plan).\
                 filter(Plan.status == Plan.STATUS_PUBLISH)
             if search_key:
-                plans = plans.filter(Plan.title.like('%' + search_key + '%'))
+                plans_query = plans_query.filter(Plan.title.like('%' + search_key + '%'))
             if key_word_id:
-                plans = plans.filter(Plan.id == key_word_id)
+                plans_query = plans_query.filter(Plan.id == key_word_id)
+            plans_query = plans_query.order_by(Plan.publish_date.desc(), Plan.view_count.desc())
             api_logger.debug(plans)
-            paginate = Page(total_entries=plans.count(), entries_per_page=per_page, current_page=page)
-            results = plans.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
+            paginate = Page(total_entries=plans_query.count(), entries_per_page=per_page, current_page=page)
+            results = plans_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
 
             res.update(response={
                 "page": paginate.current_page(),
