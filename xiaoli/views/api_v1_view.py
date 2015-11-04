@@ -729,7 +729,9 @@ def score(account_id):
             code = ErrorCode.CODE_SCORE_INVALID
         else:
             score = Score(operator_id=account.id, target_id=target.id, score=s)
+            target.calculate_score(s)
             session.add(score)
+            session.add(target)
             session.commit()
     if(code > 0):
         return jsonify(api_fail({
