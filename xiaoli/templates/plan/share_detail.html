@@ -1,0 +1,25 @@
+{% extends "layout/base_layout.html" %}
+
+{% block content %}
+    <div class="container">
+        <div class="row" id="login-register-div">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="plan-show">
+                    <h2>{{ plan.title }}</h2>
+                    <div>
+                        <span>{{ _("阅读：") }}{{ plan.view_count }}</span>
+                        <span>{{ _("收藏：") }}{{ plan.share_count }}</span>
+                        <span>{{ _("时间：") }}{{ plan.screen_publish_time }}</span>
+                    </div>
+                    <div class="labels">
+                        {% for word in plan.keywords %}
+                            <span class="label label-default">{{ word.content }}</span>
+                        {% endfor %}
+                    </div>
+                    <hr>
+                    <div>{{ plan.content.content|safe }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

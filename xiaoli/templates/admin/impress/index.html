@@ -7,7 +7,7 @@
             <a href="{{ url_for("admin_frontend.impress_new") }}" class="btn btn-info">{{ _("新建印象") }}</a>
         </div>
         <p></p>
-        {% if kewwords %}
+        {% if impresses %}
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <div class="panel-title">{{ _("全部印象") }}</div>
@@ -19,6 +19,7 @@
                         <tr>
                             <th>#</th>
                             <th>{{ _("内容") }}</th>
+                            <th>{{ _("添加次数") }}</th>
                             <th>{{ _("类型") }}</th>
                             <th>{{ _("创建时间") }}</th>
                             <th>{{ _("操作") }}</th>
@@ -26,15 +27,21 @@
                         </thead>
                         <tbody>
 
-                        {% for impress in impresses %}
+                        {% for impress, count in impresses %}
                             <tr>
+                                <td>{{ impress.id }}</td>
                                 <td>{{ impress.content }}</td>
+                                <td>{{ count }}</td>
                                 <td>{{ impress.screen_type }}</td>
                                 <td>{{ impress.screen_create_time }}</td>
                                 <td>
                                     <a href="{{ url_for("admin_frontend.impress_edit", impress_id=impress.id) }}">{{ _("编辑") }}</a>
                                     |
-                                    <a class="text-danger"
+                                    {% if not impress.is_preset %}
+                                    <a href="{{ url_for("admin_frontend.impress_to_preset", impress_id=impress.id) }}">{{ _("设为预设") }}</a>
+                                    |
+                                    {% endif %}
+                                    <a class="text-danger action-prompt" data-prompt="{{ _("确定要删除印象[%(name)s]吗？", name=impress.content) }}"
                                        href="{{ url_for("admin_frontend.impress_delete", impress_id=impress.id) }}">{{ _("删除") }}</a>
                                 </td>
                             </tr>
@@ -42,8 +49,8 @@
                         </tbody>
                     </table>
                 </div>
-                {{ pagination.links }}
             </div>
+            {{ pagination.links }}
         {% else %}
             <div class="alert alert-success" role="alert">{{ _("没有印象") }}</div>
         {% endif %}

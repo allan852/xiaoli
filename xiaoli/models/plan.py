@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import datetime
-from flask.ext.babel import gettext as _, format_datetime
+from flask import url_for
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, BigInteger, Text
 from sqlalchemy.orm import relationship
 from xiaoli.extensions.upload_set import image_resources
 from xiaoli.models import ImageResource
 from xiaoli.models.base import Base
 from xiaoli.models.session import db_session_cm
+from xiaoli.utils.date_util import format_date
 
 __author__ = 'zouyingjun'
 
@@ -44,7 +45,7 @@ class Plan(Base):
     share_count = Column(BigInteger, default=0)
 
     content = relationship("PlanContent", uselist=False,backref='plan',cascade="all, delete-orphan")
-    keywords = relationship("PlanKeyword", backref='plan', secondary="plan_keyword_rel")
+    keywords = relationship("PlanKeyword", backref='plans', secondary="plan_keyword_rel")
 
     def __init__(self, title):
         self.title = title
@@ -60,7 +61,7 @@ class Plan(Base):
 
     @property
     def screen_publish_time(self):
-        return format_datetime(self.publish_date) if self.publish_date else ""
+        return format_date(self.publish_date) if self.publish_date else ""
 
     def publish(self):
         self.status = Plan.STATUS_PUBLISH
@@ -80,19 +81,24 @@ class Plan(Base):
             else:
                 return ""
 
+    @property
+    def is_published(self):
+        return self.status == Plan.STATUS_PUBLISH
+
     def to_dict(self, content=False):
         d = {
             "id": self.id,
             "title": self.title,
             "status": self.status,
-            "publish_date": self.publish_date or "",
+            "publish_date": self.screen_publish_time or "",
             "author_id": self.author_id,
             "cover_image_id": self.cover_image_id or "",
             "cover_image_url": self.cover_image or "",
             "view_count": self.view_count,
             "share_count": self.share_count,
             "content": self.content.content if content else "",
-            "keywords": [ word.content for word in self.keywords]
+            "keywords": [ word.content for word in self.keywords],
+            "share_detail_url": url_for("plan.share_detail", plan_id=self.id, _external=True)
         }
         return d
 
@@ -132,6 +138,10 @@ class PlanKeyword(Base):
             if sign == self.type:
                 return text
 
+    @property
+    def is_preset(self):
+        return self.type == PlanKeyword.TYPE_PRESET
+
     @classmethod
     def choices(cls):
         options = []
@@ -141,3 +151,10 @@ class PlanKeyword(Base):
                 options.append((kw.id, kw.content))
         return options
 
+    def to_dict(self):
+        d = {
+            "id": self.id,
+            "type": self.type,
+            "content": self.content,
+        }
+        return d

@@ -104,5 +104,29 @@ def set_admin_user(phone=None):
             print traceback.format_exc(e)
 
 
+@manager.command
+def migrate_account_friend_rel_to_account_friends():
+    u"""迁移 account_friends_rel_table 数据到 account_friends 表"""
+    from xiaoli.models.relationships import account_friends_rel_table
+    from xiaoli.models.account import AccountFriend
+    with db_session_cm() as session:
+        afr_q = session.query(account_friends_rel_table)
+
+        for afr in afr_q:
+            from_account_id = afr[0]
+            to_account_id = afr[1]
+            exists_af = session.query(AccountFriend).filter(AccountFriend.from_account_id == from_account_id).\
+                filter(AccountFriend.to_account_id == to_account_id).first()
+
+            if not exists_af:
+                print afr
+                af = AccountFriend()
+                af.from_account_id = from_account_id
+                af.to_account_id = to_account_id
+                session.add(af)
+
+        session.commit()
+
+
 if __name__ == '__main__':
     manager.run()

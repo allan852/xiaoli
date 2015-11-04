@@ -1,15 +1,19 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+import os
 import re
 import json
 import traceback
 from flask import Blueprint, render_template, redirect, url_for, request,make_response,abort,current_app,flash
 from flask.ext.babel import gettext as _
 from flask.ext.paginate import Pagination
+from flask.ext.uploads import UploadNotAllowed
 from flask_login import current_user
+from sqlalchemy import func
 from sqlalchemy.orm import subqueryload, aliased
 from xiaoli.extensions.upload_set import image_resources
 from xiaoli.models import Account, Plan, PlanContent, PlanKeyword, ImageResource, Impress, ImpressContent
+from xiaoli.models.account import AccountFriend
 from xiaoli.models.session import db_session_cm
 from xiaoli.config import setting
 from xiaoli.utils.account_util import admin_required
@@ -35,7 +39,7 @@ def accounts():
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", Account.PER_PAGE, type=int)
     with db_session_cm() as session:
-        users_query = session.query(Account)
+        users_query = session.query(Account).outerjoin(Account.avatar)
         pagination = Pagination(page=page, total=users_query.count(), record_name=_(u"用户"), bs_version=3)
         users = users_query.order_by(Account.id.desc()).offset((page - 1) * per_page).limit(per_page)
         context = {
@@ -49,7 +53,19 @@ def accounts():
 @admin_required
 def account_show(account_id):
     u"""查看用户"""
-    return render_template("admin/account/index.html")
+    with db_session_cm() as session:
+        account = session.query(Account).get(account_id)
+        a_af_query = session.query(Account, AccountFriend).\
+            join(AccountFriend, AccountFriend.to_account_id == Account.id).\
+            filter(AccountFriend.from_account_id == account_id)
+
+        common_logger.debug(a_af_query)
+
+        results = a_af_query.all()
+
+        common_logger.debug(results)
+
+        return render_template("admin/account/show.html", account=account,  results=results)
 
 
 @admin_frontend.route('/account/edit/<int:account_id>', methods=["GET", "POST"])
@@ -103,8 +119,10 @@ def plan_show(plan_id):
     u"""查看方案"""
     try:
         with db_session_cm() as session:
-            plan = session.query(Plan).join(Plan.keywords).join(Plan.content).filter(Plan.id == plan_id).first()
-            return render_template("admin/plan/show.html", plan=plan)
+            plan = session.query(Plan).outerjoin(Plan.keywords).outerjoin(Plan.content).filter(Plan.id == plan_id).first()
+            if plan:
+                return render_template("admin/plan/show.html", plan=plan)
+            abort(404)
     except Exception as e:
         common_logger.error(traceback.format_exc(e))
         abort(500)
@@ -114,12 +132,12 @@ def plan_show(plan_id):
 @admin_required
 def plan_new():
     u"""新建方案"""
+    plan_form = PlanForm(request.form)
+    plan_form.keywords.choices = PlanKeyword.choices()
+    context = {
+        'form': plan_form,
+    }
     try:
-        plan_form = PlanForm(request.form)
-        plan_form.keywords.choices = PlanKeyword.choices()
-        context = {
-            'form': plan_form,
-        }
         if request.method == 'POST' and plan_form.validate_on_submit():
             title = plan_form.title.data.strip()
             content = plan_form.content.data.strip()
@@ -134,7 +152,8 @@ def plan_new():
                 if request_file:
                     filename = image_resources.save(request_file, folder=str(current_user.id))
                     irs = ImageResource(filename, current_user.id)
-                    irs.format = request_file.mimetype
+                    name, suffix = os.path.splitext(request_file.filename)
+                    irs.format = suffix
                     session.add(irs)
                     session.commit()
                     plan.cover_image_id = irs.id
@@ -149,9 +168,11 @@ def plan_new():
             flash(_(u"方案添加成功!"), category="success")
             return redirect(url_for('admin_frontend.plans'))
         return render_template("admin/plan/new.html", **context)
+    except UploadNotAllowed as e:
+        flash(u"封面图片格式不支持", category="warning")
+        return render_template("admin/plan/new.html", **context)
     except Exception, e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
         abort(500)
 
 
@@ -175,7 +196,6 @@ def plan_edit(plan_id):
         return render_template("admin/plan/edit.html", **context)
     except Exception as e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
         abort(500)
 
 
@@ -205,7 +225,8 @@ def plan_update(plan_id):
                 if request_file:
                     filename = image_resources.save(request_file, folder=str(current_user.id))
                     irs = ImageResource(filename, current_user.id)
-                    irs.format = request_file.mimetype
+                    name, suffix = os.path.splitext(request_file.filename)
+                    irs.format = suffix
                     session.add(irs)
                     session.commit()
                     session.query(Plan).filter_by(plan_alias.id == plan_id).update({"cover_image_id": irs.id })
@@ -238,7 +259,6 @@ def plan_delete(plan_id):
         return redirect(url_for('admin_frontend.plans'))
     except Exception as e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
         flash(_(u"删除失败!"))
         return redirect(url_for('admin_frontend.plans'))
 
@@ -269,11 +289,12 @@ def upload():
             fieldName = CONFIG.get('fileFieldName')
         if fieldName in request.files:
             try:
-                field = request.files[fieldName]
+                request_file = request.files[fieldName]
                 with db_session_cm() as session:
-                    filename = image_resources.save(field, folder=str(current_user.id))
+                    filename = image_resources.save(request_file, folder=str(current_user.id))
                     irs = ImageResource(filename, current_user.id)
-                    irs.format = field.mimetype
+                    name, suffix = os.path.splitext(request_file.filename)
+                    irs.format = suffix
                     session.add(irs)
                     session.commit()
                     image = session.query(ImageResource).get(irs.id)
@@ -290,7 +311,6 @@ def upload():
                         return res
             except Exception, e:
                 common_logger.error(traceback.format_exc(e))
-                print traceback.format_exc(e)
             else:
                 result['state'] = '上传接口出错'
 
@@ -321,7 +341,6 @@ def plan_publish(plan_id):
             return redirect(url_for('admin_frontend.plans'))
     except Exception as e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
         flash(_(u"失败!"), category="danger")
     return redirect(url_for('admin_frontend.plans'))
 
@@ -343,8 +362,7 @@ def plan_revocation(plan_id):
                 return redirect(url_for('admin_frontend.plans'))
     except Exception as e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
-    flash(_(u"失败!"))
+        flash(_(u"失败!"))
     return redirect(url_for('admin_frontend.plans'))
 
 
@@ -386,7 +404,6 @@ def keyword_new():
         return render_template("admin/keyword/new.html", **context)
     except Exception, e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
         abort(500)
 
 
@@ -404,7 +421,6 @@ def keyword_edit(keyword_id):
         return render_template("admin/keyword/edit.html",**context)
     except Exception , e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
         abort(500)
 
 
@@ -423,8 +439,24 @@ def keyword_update():
         return redirect(url_for('admin_frontend.keywords'))
    except Exception ,e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
         abort(500)
+
+
+@admin_frontend.route('/keyword/to_preset/<int:keyword_id>')
+@admin_required
+def keyword_to_preset(keyword_id):
+    u"""修改关键字为预设"""
+    try:
+        with db_session_cm() as session:
+            keyword = session.query(PlanKeyword).get(keyword_id)
+            keyword.type = ImpressContent.TYPE_PRESET
+            session.add(keyword)
+            session.commit()
+            flash(_(u"修改为预设成功!"))
+    except Exception as e:
+        common_logger.error(traceback.format_exc(e))
+        flash(_(u"修改为预设失败!"))
+    return redirect(url_for('admin_frontend.keywords'))
 
 
 @admin_frontend.route('/keyword/del/<int:keyword_id>')
@@ -443,7 +475,6 @@ def keyword_delete(keyword_id):
         return redirect(url_for('admin_frontend.keywords'))
     except Exception as e:
         common_logger.error(traceback.format_exc(e))
-        print traceback.format_exc(e)
         flash(_(u"删除失败!"))
         return redirect(url_for('admin_frontend.keywords'))
 
@@ -455,11 +486,13 @@ def impresses():
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", ImpressContent.PER_PAGE, type=int)
     with db_session_cm() as session:
-        impresses_query = session.query(ImpressContent)
+        impresses_query = session.query(ImpressContent, func.count(Impress.id)).join(Impress.content).\
+            group_by(ImpressContent.id)
         pagination = Pagination(page=page, total=impresses_query.count(), record_name=_(u"印象"), bs_version=3)
         impresses_query = impresses_query.order_by(ImpressContent.id.desc()).offset((page - 1) * per_page).limit(per_page)
+        impresses_with_count = impresses_query.all()
         context = {
-            "impresses": impresses_query.all(),
+            "impresses": impresses_with_count,
             "pagination": pagination
         }
         return render_template("admin/impress/index.html", **context)
@@ -491,16 +524,70 @@ def impress_new():
 
 @admin_frontend.route('/impress/<int:impress_id>')
 @admin_required
-def impress_show(impress_id):
-    u"""印象详情"""
-    return render_template("admin/impress/show.html")
+def impress_edit(impress_id):
+    u"""编辑印象"""
+    try:
+        with db_session_cm() as session:
+            impress_content = session.query(ImpressContent).filter(ImpressContent.id == impress_id).first()
+            impress_content_form = PresetImpressForm(content=impress_content.content)
+            context = {
+                'form': impress_content_form,
+                'impress': impress_content
+            }
+        return render_template("admin/impress/edit.html", **context)
+    except Exception , e:
+        common_logger.error(traceback.format_exc(e))
+        abort(500)
 
 
-@admin_frontend.route('/impress/<int:impress_id>')
+@admin_frontend.route('/impress/update/<int:impress_id>', methods=["POST"])
+@admin_required
+def impress_update(impress_id):
+   u"""impress Update"""
+   try:
+        with db_session_cm() as session:
+            impress_content_form = PresetImpressForm(request.form)
+            if request.method == 'POST' and impress_content_form.validate_on_submit():
+                content = impress_content_form.content.data.strip()
+                session.query(ImpressContent).filter(ImpressContent.id == impress_id).update(dict(content=content))
+                session.commit()
+        return redirect(url_for('admin_frontend.impresses'))
+   except Exception as e:
+        common_logger.error(traceback.format_exc(e))
+        abort(500)
+
+
+@admin_frontend.route('/impress/to_preset/<int:impress_id>')
+@admin_required
+def impress_to_preset(impress_id):
+    u"""修改印象为预设"""
+    try:
+        with db_session_cm() as session:
+            impress_content = session.query(ImpressContent).get(impress_id)
+            impress_content.type = ImpressContent.TYPE_PRESET
+            session.add(impress_content)
+            session.commit()
+            flash(_(u"修改为预设成功!"))
+    except Exception as e:
+        common_logger.error(traceback.format_exc(e))
+        flash(_(u"修改为预设失败!"))
+    return redirect(url_for('admin_frontend.impresses'))
+
+
+@admin_frontend.route('/impress/delete/<int:impress_id>')
 @admin_required
 def impress_delete(impress_id):
     u"""删除印象"""
-    return render_template("admin/impress/index.html")
+    try:
+        with db_session_cm() as session:
+            impress_content = session.query(ImpressContent).get(impress_id)
+            session.delete(impress_content)
+            session.commit()
+            flash(_(u"删除成功!"))
+    except Exception as e:
+        common_logger.error(traceback.format_exc(e))
+        flash(_(u"删除失败!"))
+    return redirect(url_for('admin_frontend.impresses'))
 
 
 @admin_frontend.route('/comments')

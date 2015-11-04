@@ -7,6 +7,7 @@ from flask.ext.principal import identity_changed, Identity
 from xiaoli.helpers.error_code import ErrorCode
 from xiaoli.helpers.send_sms import SendSms
 from xiaoli.models.account import Account
+from xiaoli.models.session import db_session_cm
 
 
 def url_for_other_page(page):
@@ -102,6 +103,7 @@ def check_update_account_info_params(account, **kwargs):
     new_password2 = kwargs.get("new_password2")
     sex = kwargs.get("sex")
     birthday = kwargs.get("birthday")
+    nickname = kwargs.get("nickname")
     horoscope = kwargs.get("horoscope")
 
     res = api_response()
@@ -151,6 +153,16 @@ def check_update_account_info_params(account, **kwargs):
                 "message": "birthday param format error"
             })
             return False, res
+
+    if nickname:
+        with db_session_cm() as session:
+            account = session.query(Account).filter_by(nickname=nickname).first()
+            if account:
+                res.update(status="fail", response={
+                    "code": ErrorCode.CODE_UPDATE_INFO_NICKNAME_EXISTS,
+                    "message": "nickname param exists error"
+                })
+                return False, res
 
     if horoscope and horoscope not in [horoscope for horoscope, display_name in Account.HOROSCOPE_CHOICES]:
         res.update(status="fail", response={

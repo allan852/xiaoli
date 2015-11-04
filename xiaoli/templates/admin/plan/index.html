@@ -42,7 +42,7 @@
                                     |
                                     <a href="{{ url_for("admin_frontend.plan_revocation", plan_id=plan.id) }}">{{ _("撤销") }}</a>
                                     |
-                                    <a class="text-danger"
+                                    <a class="text-danger action-prompt" data-prompt="{{ _("确定要删除方案[%(name)s]吗？", name=plan.title) }}"
                                        href="{{ url_for("admin_frontend.plan_delete", plan_id=plan.id) }}">{{ _("删除") }}</a>
                                 </td>
                             </tr>

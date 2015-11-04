@@ -1,15 +1,19 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+import os
 
 import traceback
 from flask import Blueprint, abort, request, jsonify
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
+from werkzeug.exceptions import RequestEntityTooLarge
+from xiaoli.extensions.upload_set import image_resources
 
 from xiaoli.helpers import api_response, check_register_params, ErrorCode, check_import_contacts_params, \
-    check_update_account_info_params, check_renew_params,SendSms
-from xiaoli.models import Account, Comment, Impress, ImpressContent, account_friends_rel_table,Sms
-from xiaoli.models import Plan,PlanKeyword,PlanContent
+    check_update_account_info_params, check_renew_params,SendSms, ajax_response
+from xiaoli.models import Account, Comment, Impress, ImpressContent,Sms, Avatar
+from xiaoli.models import Plan,PlanKeyword
+from xiaoli.models.account import AccountFriend
 from xiaoli.models.session import db_session_cm
 from xiaoli.models import Token
 from xiaoli.utils.logs.logger import api_logger
@@ -240,29 +244,35 @@ def account_impresses(account_id):
 def impress_details(account_id):
     u"""获取用户印象详情"""
     try:
-        # TODO: 需要完善, 这里是拷贝内容
+        page = request.args.get("page", 1, int)
+        per_page = request.args.get("per_page", Impress.PER_PAGE, int)
         res = api_response()
         with db_session_cm() as session:
-            account = session.query(Impress).get(account_id)
+            account = session.query(Account).get(account_id)
             if not account:
-                res.update(status="fail",response={
+                res.update(status="fail", response={
                     "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
                     "message": "user not exists"
                 })
                 return jsonify(res)
-            impress_query = session.query(Impress).\
-                join(Account.impresses, Impress.content).\
-                filter(Impress.target == account).order_by(Impress.create_time.desc())
-            impresses = impress_query.all()
+            impress_query = session.query(Impress, func.group_concat(ImpressContent.id)).\
+                join(Account.added_impresses, Impress.content).\
+                filter(Impress.target == account).group_by(Impress.operator_id).order_by(Impress.create_time.desc())
+
+            paginate = Page(total_entries=impress_query.count(), entries_per_page=per_page, current_page=page)
+            impresses = impress_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
             impress_dicts = []
-            for impress, count in impresses:
+            for impress, content_ids in impresses:
                 d = {
-                    "content": impress.content.content,
-                    "count": count
+                    "account": impress.operator.to_dict(),
+                    "contents": [c.to_dict() for c in session.query(ImpressContent).filter(ImpressContent.id.in_(content_ids.split(',')))]
                 }
                 impress_dicts.append(d)
             res.update(response={
-                "impresses": impress_dicts
+                "impress_details": impress_dicts,
+                "page": page,
+                "per_page": per_page,
+                "total": paginate.total_entries()
             })
         return jsonify(res)
     except Exception as e:
@@ -275,9 +285,9 @@ def preset_impresses():
     u"""获取系统预设印象"""
     try:
         res = api_response()
-        # TODO: 需要完善, 这里是拷贝内容
         with db_session_cm() as session:
-            preset_impresses_query = session.query(Impress).join(Impress.preset_contents)
+            preset_impresses_query = session.query(ImpressContent).\
+                filter(ImpressContent.type == ImpressContent.TYPE_PRESET)
             impresses = preset_impresses_query.all()
             impress_dicts = []
             for impress in impresses:
@@ -296,7 +306,6 @@ def preset_keywords():
     u"""获取系统预设关键字"""
     try:
         res = api_response()
-        # TODO: 需要完善, 这里是拷贝内容
         with db_session_cm() as session:
             plan_keyword_query = session.query(PlanKeyword).\
                 filter(PlanKeyword.type == PlanKeyword.TYPE_PRESET)
@@ -332,7 +341,7 @@ def account_comments(account_id):
             paginate = Page(total_entries=comments_query.count(), entries_per_page=per_page, current_page=page)
             comments = comments_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
             res.update(response={
-                "page": page,
+                "page": paginate.current_page(),
                 "per_page": per_page,
                 "total": paginate.total_entries(),
                 "comments": [comment.to_dict() for comment in comments]
@@ -346,26 +355,38 @@ def account_comments(account_id):
 @api_v1.route("/account/<account_id>/friends", methods=["GET"])
 def account_friends(account_id):
     u"""获取用户好友
+    :param page: optional 当前页数
+    :param per_page: optional 每页显示数量
+    :param only_register: optional 是否只获取已经注册的用户
     """
     try:
         page = request.args.get("page", 1, int)
         per_page = request.args.get("per_page", Comment.PER_PAGE, int)
+        _only_register = request.args.get("only_register", 0, int)
+        only_register = bool(_only_register)
+
+        api_logger.debug(only_register)
 
         res = api_response()
         with db_session_cm() as session:
             account = session.query(Account).get(account_id)
             if not account:
-                res.update(status="fail",response={
+                res.update(status="fail", response={
                     "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
                     "message": "user not exists"
                 })
                 return jsonify(res)
-            account_alias = aliased(Account)
-            friends_query = session.query(Account).join(account_alias.friends).filter(account_alias.id == account_id)
+            friends_query = session.query(Account)
+            friends_query = friends_query.join(AccountFriend, AccountFriend.to_account_id == Account.id).\
+                filter(AccountFriend.from_account_id == account_id)
+            if only_register:
+                friends_query = friends_query.filter(Account.status == Account.STATUS_ACTIVE)
+
+            api_logger.debug(friends_query)
             paginate = Page(total_entries=friends_query.count(), entries_per_page=per_page, current_page=page)
             friends = friends_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
             res.update(response={
-                "page": page,
+                "page": paginate.current_page(),
                 "per_page": per_page,
                 "total": paginate.total_entries(),
                 "friends": [friend.to_dict() for friend in friends]
@@ -387,16 +408,60 @@ def plans():
         key_word_id = request.args.get("key_word_id", None)
         res = api_response()
         with db_session_cm() as session:
-            plans = session.query(Plan).join(Plan.content).join(Plan.keywords).filter(Plan.status == Plan.STATUS_PUBLISH)
+            plans = session.query(Plan).\
+                filter(Plan.status == Plan.STATUS_PUBLISH)
             if search_key:
                 plans = plans.filter(Plan.title.like('%' + search_key + '%'))
             if key_word_id:
                 plans = plans.filter(Plan.id == key_word_id)
+            api_logger.debug(plans)
             paginate = Page(total_entries=plans.count(), entries_per_page=per_page, current_page=page)
             results = plans.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
 
             res.update(response={
-                "page": page,
+                "page": paginate.current_page(),
+                "per_page": per_page,
+                "total": paginate.total_entries(),
+                "plans": [plan.to_dict() for plan in results]
+            })
+
+        return jsonify(res)
+    except Exception as e:
+        print traceback.format_exc(e)
+        api_logger.error(traceback.format_exc(e))
+        abort(400)
+
+
+@api_v1.route("/recommend_plans", methods=["GET"])
+def recommend_plans():
+    u"""获取用户推荐礼物方案列表"""
+    try:
+        page = request.args.get("page", 1, int)
+        per_page = request.args.get("per_page", Comment.PER_PAGE, int)
+        account_id = request.args.get("account_id", None)
+        res = api_response()
+        with db_session_cm() as session:
+            user = session.query(Account).get(account_id)
+            user_impresses = [impress.content.content for impress in user.impresses if impress.content]
+            match_keywords_query = session.query(PlanKeyword).filter(PlanKeyword.content.in_(user_impresses))
+            match_keywords = [(kw.content) for kw in  match_keywords_query.all()]
+            api_logger.debug(match_keywords)
+            plans_query = session.query(Plan).filter(Plan.status == Plan.STATUS_PUBLISH).\
+                join(Plan.keywords).\
+                filter(PlanKeyword.content.in_(match_keywords)).\
+                order_by(Plan.publish_date.desc(), Plan.view_count.desc())
+            api_logger.debug(user_impresses)
+            api_logger.debug(plans_query)
+
+            if not plans_query.count():
+                plans_query = session.query(Plan).filter(Plan.status == Plan.STATUS_PUBLISH).\
+                    order_by(Plan.publish_date.desc(), Plan.view_count.desc())
+
+            paginate = Page(total_entries=plans_query.count(), entries_per_page=per_page, current_page=page)
+            results = plans_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
+
+            res.update(response={
+                "page": paginate.current_page(),
                 "per_page": per_page,
                 "total": paginate.total_entries(),
                 "plans": [plan.to_dict() for plan in results]
@@ -412,14 +477,16 @@ def plans():
 @api_v1.route("/plan/<int:plan_id>", methods=["GET"])
 def plan_info(plan_id):
     u"""获取礼物方案详情"""
+
     try:
         with db_session_cm() as session:
-            plan = session.query(Plan).get(plan_id)
+            plan = session.query(Plan).outerjoin(Plan.keywords).outerjoin(Plan.content).\
+                filter(Plan.status == Plan.STATUS_PUBLISH).filter(Plan.id == plan_id).first()
             res = api_response()
             if not plan:
                 res.update(status="fail",response={
                     "code": ErrorCode.CODE_PLAN_NOT_EXISTS,
-                    "message": "user not exists"
+                    "message": "plan not exists"
                 })
                 return jsonify(res)
             else:
@@ -648,9 +715,39 @@ def add_impress(account_id):
 @api_v1.route("/account/<account_id>/avatar", methods=["POST"])
 def set_avatar(account_id):
     u"""设置头像"""
+    res = ajax_response()
     try:
-        image_file = request.args.get("image_file")
-        content = request.args.get("content")
+        with db_session_cm() as session:
+            account = session.query(Account).filter(Account.id == account_id).first()
+
+            if not account:
+                res.update(status="fail",response={
+                    "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
+                    "message": "user not exists"
+                })
+                return jsonify(res)
+            image_file = request.files.get("image_file")
+            filename = image_resources.save(image_file, folder=str(account_id))
+            avatar = account.avatar or Avatar(account_id)
+            avatar.path = filename
+            name, suffix = os.path.splitext(image_file.filename)
+            avatar.format = suffix
+            session.add(avatar)
+            session.commit()
+            res.update(response={
+                "account": {
+                    "id": account.id,
+                    "avatar_url": account.avatar.url
+                }
+            })
+            return jsonify(res)
+    except RequestEntityTooLarge as e:
+        api_logger.error(traceback.format_exc(e))
+        res.update(status="fail",response={
+            "code": ErrorCode.CODE_UPLOAD_IMAGE_OVER_SIZE,
+            "message": "image content over size"
+        })
+        return jsonify(res)
     except Exception as e:
         api_logger.error(traceback.format_exc(e))
         abort(400)
@@ -666,6 +763,7 @@ def update_account_info(account_id):
         "new_password2": new_password2,
         "sex": sex,
         "birthday": birthday,
+        "nickname": nickname,
         "horoscope": horoscope,
         "allow_notice": allow_notice,
         "allow_score": allow_score

@@ -3,14 +3,17 @@
 import datetime
 from flask.ext.login import UserMixin
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, func
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, object_session
 from werkzeug.security import generate_password_hash, check_password_hash
 from xiaoli.config import setting
+from xiaoli.extensions.upload_set import image_resources
 from xiaoli.models.base import Base
 from xiaoli.models.relationships import account_plan_favorite_rel_table, \
-    account_plan_vote_rel_table, account_friends_rel_table
+    account_plan_vote_rel_table
 from xiaoli.models.session import db_session_cm
 from xiaoli.utils.date_util import format_date
+from xiaoli.utils.logs.logger import common_logger
 
 __author__ = 'zouyingjun'
 
@@ -93,12 +96,8 @@ class Account(Base, UserMixin):
                             order_by="Comment.create_time.desc()", lazy="dynamic")
     added_comments = relationship("Comment", backref="operator", foreign_keys="[Comment.operator_id]",
                                   order_by="Comment.create_time.desc()", lazy="dynamic")
-    friends = relationship("Account",
-                           secondary=account_friends_rel_table,
-                           primaryjoin=id==account_friends_rel_table.c.account_id,
-                           secondaryjoin=id==account_friends_rel_table.c.friend_account_id,
-                           backref="account",
-                           lazy="dynamic")
+    to_friends = association_proxy("friend_to_relations", "to_account")
+    from_friends = association_proxy("friend_from_relations", "from_account")
 
     favorite_plans = relationship("Plan", secondary=account_plan_favorite_rel_table, lazy="dynamic")
     vote_plans = relationship("Plan", secondary=account_plan_vote_rel_table, lazy="dynamic")
@@ -156,12 +155,13 @@ class Account(Base, UserMixin):
             new_password = kwargs.get("new_password")
             self.password = new_password
 
+        # 日期格式 值更新
         if kwargs.has_key("birthday"):
             birthday = kwargs.get("birthday")
             self.birthday = datetime.datetime.strptime(birthday, Account.BIRTHDAY_FORMAT)
 
         # 字符串 值更新
-        for key in ["sex", "horoscope"]:
+        for key in ["sex", "horoscope", "nickname"]:
             if kwargs.has_key(key):
                 value = kwargs.get(key)
                 setattr(self, key, value)
@@ -174,7 +174,7 @@ class Account(Base, UserMixin):
                 setattr(self, key, bool(value))
 
     @classmethod
-    def import_friends(cls, session, account_id ,contacts):
+    def import_friends(cls, session, account_id, contacts):
         u"""导入联系人
         :param session: A DB session instance
         :param account_id: 需要添加朋友的账户id
@@ -207,20 +207,33 @@ class Account(Base, UserMixin):
             if not friend:
                 # 朋友不存在, 创建
                 new_friend = Account(phone, phone[5:11])
-                new_friend.nickname = name
                 # 设置成未注册
                 new_friend.status = Account.STATUS_UNREGISTERED
                 if email:
                     new_friend.email = email
-                account.friends.append(new_friend)
-                session.add(account)
+                common_logger.debug(account.to_friends)
+                af = AccountFriend()
+                af.from_account = account
+                af.to_account = new_friend
+                af.nickname = name
+                session.add(new_friend)
+                session.add(af)
             else:
                 # 存在， 检测是否已经是朋友关系
-                exists_friend = session.query(Account).filter(Account.friends.contains(friend)).first()
-                if not exists_friend:
+                common_logger.debug(friend)
+                af_query = session.query(AccountFriend).\
+                    filter(AccountFriend.from_account == account).\
+                    filter(AccountFriend.to_account == friend)
+                common_logger.debug(af_query)
+                exists_af = af_query.first()
+                common_logger.debug(exists_af)
+                if not exists_af:
                     # 不是朋友关系则添加成朋友关系
-                    account.friends.append(friend)
-                    session.add(account)
+                    af = AccountFriend()
+                    af.from_account = account
+                    af.to_account = friend
+                    af.nickname = name
+                    session.add(af)
 
     def impresses_with_group(self):
         u"""按照印象内容分组获得印象个数量"""
@@ -238,17 +251,30 @@ class Account(Base, UserMixin):
             "nickname": self.nickname or "",
             "cellphone": self.cellphone,
             "email": self.email or "",
-            "sex": self.sex,
-            "birthday": self.birthday,
+            "sex": self.sex or "",
+            "birthday": self.birthday or "",
             "horoscope": self.horoscope or "",
             "status": self.status,
             "type": self.type,
             "score": 0,
-            "avatar_url": "",
+            "avatar_url": self.avatar and self.avatar.url or "",
             "allow_notice": self.allow_notice,
             "allow_score": self.allow_score
         }
         return d
+
+
+class AccountFriend(Base):
+    u"""Association Object for Account Friends"""
+    __tablename__ = "account_friends"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    from_account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False)
+    to_account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False)
+    nickname = Column(String(64), index=True)
+    note = Column(String(1024))
+
+    from_account = relationship(Account, backref="friend_to_relations", primaryjoin=(from_account_id == Account.id))
+    to_account = relationship(Account, backref="friend_from_relations", primaryjoin=(to_account_id == Account.id))
 
 
 class Avatar(Base):
@@ -261,6 +287,15 @@ class Avatar(Base):
     path = Column(String(1024))
     # 头像格式，即图片后缀名
     format = Column(String(16))
+
+    def __init__(self, account_id, path=None, ):
+        self.account_id = account_id
+        if path:
+            self.path = path
+
+    @property
+    def url(self):
+        return image_resources.url(self.path)
 
 
 class Score(Base):
@@ -307,6 +342,10 @@ class ImpressContent(Base):
 
     TYPE_PRESET = "preset"
     TYPE_USERADDED = "useradded"
+    TYPE_CHOICES = (
+        (TYPE_PRESET, u"系统预设"),
+        (TYPE_USERADDED, u"用户添加"),
+    )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     # 印象内容类型
@@ -324,6 +363,10 @@ class ImpressContent(Base):
             if sign == self.type:
                 return text
 
+    @property
+    def is_preset(self):
+        return self.type == ImpressContent.TYPE_PRESET
+
     @classmethod
     def get_or_create(cls, session, content):
         impress_content = session.query(ImpressContent).filter(ImpressContent.content==content).first()
@@ -332,9 +375,18 @@ class ImpressContent(Base):
         new_impress_content = cls(content)
         return new_impress_content
 
+    def to_dict(self):
+        d = {
+            "id": self.id,
+            "content": self.content
+        }
+        return d
+
 
 class Impress(Base):
     __tablename__ = "impresses"
+
+    PER_PAGE = 10
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     # 被添加影响人id， 外键
