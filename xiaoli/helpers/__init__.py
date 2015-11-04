@@ -16,10 +16,10 @@ def url_for_other_page(page):
     return url_for(request.endpoint, **args)
 
 
-def api_response():
+def api_response(response=None):
     res = {
         'status': 'ok',   # 返回类型 取 ok fail reload redirect
-        'response': None       # 返回数据
+        'response': response       # 返回数据
     }
     return res
 
