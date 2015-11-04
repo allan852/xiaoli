@@ -309,6 +309,13 @@ class Score(Base):
     # 分数
     score = Column(Integer, default=0)
 
+    SCORE_RANGE = range(1, 11)
+
+    # 验证评分分数
+    @classmethod
+    def validate(self, score):
+        return score in self.SCORE_RANGE
+
 
 class Comment(Base):
     __tablename__ = "comments"

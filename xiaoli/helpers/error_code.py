@@ -52,4 +52,11 @@ class ErrorCode(object):
     # 上传文件大小超出限制
     CODE_UPLOAD_IMAGE_OVER_SIZE = 2300
 
+    # 用户关闭评分
+    CODE_SCORE_USER_CLOSED = 2400
+    # 不可以多次评分
+    CODE_SCORE_USER_MULTIPLE = 2401
+    # 分数不合法
+    CODE_SCORE_INVALID = 2402
+
 

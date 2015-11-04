@@ -24,6 +24,8 @@ def api_response(response=None):
     }
     return res
 
+def api_fail(response=None):
+    return { 'status': 'fail', 'response': response }
 
 def ajax_response():
     res = {

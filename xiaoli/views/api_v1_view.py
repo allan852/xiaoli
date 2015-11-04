@@ -9,11 +9,11 @@ from sqlalchemy.orm import aliased
 from werkzeug.exceptions import RequestEntityTooLarge
 from xiaoli.extensions.upload_set import image_resources
 
-from xiaoli.helpers import api_response, check_register_params, ErrorCode, check_import_contacts_params, \
+from xiaoli.helpers import api_response, api_fail, check_register_params, ErrorCode, check_import_contacts_params, \
     check_update_account_info_params, check_renew_params,SendSms, ajax_response
 from xiaoli.models import Account, Comment, Impress, ImpressContent,Sms, Avatar
 from xiaoli.models import Plan,PlanKeyword
-from xiaoli.models.account import AccountFriend
+from xiaoli.models.account import AccountFriend, Score
 from xiaoli.models.session import db_session_cm
 from xiaoli.models import Token
 from xiaoli.utils.logs.logger import api_logger
@@ -711,6 +711,34 @@ def add_impress(account_id):
         api_logger.error(traceback.format_exc(e))
         abort(400)
 
+@api_v1.route("/account/<account_id>/score", methods=["POST"])
+def score(account_id):
+    u"""用户打分"""
+
+    code = 0
+    with db_session_cm() as session:
+        s = int(request.form['score'])
+        account = session.query(Account).filter(Account.id == account_id).first()
+        target = session.query(Account).filter(Account.id == request.form['target_account_id']).first()
+        scored = session.query(Score).filter(Score.operator_id==account.id).filter(Score.target_id == target.id).first()
+        if not target.allow_score:
+            code = ErrorCode.CODE_SCORE_USER_CLOSED
+        elif(scored):
+            code = ErrorCode.CODE_SCORE_USER_MULTIPLE
+        elif(not Score.validate(s)):
+            code = ErrorCode.CODE_SCORE_INVALID
+        else:
+            score = Score(operator_id=account.id, target_id=target.id, score=s)
+            session.add(score)
+            session.commit()
+    if(code > 0):
+        return jsonify(api_fail({
+            "code": str(code),
+            "message": "disable score"
+            }))
+    else:
+        return jsonify(api_response({"status": "ok" }))
+        
 
 @api_v1.route("/account/<account_id>/avatar", methods=["POST"])
 def set_avatar(account_id):
