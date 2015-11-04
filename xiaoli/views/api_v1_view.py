@@ -408,15 +408,16 @@ def plans():
         key_word_id = request.args.get("key_word_id", None)
         res = api_response()
         with db_session_cm() as session:
-            plans = session.query(Plan).\
+            plans_query = session.query(Plan).\
                 filter(Plan.status == Plan.STATUS_PUBLISH)
             if search_key:
-                plans = plans.filter(Plan.title.like('%' + search_key + '%'))
+                plans_query = plans_query.filter(Plan.title.like('%' + search_key + '%'))
             if key_word_id:
-                plans = plans.filter(Plan.id == key_word_id)
+                plans_query = plans_query.filter(Plan.id == key_word_id)
+            plans_query = plans_query.order_by(Plan.publish_date.desc(), Plan.view_count.desc())
             api_logger.debug(plans)
-            paginate = Page(total_entries=plans.count(), entries_per_page=per_page, current_page=page)
-            results = plans.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
+            paginate = Page(total_entries=plans_query.count(), entries_per_page=per_page, current_page=page)
+            results = plans_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
 
             res.update(response={
                 "page": paginate.current_page(),
@@ -711,26 +712,29 @@ def add_impress(account_id):
         api_logger.error(traceback.format_exc(e))
         abort(400)
 
+
 @api_v1.route("/account/<account_id>/score", methods=["POST"])
-def score(account_id):
+def add_score(account_id):
     u"""用户打分"""
     code = 0
     with db_session_cm() as session:
         try:
-            s = int(request.form['score'])
+            s = request.form.get('score', 0, int)
             account = session.query(Account).filter(Account.id == account_id).first()
             target = session.query(Account).filter(Account.id == request.form['target_account_id']).first()
-            scored = session.query(Score).filter(Score.operator_id==account.id).filter(Score.target_id == target.id).first()
+            _scored = session.query(Score).\
+                filter(Score.operator_id == account.id).\
+                filter(Score.target_id == target.id).first()
             if not target.allow_score:
                 code = ErrorCode.CODE_SCORE_USER_CLOSED
-            elif(scored):
+            elif _scored:
                 code = ErrorCode.CODE_SCORE_USER_MULTIPLE
-            elif(not Score.validate(s)):
+            elif not Score.validate(s):
                 code = ErrorCode.CODE_SCORE_INVALID
             else:
-                score = Score(operator_id=account.id, target_id=target.id, score=s)
+                new_score = Score(operator_id=account.id, target_id=target.id, score=s)
                 target.calculate_score(s)
-                session.add(score)
+                session.add(new_score)
                 session.add(target)
                 session.commit()
         except Exception as e:
@@ -742,8 +746,7 @@ def score(account_id):
                 "message": "server temporarily unusable"
                 }))
 
-
-    if(code > 0):
+    if code > 0:
         return jsonify(api_fail({
             "code": str(code),
             "message": "disable score"

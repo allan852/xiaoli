@@ -86,11 +86,11 @@ class Account(Base, UserMixin):
     # 是否允许别人给自己打分
     allow_score = Column(Boolean, default=True)
     # 平均评分
-    score_average = Column(Integer(11), default=0)
+    score_average = Column(Integer, default=0)
     # 评分次数
-    score_count = Column(Integer(11), default=0)
+    score_count = Column(Integer, default=0)
     # 评分总分数
-    score_total = Column(Integer(11), default=0)
+    score_total = Column(Integer, default=0)
 
     # relationship
     avatar = relationship("Avatar", backref="account", uselist=False)
