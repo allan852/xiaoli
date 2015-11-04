@@ -7,13 +7,13 @@ def upgrade(migrate_engine):
     # migrate_engine to your metadata
     Account.metadata.bind = migrate_engine
     score_average = Column('average_score', Integer(2), default=0)
-    create_column(score_average, Accoount.__table__)
+    create_column(score_average, Account.__table__)
 
     score_count = Column('score_count', Integer(11), default=0)
-    create_column(score_count, Accoount.__table__)
+    create_column(score_count, Account.__table__)
 
     score_total = Column('score_count', Integer(11), default=0)
-    create_column(score_total, Accoount.__table__)
+    create_column(score_total, Account.__table__)
 
 
 def downgrade(migrate_engine):
