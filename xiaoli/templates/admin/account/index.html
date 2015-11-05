@@ -17,6 +17,7 @@
                             <th>{{ _("头像") }}</th>
                             <th>{{ _("手机号") }}</th>
                             <th>{{ _("昵称") }}</th>
+                            <th>{{ _("得分") }}</th>
                             <th>{{ _("注册时间") }}</th>
                             <th>{{ _("状态") }}</th>
                             <th>{{ _("类型") }}</th>
@@ -36,6 +37,7 @@
                                     <a href="{{ url_for("admin_frontend.account_show", account_id=user.id) }}" class="">{{ user.cellphone }}</a>
                                 </td>
                                 <td>{{ user.nickname|d("", true) }}</td>
+                                <td>{{ user.score_total }}</td>
                                 <td>{{ user.screen_create_time }}</td>
                                 <td>{{ user.screen_status }}</td>
                                 <td class="{% if user.is_admin %}text-warning{% else %}text-muted{% endif %}">{{ user.screen_type }}</td>
