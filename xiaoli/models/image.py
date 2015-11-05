@@ -18,7 +18,7 @@ class ImageResource(Base):
     # 资源格式, 图片后缀
     format = Column(String(16))
 
-    def __init__(self, path, account_id):
+    def __init__(self, path=None, account_id=None):
         self.path = path
         self.account_id = account_id
 

@@ -44,8 +44,9 @@ class Plan(Base):
     # 分享次数
     share_count = Column(BigInteger, default=0)
 
-    content = relationship("PlanContent", uselist=False,backref='plan',cascade="all, delete-orphan")
+    content = relationship("PlanContent", uselist=False,backref='plan', cascade="all, delete-orphan")
     keywords = relationship("PlanKeyword", backref='plans', secondary="plan_keyword_rel")
+    cover_image = relationship("ImageResource", backref='plan', uselist=False, cascade="all")
 
     def __init__(self, title):
         self.title = title
@@ -69,17 +70,12 @@ class Plan(Base):
             self.publish_date = datetime.datetime.now()
 
     @property
-    def cover_image(self):
-        with db_session_cm() as session:
-            if self.cover_image_id:
-                image = session.query(ImageResource).get(self.cover_image_id)
-                if image is None:
-                    return ""
-                else:
-                    url = image_resources.url(image.path)
-                    return url
-            else:
-                return ""
+    def cover_image_url(self):
+        if self.cover_image:
+            url = image_resources.url(self.cover_image.path)
+            return url
+        else:
+            return ""
 
     @property
     def is_published(self):

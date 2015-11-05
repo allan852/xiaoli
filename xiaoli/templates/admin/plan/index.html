@@ -8,42 +8,47 @@
         </p>
         {% if plans %}
             <div class="panel panel-default">
-                <div class="panel-heading">{{ _("全部方案") }}</div>
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
+            <div class="panel-heading">{{ _("全部方案") }}</div>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th width="35%">{{ _("标题") }}</th>
+                        <th>{{ _("作者") }}</th>
+                        <th>{{ _("阅读") }}</th>
+                        <th>{{ _("分享") }}</th>
+                        <th>{{ _("状态") }}</th>
+                        <th width="10%">{{ _("创建时间") }}</th>
+                        <th width="10%">{{ _("发布时间") }}</th>
+                        <th rowspan="4">{{ _("操作") }}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for plan in plans %}
                         <tr>
-                            <th width="35%">{{ _("标题") }}</th>
-                            <th>{{ _("作者") }}</th>
-                            <th>{{ _("阅读") }}</th>
-                            <th>{{ _("分享") }}</th>
-                            <th>{{ _("状态") }}</th>
-                            <th width="11%">{{ _("创建时间") }}</th>
-                            <th width="11%">{{ _("发布时间") }}</th>
-                            <th rowspan="4">{{ _("操作") }}</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for plan in plans %}
-                            <tr>
-                                <td>
-                                    <a href="{{ url_for("admin_frontend.plan_show", plan_id=plan.id) }}">{{ plan.title }}</a>
-                                </td>
-                                <td>{{ plan.account.name or plan.account.cellphone }}</td>
-                                <td>{{ plan.view_count }}</td>
-                                <td>{{ plan.share_count }}</td>
-                                <td>{{ plan.screen_status }}</td>
-                                <td>{{ plan.screen_create_time }}</td>
-                                <td>{{ plan.screen_publish_time }}</td>
-                                <td>
-                                    <a href="{{ url_for("admin_frontend.plan_edit", plan_id=plan.id) }}">{{ _("编辑") }}</a>
-                                    |
-                                    <a href="{{ url_for("admin_frontend.plan_publish", plan_id=plan.id) }}">{{ _("发布") }}</a>
-                                    |
-                                    <a href="{{ url_for("admin_frontend.plan_revocation", plan_id=plan.id) }}">{{ _("撤销") }}</a>
-                                    |
-                                    <a class="text-danger action-prompt" data-prompt="{{ _("确定要删除方案[%(name)s]吗？", name=plan.title) }}"
-                                       href="{{ url_for("admin_frontend.plan_delete", plan_id=plan.id) }}">{{ _("删除") }}</a>
+                        <td>{{ plan.id }}</td>
+                        <td>
+                            <a href="{{ url_for("admin_frontend.plan_show", plan_id=plan.id) }}">{{ plan.title }}</a>
+                        </td>
+                        <td>{{ plan.account.name or plan.account.cellphone }}</td>
+                        <td>{{ plan.view_count }}</td>
+                        <td>{{ plan.share_count }}</td>
+                        <td>{{ plan.screen_status }}</td>
+                        <td>{{ plan.screen_create_time }}</td>
+                        <td>{{ plan.screen_publish_time }}</td>
+                        <td>
+                        {% if plan.is_published %}
+                            <a href="{{ url_for("admin_frontend.plan_revocation", plan_id=plan.id) }}">{{ _("撤销") }}</a>
+                        {% else %}
+                        <a href="{{ url_for("admin_frontend.plan_edit", plan_id=plan.id) }}">{{ _("编辑") }}</a>
+                        |
+                        <a href="{{ url_for("admin_frontend.plan_publish", plan_id=plan.id) }}">{{ _("发布") }}</a>
+                        |
+                        <a class="text-danger action-prompt" data-prompt="
+                        {{ _("确定要删除方案[%(name)s]吗？", name=plan.title) }}"
+                                href="{{ url_for("admin_frontend.plan_delete", plan_id=plan.id) }}">{{ _("删除") }}</a>
+                        {% endif %}
                                 </td>
                             </tr>
                         {% endfor %}
@@ -53,7 +58,8 @@
             </div>
             {{ pagination.links }}
         {% else %}
-            <div class="alert alert-success" role="alert">{{ _("没有方案") }}</div>
+            <div class=" alert alert-success" role="alert">
+                {{ _("没有方案") }}</div>
         {% endif %}
-    </div>
+        </div>
 {% endblock %}

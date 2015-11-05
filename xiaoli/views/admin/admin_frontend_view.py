@@ -214,32 +214,30 @@ def plan_update(plan_id):
                 keywords = plan_form.keywords.data
                 request_file = request.files['image']
 
-                plan_alias = aliased(Plan)
                 plan = session.query(Plan).options(subqueryload(Plan.content)).\
-                    join(plan_alias.keywords).filter(Plan.id == plan_id).first()
-                plan_content = PlanContent(content=content)
-                plan.content = plan_content
+                    join(Plan.keywords).filter(Plan.id == plan_id).first()
+                plan.content.content = content
                 plan.title = title
-                if current_user and current_user.is_authenticated:
-                    plan.author_id = current_user.get_id()
                 if request_file:
-                    filename = image_resources.save(request_file, folder=str(current_user.id))
-                    irs = ImageResource(filename, current_user.id)
                     name, suffix = os.path.splitext(request_file.filename)
-                    irs.format = suffix
-                    session.add(irs)
-                    session.commit()
-                    session.query(Plan).filter_by(plan_alias.id == plan_id).update({"cover_image_id": irs.id })
-
+                    filename = image_resources.save(request_file, folder=str(current_user.id))
+                    common_logger.debug(plan.cover_image)
+                    common_logger.debug(type(plan.cover_image))
+                    cover_image = plan.cover_image or ImageResource(filename, current_user.id)
+                    common_logger.debug(cover_image)
+                    cover_image.path = filename
+                    cover_image.format = suffix
+                    plan.cover_image = cover_image
                 if keywords:
                     keywords = session.query(PlanKeyword).filter(PlanKeyword.id.in_(keywords)).all()
                     plan.keywords = keywords
-                session.merge(plan)
+                session.add(plan)
                 session.commit()
                 flash(_(u"方案编辑成功!"), category="success")
                 return redirect(url_for('admin_frontend.plan_show', plan_id=plan.id))
     except Exception, e:
         common_logger.error(traceback.format_exc(e))
+        flash(_(u"方案编辑失败!"), category="danger")
         return redirect(url_for('admin_frontend.plan_show', plan_id=plan_id))
 
 
