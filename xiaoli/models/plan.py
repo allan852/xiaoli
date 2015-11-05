@@ -89,7 +89,7 @@ class Plan(Base):
             "publish_date": self.screen_publish_time or "",
             "author_id": self.author_id,
             "cover_image_id": self.cover_image_id or "",
-            "cover_image_url": self.cover_image or "",
+            "cover_image_url": self.cover_image_url or "",
             "view_count": self.view_count,
             "share_count": self.share_count,
             "content": self.content.content if content else "",
