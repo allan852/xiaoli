@@ -23,11 +23,11 @@
                         {% endfor %}
                     </div>
                     <hr>
+                    <label>{{ _("封面") }}</label>
+                    <div><img src="{{ plan.cover_image_url }}" alt="{{ plan.path }}"></div>
+                    <hr>
                     <label>{{ _("内容") }}</label>
                     <div>{{ plan.content.content|safe }}</div>
-                    <hr>
-                    <label>{{ _("封面") }}</label>
-                    <div>{{ plan.cover_image_url }}</div>
                     <hr>
                     <a class="btn btn-info" href="{{ url_for("admin_frontend.plans") }}">{{ _("返回") }}</a>
                 </div>
