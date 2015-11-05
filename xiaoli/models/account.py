@@ -268,7 +268,7 @@ class Account(Base, UserMixin):
             "horoscope": self.horoscope or "",
             "status": self.status,
             "type": self.type,
-            "score": 0,
+            "score": self.score_total,
             "avatar_url": self.avatar and self.avatar.url or "",
             "allow_notice": self.allow_notice,
             "allow_score": self.allow_score
