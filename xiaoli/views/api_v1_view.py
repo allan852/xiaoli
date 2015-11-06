@@ -376,7 +376,7 @@ def account_friends(account_id):
                     "message": "user not exists"
                 })
                 return jsonify(res)
-            friends_query = session.query(Account)
+            friends_query = session.query(Account, AccountFriend)
             friends_query = friends_query.join(AccountFriend, AccountFriend.to_account_id == Account.id).\
                 filter(AccountFriend.from_account_id == account_id)
             if only_register:
@@ -384,12 +384,23 @@ def account_friends(account_id):
 
             api_logger.debug(friends_query)
             paginate = Page(total_entries=friends_query.count(), entries_per_page=per_page, current_page=page)
-            friends = friends_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
+            results = friends_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
+
+            friends = []
+            for f, af in results:
+                f_d = f.to_dict()
+                if not only_register:
+                    # 当请求的url中有加only_register = 1的时候，返回的是注册时昵称，如果没有only_register的时候返回上传的名字
+                    f_d.update(nickname=af.nickname or "")
+                api_logger.debug(f.id)
+                api_logger.debug("af af.from = %s , af.to = %s" % (af.from_account_id, af.to_account_id))
+                friends.append(f_d)
+
             res.update(response={
                 "page": paginate.current_page(),
                 "per_page": per_page,
                 "total": paginate.total_entries(),
-                "friends": [friend.to_dict() for friend in friends]
+                "friends": friends
             })
             return jsonify(res)
 
