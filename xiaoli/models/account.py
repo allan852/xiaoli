@@ -11,7 +11,6 @@ from xiaoli.extensions.upload_set import image_resources
 from xiaoli.models.base import Base
 from xiaoli.models.relationships import account_plan_favorite_rel_table, \
     account_plan_vote_rel_table
-from xiaoli.models.session import db_session_cm
 from xiaoli.utils.date_util import format_date
 from xiaoli.utils.logs.logger import common_logger
 
@@ -176,14 +175,14 @@ class Account(Base, UserMixin):
         for key in ["allow_notice", "allow_score"]:
             if kwargs.has_key(key):
                 value = int(kwargs.get(key))
-                print value, key, type(value), bool(value)
+                # print value, key, type(value), bool(value)
                 setattr(self, key, bool(value))
 
-    # 计算分数
     def calculate_score(self, score):
+        u""" 计算分数 """
         self.score_count += 1
         self.score_total += score
-        self.score_average =  int(round(float(self.score_total) / self.score_count))
+        self.score_average = int(round(float(self.score_total) / self.score_count))
 
     @classmethod
     def import_friends(cls, session, account_id, contacts):
