@@ -119,13 +119,28 @@ def plans():
     u"""方案列表"""
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", Account.PER_PAGE, type=int)
+    q = request.args.get("q")
     with db_session_cm() as session:
         plans_query = session.query(Plan)
-        pagination = Pagination(page=page, total=plans_query.count(), record_name=_(u"方案"), bs_version=3)
-        plans = plans_query.order_by(Plan.create_time.desc()).offset((page - 1) * per_page).limit(per_page)
+        search = False
+        if q:
+            search = True
+            q_string = "%%%s%%" % q
+            plans_query = plans_query.filter(Plan.title.like(q_string))
+
+        pagination = Pagination(
+            page=page,
+            found=plans_query.count(),
+            total=plans_query.count(),
+            search=search,
+            record_name=_(u"方案"),
+            bs_version=3
+        )
+        plans_query = plans_query.order_by(Plan.create_time.desc()).offset((page - 1) * per_page).limit(per_page)
         context = {
-            "plans": plans.all(),
-            "pagination": pagination
+            "plans": plans_query.all(),
+            "pagination": pagination,
+            "q": q
         }
         return render_template("admin/plan/index.html", **context)
 

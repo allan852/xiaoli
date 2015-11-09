@@ -8,7 +8,25 @@
         </p>
         {% if plans %}
             <div class="panel panel-default">
-            <div class="panel-heading">{{ _("全部方案") }}</div>
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-xs-9">
+                        <span>{{ _("全部方案") }}</span>
+                    </div>
+                    <div class="col-xs-3">
+                        <form action="{{ url_for("admin_frontend.plans") }}">
+                            <div class="input-group input-group-sm">
+                                <input name="q" type="text" class="form-control" value="{{ q|d("", True) }}" placeholder="{{ _("方案标题") }}">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default" type="submit">
+                                        <span class="glyphicon glyphicon-search"></span>
+                                    </button>
+                                </span>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead>
