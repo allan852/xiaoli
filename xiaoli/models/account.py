@@ -104,6 +104,9 @@ class Account(Base, UserMixin):
     to_friends = association_proxy("friend_to_relations", "to_account")
     from_friends = association_proxy("friend_from_relations", "from_account")
 
+    voted_scores = association_proxy("scored_relations", "operator_account")
+    vote_scores = association_proxy("score_relations", "target_account")
+
     favorite_plans = relationship("Plan", secondary=account_plan_favorite_rel_table, lazy="dynamic")
     vote_plans = relationship("Plan", secondary=account_plan_vote_rel_table, lazy="dynamic")
     plans = relationship("Plan", backref="account", foreign_keys="[Plan.author_id]")
@@ -311,6 +314,7 @@ class Avatar(Base):
 
 class Score(Base):
     __tablename__ = "scores"
+    SCORE_RANGE = range(1, 11)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     # 被打分人id，外键
@@ -320,7 +324,8 @@ class Score(Base):
     # 分数
     score = Column(Integer, default=0)
 
-    SCORE_RANGE = range(1, 11)
+    target_account = relationship(Account, backref="scored_relations", primaryjoin=(target_id == Account.id))
+    operator_account = relationship(Account, backref="score_relations", primaryjoin=(operator_id == Account.id))
 
     # 验证评分分数
     @classmethod
