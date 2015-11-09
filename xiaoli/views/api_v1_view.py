@@ -326,6 +326,49 @@ def preset_keywords():
         abort(400)
 
 
+@api_v1.route("/account/<account_id>/score_details", methods=["GET"])
+def score_details(account_id):
+    u"""获取用户打分详情"""
+    try:
+        page = request.args.get("page", 1, int)
+        per_page = request.args.get("per_page", Impress.PER_PAGE, int)
+        res = api_response()
+        with db_session_cm() as session:
+            account = session.query(Account).get(account_id)
+            if not account:
+                res.update(status="fail", response={
+                    "code": ErrorCode.CODE_ACCOUNT_NOT_EXISTS,
+                    "message": "user not exists"
+                })
+                return jsonify(res)
+            score_query = session.query(Account, Score).\
+                join(Score.operator_account).\
+                filter(Score.target_account == account).\
+                order_by(Score.create_time.desc())
+
+            api_logger.debug(score_query)
+            paginate = Page(total_entries=score_query.count(), entries_per_page=per_page, current_page=page)
+            results = score_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
+            api_logger.debug(results)
+            detail_dicts = []
+            for account, score in results:
+                d = {
+                    "account": account.to_dict(),
+                    "score": score.score
+                }
+                detail_dicts.append(d)
+            res.update(response={
+                "score_details": detail_dicts,
+                "page": page,
+                "per_page": per_page,
+                "total": paginate.total_entries()
+            })
+        return jsonify(res)
+    except Exception as e:
+        api_logger.error(traceback.format_exc(e))
+        abort(400)
+
+
 @api_v1.route("/account/<account_id>/comments", methods=["GET"])
 def account_comments(account_id):
     u"""获取用户评论"""
