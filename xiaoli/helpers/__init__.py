@@ -45,6 +45,7 @@ def check_register_params(session, **kwargs):
     password = kwargs.get("password")
     password2 = kwargs.get("password2")
     security_code = kwargs.get("security_code")
+    nickname = kwargs.get("nickname")
 
     # 手机号是否重复
     if phone:
@@ -55,6 +56,17 @@ def check_register_params(session, **kwargs):
                 "message": "phone exists"
             })
             return False, res
+    
+    # 用户昵称是否重复
+    if nickname:
+        account = session.query(Account).filter_by(nickname=nickname).first()
+        if account:
+            res.update(status="fail", response={
+                "code": ErrorCode.CODE_UPDATE_INFO_NICKNAME_EXISTS,
+                "message": "nickname param exists error"
+            })
+            return False, res
+
     # 密码是否一致
     if not(password and password2 and password == password2):
         res.update(status="fail", response={

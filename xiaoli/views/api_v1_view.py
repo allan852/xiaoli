@@ -32,11 +32,14 @@ def register():
         password = request.form.get("password")
         password2 = request.form.get("password2")
         security_code = request.form.get("security_code")
+        # 用户昵称
+        nickname = request.form.get("nickname")
         params = {
             "phone": phone,
             "password": password,
             "password2": password2,
-            "security_code": security_code
+            "security_code": security_code,
+            "nickname": nickname
         }
         with db_session_cm() as session:
             ok, res = check_register_params(session, **params)
@@ -53,6 +56,7 @@ def register():
             else:
                 # 没有导入过，创建用户
                 user = Account(phone, password)
+            if(nickname): user.nickname = nickname
             session.add(user)
             session.commit()
             res = api_response()
