@@ -402,13 +402,27 @@ def keywords():
     u"""关键字"""
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", PlanKeyword.PER_PAGE, type=int)
+    q = request.args.get("q")
     with db_session_cm() as session:
         keywords_query = session.query(PlanKeyword)
-        pagination = Pagination(page=page, total=keywords_query.count(), record_name=_(u"关键字"), bs_version=3)
+        search = False
+        if q:
+            search = True
+            q_string = "%%%s%%" % q
+            keywords_query = keywords_query.filter(PlanKeyword.content.like(q_string))
+
+        pagination = Pagination(page=page,
+                                found=keywords_query.count(),
+                                total=keywords_query.count(),
+                                search=search,
+                                record_name=_(u"关键字"),
+                                bs_version=3
+                                )
         keywords = keywords_query.order_by(PlanKeyword.id.desc()).offset((page - 1) * per_page).limit(per_page)
         context = {
             "keywords": keywords.all(),
-            "pagination": pagination
+            "pagination": pagination,
+            "q": q
         }
         return render_template("admin/keyword/index.html", **context)
 
