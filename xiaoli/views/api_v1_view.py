@@ -389,9 +389,8 @@ def account_friends(account_id):
             friends = []
             for f, af in results:
                 f_d = f.to_dict()
-                if not only_register:
-                    # 当请求的url中有加only_register = 1的时候，返回的是注册时昵称，如果没有only_register的时候返回上传的名字
-                    f_d.update(nickname=af.nickname or "")
+                # 添加通讯录中的昵称
+                f_d.update(contacts_nickname=af.nickname or "")
                 api_logger.debug(f.id)
                 api_logger.debug("af af.from = %s , af.to = %s" % (af.from_account_id, af.to_account_id))
                 friends.append(f_d)
