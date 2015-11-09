@@ -7,6 +7,9 @@
                 <div class="panel-heading">
                     <div class="panel-title">
                         <span>{{ _("全部用户") }}</span>
+                        <div class="search pull-right">
+                            <input type="" value="{{ q|d("", True) }}" placeholder="{{ _("手机号或昵称") }}"/>
+                        </div>
                     </div>
                 </div>
                 <div class="table-responsive">
