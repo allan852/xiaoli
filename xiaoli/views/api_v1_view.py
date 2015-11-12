@@ -6,13 +6,14 @@ import traceback
 from flask import Blueprint, abort, request, jsonify
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
+from sqlalchemy.sql import or_
 from werkzeug.exceptions import RequestEntityTooLarge
 from xiaoli.extensions.upload_set import image_resources
 
 from xiaoli.helpers import api_response, api_fail, check_register_params, ErrorCode, check_import_contacts_params, \
     check_update_account_info_params, check_renew_params,SendSms, ajax_response
 from xiaoli.models import Account, Comment, Impress, ImpressContent,Sms, Avatar
-from xiaoli.models import Plan,PlanKeyword
+from xiaoli.models import Plan,PlanKeyword,PlanContent
 from xiaoli.models.account import AccountFriend, Score
 from xiaoli.models.session import db_session_cm
 from xiaoli.models import Token
@@ -465,10 +466,12 @@ def plans():
         key_word_id = request.args.get("key_word_id", None)
         res = api_response()
         with db_session_cm() as session:
-            plans_query = session.query(Plan).\
+            plans_query = session.query(Plan).join(PlanContent).join(PlanKeyword, Plan.keywords).\
                 filter(Plan.status == Plan.STATUS_PUBLISH)
             if search_key:
-                plans_query = plans_query.filter(Plan.title.like('%' + search_key + '%'))
+                plans_query = plans_query.filter(or_(Plan.title.like("%" + search_key + "%"),
+                                                     PlanContent.content.like("%" + search_key + "%"),
+                                                     PlanKeyword.content.like("%" + search_key + "%")))
             if key_word_id:
                 plans_query = plans_query.filter(Plan.id == key_word_id)
             plans_query = plans_query.order_by(Plan.publish_date.desc(), Plan.view_count.desc())
