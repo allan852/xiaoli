@@ -9,7 +9,7 @@ from flask.ext.babel import gettext as _
 from flask.ext.paginate import Pagination
 from flask.ext.uploads import UploadNotAllowed
 from flask_login import current_user
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import subqueryload, aliased
 from xiaoli.extensions.upload_set import image_resources
 from xiaoli.models import Account, Plan, PlanContent, PlanKeyword, ImageResource, Impress, ImpressContent
@@ -38,13 +38,30 @@ def accounts():
     u"""用户列表"""
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", Account.PER_PAGE, type=int)
+    q = request.args.get("q")
     with db_session_cm() as session:
+        search = False
         users_query = session.query(Account).outerjoin(Account.avatar)
-        pagination = Pagination(page=page, total=users_query.count(), record_name=_(u"用户"), bs_version=3)
+        if q:
+            search = True
+            q_string = "%%%s%%" % q
+            users_query = users_query.filter(
+                or_(Account.cellphone.like(q_string), Account.nickname.like(q_string))
+            )
+
+        common_logger.debug(users_query)
+
+        pagination = Pagination(found=users_query.count(),
+                                total=users_query.count(),
+                                page=page,
+                                search=search,
+                                record_name=_(u"用户"),
+                                bs_version=3)
         users = users_query.order_by(Account.id.desc()).offset((page - 1) * per_page).limit(per_page)
         context = {
             "users": users.all(),
-            "pagination": pagination
+            "pagination": pagination,
+            "q": q
         }
         return render_template("admin/account/index.html", **context)
 
@@ -102,13 +119,28 @@ def plans():
     u"""方案列表"""
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", Account.PER_PAGE, type=int)
+    q = request.args.get("q")
     with db_session_cm() as session:
         plans_query = session.query(Plan)
-        pagination = Pagination(page=page, total=plans_query.count(), record_name=_(u"方案"), bs_version=3)
-        plans = plans_query.order_by(Plan.create_time.desc()).offset((page - 1) * per_page).limit(per_page)
+        search = False
+        if q:
+            search = True
+            q_string = "%%%s%%" % q
+            plans_query = plans_query.filter(Plan.title.like(q_string))
+
+        pagination = Pagination(
+            page=page,
+            found=plans_query.count(),
+            total=plans_query.count(),
+            search=search,
+            record_name=_(u"方案"),
+            bs_version=3
+        )
+        plans_query = plans_query.order_by(Plan.create_time.desc()).offset((page - 1) * per_page).limit(per_page)
         context = {
-            "plans": plans.all(),
-            "pagination": pagination
+            "plans": plans_query.all(),
+            "pagination": pagination,
+            "q": q
         }
         return render_template("admin/plan/index.html", **context)
 
@@ -370,13 +402,27 @@ def keywords():
     u"""关键字"""
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", PlanKeyword.PER_PAGE, type=int)
+    q = request.args.get("q")
     with db_session_cm() as session:
         keywords_query = session.query(PlanKeyword)
-        pagination = Pagination(page=page, total=keywords_query.count(), record_name=_(u"关键字"), bs_version=3)
+        search = False
+        if q:
+            search = True
+            q_string = "%%%s%%" % q
+            keywords_query = keywords_query.filter(PlanKeyword.content.like(q_string))
+
+        pagination = Pagination(page=page,
+                                found=keywords_query.count(),
+                                total=keywords_query.count(),
+                                search=search,
+                                record_name=_(u"关键字"),
+                                bs_version=3
+                                )
         keywords = keywords_query.order_by(PlanKeyword.id.desc()).offset((page - 1) * per_page).limit(per_page)
         context = {
             "keywords": keywords.all(),
-            "pagination": pagination
+            "pagination": pagination,
+            "q": q
         }
         return render_template("admin/keyword/index.html", **context)
 

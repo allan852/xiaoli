@@ -57,7 +57,8 @@ def register():
             else:
                 # 没有导入过，创建用户
                 user = Account(phone, password)
-            if(nickname): user.nickname = nickname
+            if nickname:
+                user.nickname = nickname
             session.add(user)
             session.commit()
             res = api_response()
