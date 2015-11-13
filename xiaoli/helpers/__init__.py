@@ -77,7 +77,7 @@ def check_register_params(session, **kwargs):
         return False, res
 
     if security_code:
-        sms = session.query(Sms).filter(Sms.phone == phone).order(Sms.id.desc()).first()
+        sms = session.query(Sms).filter(Sms.phone == phone).order_by(Sms.id.desc()).first()
         if not sms or sms.code != security_code:
             res.update(status="fail", response={
                 "code": ErrorCode.CODE_SECURITY_CODE_ERROR,
@@ -233,7 +233,7 @@ def check_renew_params(session, **kwargs):
 
     # 检测验证码是否正确
     if code:
-        sms = session.query(Sms).filter(Sms.phone == phone).order(Sms.id.desc()).first()
+        sms = session.query(Sms).filter(Sms.phone == phone).order_by(Sms.id.desc()).first()
         if not sms or sms.code != code:
             res.update(status="fail", response={
                 "code": ErrorCode.CODE_SECURITY_CODE_ERROR,
