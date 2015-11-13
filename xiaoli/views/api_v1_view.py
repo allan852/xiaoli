@@ -935,6 +935,7 @@ def renew_password():
             account.password = new_password
             session.add(account)
             session.commit()
+            res = api_response()
             res.update(response={"status": "ok"})
             return jsonify(res)
     except Exception as e:

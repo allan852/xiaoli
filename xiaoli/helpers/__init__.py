@@ -237,8 +237,8 @@ def check_renew_params(session, **kwargs):
                 "code": ErrorCode.CODE_REGISTER_SECURITY_CODE_ERROR,
                 "message": "security code error"
             })
-        session.delete(sms)
-        return False, res
+            session.delete(sms)
+            return False, res
     return True, res
 
 
