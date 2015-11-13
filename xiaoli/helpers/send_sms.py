@@ -48,7 +48,7 @@ class SmsSender(object):
     """
 
     URL = "http://m.5c.com.cn/api/send/index.php"
-    SMS_MESSAGE = u"您的手机%s正在注册,您的验证码是:%s"
+    SMS_MESSAGE = u"您的手机%s正在操作,您的验证码是:%s"
 
     def __init__(self, phone, content=None):
         self.phone = phone
