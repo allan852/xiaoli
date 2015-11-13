@@ -921,7 +921,6 @@ def renew_password():
         code = request.form.get("code")
         new_password = request.form.get("new_password")
         new_password2 = request.form.get("new_password2")
-        res = api_response()
         params = {
             "phone": phone,
             "code": code,
@@ -931,20 +930,7 @@ def renew_password():
         with db_session_cm() as session:
             ok, res = check_renew_params(session, **params)
             if not ok:
-                 return jsonify(res)
-            sms = session.query(Sms).filter(Sms.phone == phone).first()
-            if sms and sms.code == code:
-                res.update(response={
-                    "status": "ok"
-                })
-                session.delete(sms)
-                session.commit()
-            else:
-                res.update(response={
-                    "status": "ok"
-                })
                 return jsonify(res)
-
             account = session.query(Account).filter(Account.cellphone == phone).first()
             account.password = new_password
             session.add(account)

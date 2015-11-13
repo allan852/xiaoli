@@ -6,6 +6,7 @@ from flask.ext.login import login_user
 from flask.ext.principal import identity_changed, Identity
 from xiaoli.helpers.error_code import ErrorCode
 from xiaoli.helpers.send_sms import SmsSender
+from xiaoli.models import Sms
 from xiaoli.models.account import Account
 from xiaoli.models.session import db_session_cm
 
@@ -229,7 +230,15 @@ def check_renew_params(session, **kwargs):
             return False, res
 
     # 检测验证码是否正确
-
+    if code:
+        sms = session.query(Sms).filter(Sms.phone == phone).first()
+        if not sms or sms.code != code:
+            res.update(status="fail", response={
+                "code": ErrorCode.CODE_REGISTER_SECURITY_CODE_ERROR,
+                "message": "security code error"
+            })
+        session.delete(sms)
+        return False, res
     return True, res
 
 
