@@ -477,7 +477,7 @@ def plans():
                 plans_query = plans_query.filter(Plan.id == key_word_id)
             plans_query = plans_query.order_by(Plan.publish_date.desc(), Plan.view_count.desc())
             api_logger.debug(plans)
-            paginate = Page(total_entries=plans_query.count(), entries_per_page=per_page, current_page=page)
+            paginate = Page(total_entries=plans_query.distinct(Plan.id).count(), entries_per_page=per_page, current_page=page)
             results = plans_query.offset(paginate.skipped()).limit(paginate.entries_per_page()).all()
 
             res.update(response={
