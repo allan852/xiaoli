@@ -173,7 +173,7 @@ def check_security_code():
         code = request.form.get("code")
         res = api_response()
         with db_session_cm() as session:
-            sms = session.query(Sms).filter(Sms.phone == phone).first()
+            sms = session.query(Sms).filter(Sms.phone == phone).order(Sms.id.desc()).first()
             if sms and sms.code == code:
                 res.update(response={
                     "status": "ok"
