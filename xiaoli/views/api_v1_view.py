@@ -8,10 +8,12 @@ from sqlalchemy import func
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import or_
 from werkzeug.exceptions import RequestEntityTooLarge
+
 from xiaoli.extensions.upload_set import image_resources
 
 from xiaoli.helpers import api_response, api_fail, check_register_params, ErrorCode, check_import_contacts_params, \
-    check_update_account_info_params, check_renew_params,SendSms, ajax_response
+    check_update_account_info_params, check_renew_params, ajax_response
+from xiaoli.helpers.send_sms import SmsSender
 from xiaoli.models import Account, Comment, Impress, ImpressContent,Sms, Avatar
 from xiaoli.models import Plan,PlanKeyword,PlanContent
 from xiaoli.models.account import AccountFriend, Score
@@ -25,7 +27,7 @@ __author__ = 'zouyingjun'
 api_v1 = Blueprint("api_v1", __name__, template_folder="templates/api_v1", static_folder="../static")
 
 
-@api_v1.route("/register", methods=["POST","GET"])
+@api_v1.route("/register", methods=["POST", "GET"])
 def register():
     u"""注册"""
     try:
@@ -142,14 +144,12 @@ def send_security_code():
     u"""发送短信验证码"""
     try:
         phone = request.form.get("phone")
-        sms_code = SendSms.rand_code()
-        content = "code is: %s" % sms_code
-        content = content.encode('gbk','ignore')
-        code = SendSms.send(phone, content)
+        sms_sender = SmsSender(phone)
+        sms_sender.send()
         res = api_response()
-        if 'success' in code:
+        if sms_sender.is_success:
             with db_session_cm() as session:
-                sms = Sms(phone, sms_code)
+                sms = Sms(phone, sms_sender.code)
                 session.add(sms)
                 session.commit()
             res.update(response={
@@ -161,7 +161,6 @@ def send_security_code():
             })
         return jsonify(res)
     except Exception as e:
-        print traceback.format_exc(e)
         api_logger.error(traceback.format_exc(e))
         abort(400)
 
@@ -183,7 +182,9 @@ def check_security_code():
                 session.commit()
             else:
                 res.update(response={
-                    "status": "fail"
+                    "status": "fail",
+                    "code": ErrorCode.CODE_REGISTER_SECURITY_CODE_ERROR,
+                    "message": "security code error"
                 })
         return jsonify(res)
     except Exception as e:
