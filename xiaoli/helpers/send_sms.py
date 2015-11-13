@@ -74,7 +74,8 @@ class SmsSender(object):
             'password': password,
             'apikey': api_key,
             'mobile': self.phone,
-            'content': content or self.content
+            'content': content or self.content,
+            'encode': 1  # 不转码
         }
         headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
         result = requests.post(SmsSender.URL, params=params, timeout=30, headers=headers)
