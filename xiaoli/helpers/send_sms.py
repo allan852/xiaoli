@@ -55,7 +55,7 @@ class SmsSender(object):
         self.status = None
         self.message = None
         self.code = SmsSender.rand_code()
-        self._content = None
+        self._content = content
 
     @property
     def content(self):
