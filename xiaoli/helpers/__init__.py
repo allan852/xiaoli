@@ -213,7 +213,7 @@ def check_renew_params(session, **kwargs):
     # 手机号是否重复
     if phone:
         account = session.query(Account).filter(Account.cellphone == phone).first()
-        if not account:
+        if not account or account.status == Account.STATUS_UNREGISTERED:
             res.update(status="fail", response={
                 "code": ErrorCode.CODE_LOGIN_PHONE_NOT_EXISTS,
                 "message": "phone not exists"
