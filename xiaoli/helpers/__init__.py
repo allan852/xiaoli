@@ -76,12 +76,14 @@ def check_register_params(session, **kwargs):
         })
         return False, res
 
-    if not security_code:
-        res.update(status="fail", response={
-            "code": ErrorCode.CODE_REGISTER_SECURITY_CODE_ERROR,
-            "message": "security code error"
-        })
-        return False, res
+    if security_code:
+        sms = session.query(Sms).filter(Sms.phone == phone).first()
+        if not sms or sms.code != security_code:
+            res.update(status="fail", response={
+                "code": ErrorCode.CODE_SECURITY_CODE_ERROR,
+                "message": "security code error"
+            })
+            return False, res
 
     return True, res
 
@@ -234,7 +236,7 @@ def check_renew_params(session, **kwargs):
         sms = session.query(Sms).filter(Sms.phone == phone).first()
         if not sms or sms.code != code:
             res.update(status="fail", response={
-                "code": ErrorCode.CODE_REGISTER_SECURITY_CODE_ERROR,
+                "code": ErrorCode.CODE_SECURITY_CODE_ERROR,
                 "message": "security code error"
             })
             session.delete(sms)

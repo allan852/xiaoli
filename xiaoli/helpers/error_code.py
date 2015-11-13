@@ -13,7 +13,7 @@ class ErrorCode(object):
     # 注册时两次密码不一致
     CODE_REGISTER_PASSWORD_NOT_EQUAL = 1501
     # 短信验证码不正确
-    CODE_REGISTER_SECURITY_CODE_ERROR = 1502
+    CODE_SECURITY_CODE_ERROR = 1502
 
     # 登陆是手机号不存在
     CODE_LOGIN_PHONE_NOT_EXISTS = 1601
