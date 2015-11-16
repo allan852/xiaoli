@@ -60,7 +60,7 @@ def check_register_params(session, **kwargs):
     
     # 用户昵称是否重复
     if nickname:
-        account = session.query(Account).filter_by(nickname=nickname).first()
+        account = session.query(Account).filter(Account.nickname == nickname).first()
         if account:
             res.update(status="fail", response={
                 "code": ErrorCode.CODE_UPDATE_INFO_NICKNAME_EXISTS,
