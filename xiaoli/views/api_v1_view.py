@@ -178,8 +178,9 @@ def check_security_code():
                 res.update(response={
                     "status": "ok"
                 })
-                session.delete(sms)
-                session.commit()
+                # 验证成功以后不删除验证码
+                # session.delete(sms)
+                # session.commit()
             else:
                 res.update(response={
                     "status": "fail",
