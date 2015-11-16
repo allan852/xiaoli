@@ -412,6 +412,7 @@ def account_friends(account_id):
     try:
         page = request.args.get("page", 1, int)
         per_page = request.args.get("per_page", Comment.PER_PAGE, int)
+        search_key = request.args.get("search_key")
         _only_register = request.args.get("only_register", 0, int)
         only_register = bool(_only_register)
 
@@ -431,6 +432,13 @@ def account_friends(account_id):
                 filter(AccountFriend.from_account_id == account_id)
             if only_register:
                 friends_query = friends_query.filter(Account.status == Account.STATUS_ACTIVE)
+
+            if search_key:
+                q_string = "%%%s%%" % search_key
+                if only_register:
+                    friends_query = friends_query.filter(Account.nickname.like(q_string))
+                else:
+                    friends_query = friends_query.filter(AccountFriend.nickname.like(q_string))
 
             api_logger.debug(friends_query)
             paginate = Page(total_entries=friends_query.count(), entries_per_page=per_page, current_page=page)
